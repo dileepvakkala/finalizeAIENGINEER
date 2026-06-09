@@ -1,0 +1,422 @@
+Day 11 – File Uploads, PDF Processing, Document APIs & GenAI Foundation
+
+This day is extremely important because almost every modern GenAI application works with:
+
+PDFs
+Word Documents
+Text Files
+Images
+Knowledge Bases
+
+Your future RAG and GenAI projects will start with file uploads.
+
+Goal of Day 11
+
+By the end of today, you should understand:
+
+✅ File Upload APIs
+
+✅ Multipart Form Data
+
+✅ Upload PDF Files
+
+✅ Store Files
+
+✅ Read PDF Content
+
+✅ Extract Text from PDF
+
+✅ Validate File Types
+
+✅ File Metadata Storage
+
+✅ Banking Statement Upload APIs
+
+Session 1 (6 AM – 8 AM)
+FastAPI File Upload Basics
+Why File Uploads?
+
+Real-world examples:
+
+Banking
+Upload Bank Statement
+Upload KYC Document
+Upload Loan Document
+GenAI
+Upload PDF
+Upload Research Papers
+Upload Company Documents
+Upload Knowledge Base
+FastAPI File Upload
+
+Install:
+
+pip install python-multipart
+Basic Upload API
+from fastapi import FastAPI
+from fastapi import UploadFile
+from fastapi import File
+
+app = FastAPI()
+
+@app.post("/upload")
+async def upload_file(
+        file: UploadFile = File(...)
+):
+
+    return {
+        "filename": file.filename
+    }
+Test in Swagger
+
+Open:
+
+http://localhost:8000/docs
+
+Upload:
+
+sample.pdf
+
+Response:
+
+{
+  "filename":"sample.pdf"
+}
+UploadFile vs Bytes
+Bytes
+file: bytes = File(...)
+
+Loads entire file into memory.
+
+UploadFile
+file: UploadFile = File(...)
+
+Streams file efficiently.
+
+Preferred for production.
+
+File Metadata
+@app.post("/upload")
+async def upload(
+        file: UploadFile
+):
+
+    return {
+        "filename": file.filename,
+        "content_type": file.content_type
+    }
+Session 2 (11 AM – 1 PM)
+Save Uploaded Files
+Create Upload Folder
+uploads/
+Save File
+import shutil
+
+@app.post("/upload")
+async def upload(
+        file: UploadFile
+):
+
+    path = (
+        f"uploads/{file.filename}"
+    )
+
+    with open(path, "wb") as buffer:
+
+        shutil.copyfileobj(
+            file.file,
+            buffer
+        )
+
+    return {
+        "message": "Uploaded"
+    }
+File Validation
+
+Only allow PDFs.
+
+if file.content_type != "application/pdf":
+
+    raise HTTPException(
+        status_code=400,
+        detail="Only PDF Allowed"
+    )
+Limit File Size
+
+Example:
+
+MAX_SIZE = 5 * 1024 * 1024
+
+5 MB
+
+Read File Size
+content = await file.read()
+
+size = len(content)
+PDF Processing
+
+Install:
+
+pip install pypdf
+Extract Text
+from pypdf import PdfReader
+
+reader = PdfReader(
+    "uploads/sample.pdf"
+)
+
+text = ""
+
+for page in reader.pages:
+
+    text += page.extract_text()
+
+Output:
+
+Customer Name
+Account Number
+Balance
+...
+Session 3 (4 PM – 6 PM)
+Banking PDF Upload Project
+Use Case
+
+Customer uploads:
+
+Bank Statement PDF
+
+System:
+
+Upload
+ ↓
+Save File
+ ↓
+Extract Text
+ ↓
+Store Metadata
+ ↓
+Return Summary
+Response Model
+from pydantic import BaseModel
+
+class UploadResponse(
+    BaseModel
+):
+
+    filename: str
+
+    pages: int
+
+    size: int
+Complete Upload API
+from fastapi import (
+    FastAPI,
+    UploadFile,
+    File,
+    HTTPException
+)
+
+from pypdf import PdfReader
+import shutil
+import os
+
+app = FastAPI()
+
+UPLOAD_DIR = "uploads"
+
+os.makedirs(
+    UPLOAD_DIR,
+    exist_ok=True
+)
+
+@app.post("/upload-pdf")
+async def upload_pdf(
+        file: UploadFile = File(...)
+):
+
+    if (
+        file.content_type
+        != "application/pdf"
+    ):
+
+        raise HTTPException(
+            400,
+            "Only PDF Allowed"
+        )
+
+    path = (
+        f"{UPLOAD_DIR}/"
+        f"{file.filename}"
+    )
+
+    with open(path, "wb") as buffer:
+
+        shutil.copyfileobj(
+            file.file,
+            buffer
+        )
+
+    reader = PdfReader(path)
+
+    page_count = len(
+        reader.pages
+    )
+
+    return {
+        "filename":
+        file.filename,
+
+        "pages":
+        page_count
+    }
+Banking API Endpoints
+Upload Statement
+POST /upload-pdf
+Get Uploaded Documents
+GET /documents
+Get Document By ID
+GET /documents/{id}
+Delete Document
+DELETE /documents/{id}
+Future GenAI Flow
+
+Today's upload API becomes tomorrow's RAG pipeline:
+
+PDF Upload
+      ↓
+Text Extraction
+      ↓
+Chunking
+      ↓
+Embeddings
+      ↓
+Vector DB
+      ↓
+LLM
+      ↓
+Answer
+
+This is exactly how document-chat systems work.
+
+Interview Questions
+What is UploadFile?
+
+FastAPI class for handling uploaded files efficiently.
+
+Why UploadFile instead of bytes?
+
+UploadFile streams content and uses less memory.
+
+What is multipart/form-data?
+
+HTTP content type used for file uploads.
+
+How do you restrict file types?
+file.content_type
+
+Validation.
+
+How do you save uploaded files?
+shutil.copyfileobj()
+How do you read PDF content?
+
+Using:
+
+from pypdf import PdfReader
+What should be validated before storing files?
+Type
+Size
+Filename
+Virus scanning (production)
+How would you process a PDF in a GenAI system?
+Upload
+ ↓
+Extract Text
+ ↓
+Chunk
+ ↓
+Embed
+ ↓
+Store in Vector DB
+What security risks exist in file uploads?
+Malicious files
+Oversized files
+Executable uploads
+Path traversal attacks
+How do you secure file uploads?
+Validate MIME type
+Restrict size
+Rename files
+Scan uploads
+Store outside web root
+Coding Tasks
+Task 1
+
+Create:
+
+POST /upload
+
+Accept any file.
+
+Task 2
+
+Create:
+
+POST /upload-pdf
+
+Only PDFs.
+
+Task 3
+
+Save uploaded files.
+
+Task 4
+
+Extract PDF text.
+
+Task 5
+
+Return:
+
+{
+  "filename":"",
+  "pages":0,
+  "size":0
+}
+Task 6
+
+Store document metadata in PostgreSQL.
+
+Table:
+
+documents
+
+Columns:
+
+id
+filename
+path
+size
+uploaded_at
+DSA (90 Minutes)
+
+Solve:
+
+Valid Anagram
+Contains Duplicate
+Invert Binary Tree
+Maximum Subarray
+House Robber
+End-of-Day Deliverable
+
+Your Banking Application should now support:
+
+JWT Authentication
+Customer APIs
+Account APIs
+Middleware
+Logging
+PDF Upload API
+PDF Validation
+PDF Text Extraction
+Document Metadata Storage

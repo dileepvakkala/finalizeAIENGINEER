@@ -1,0 +1,439 @@
+Day 8 – Authentication, JWT, Login APIs, Authorization
+
+This is one of the most frequently asked topics in FastAPI, Microservices, Banking Applications, and GenAI Platform interviews.
+
+Goal of Day 8
+
+By the end of Day 8, you should understand:
+
+✅ Authentication
+
+✅ Authorization
+
+✅ JWT (JSON Web Token)
+
+✅ Password Hashing
+
+✅ Login APIs
+
+✅ Protected APIs
+
+✅ Role-Based Access Control (RBAC)
+
+✅ Refresh Tokens
+
+✅ FastAPI Security
+
+Session 1 (6 AM – 8 AM)
+Authentication Fundamentals
+What is Authentication?
+
+Authentication answers:
+
+Who are you?
+
+Example:
+
+Username: dileep
+Password: admin123
+
+System verifies identity.
+
+What is Authorization?
+
+Authorization answers:
+
+What can you access?
+
+Example:
+
+ADMIN
+  ├── Create Customer
+  ├── Delete Customer
+  └── View Accounts
+
+USER
+  ├── View Own Account
+  └── Update Profile
+Authentication Flow
+User Login
+    ↓
+Verify Username & Password
+    ↓
+Generate JWT Token
+    ↓
+Return Token
+    ↓
+Client Stores Token
+    ↓
+Send Token in API Requests
+Password Hashing
+
+Never store:
+
+❌
+
+admin123
+
+Store:
+
+✅
+
+$2b$12$sd87as8d7asd...
+Install
+pip install passlib[bcrypt]
+Hash Password
+from passlib.context import CryptContext
+
+pwd_context = CryptContext(
+    schemes=["bcrypt"],
+    deprecated="auto"
+)
+
+password = "admin123"
+
+hashed = pwd_context.hash(password)
+
+print(hashed)
+Verify Password
+pwd_context.verify(
+    "admin123",
+    hashed
+)
+
+Output:
+
+True
+Session 2 (11 AM – 1 PM)
+JWT Fundamentals
+What is JWT?
+
+JWT = JSON Web Token
+
+Used for stateless authentication.
+
+JWT Structure
+HEADER
+.
+PAYLOAD
+.
+SIGNATURE
+
+Example:
+
+xxxxx.yyyyy.zzzzz
+Payload Example
+{
+  "sub": "dileep",
+  "role": "ADMIN",
+  "exp": 1750000000
+}
+Install
+pip install python-jose
+Generate JWT
+from jose import jwt
+from datetime import datetime
+from datetime import timedelta
+
+SECRET_KEY = "mysecret"
+
+ALGORITHM = "HS256"
+
+def create_token(username):
+
+    expire = (
+        datetime.utcnow()
+        + timedelta(minutes=30)
+    )
+
+    payload = {
+        "sub": username,
+        "exp": expire
+    }
+
+    return jwt.encode(
+        payload,
+        SECRET_KEY,
+        algorithm=ALGORITHM
+    )
+Decode JWT
+payload = jwt.decode(
+    token,
+    SECRET_KEY,
+    algorithms=["HS256"]
+)
+Session 3 (4 PM – 6 PM)
+FastAPI Login APIs
+User Model
+from pydantic import BaseModel
+
+class UserLogin(BaseModel):
+
+    username: str
+    password: str
+Login API
+from fastapi import FastAPI
+from fastapi import HTTPException
+
+app = FastAPI()
+
+@app.post("/login")
+def login(user: UserLogin):
+
+    if (
+        user.username != "admin"
+        or
+        user.password != "admin123"
+    ):
+        raise HTTPException(
+            401,
+            "Invalid Credentials"
+        )
+
+    token = create_token(
+        user.username
+    )
+
+    return {
+        "access_token": token
+    }
+Test Login
+
+Request:
+
+{
+  "username":"admin",
+  "password":"admin123"
+}
+
+Response:
+
+{
+  "access_token":"eyJ..."
+}
+Protect APIs
+OAuth2PasswordBearer
+from fastapi.security import OAuth2PasswordBearer
+
+oauth2_scheme = OAuth2PasswordBearer(
+    tokenUrl="login"
+)
+Current User Dependency
+from fastapi import Depends
+
+def get_current_user(
+        token: str = Depends(
+            oauth2_scheme
+        )
+):
+
+    payload = jwt.decode(
+        token,
+        SECRET_KEY,
+        algorithms=["HS256"]
+    )
+
+    return payload["sub"]
+Protected API
+@app.get("/profile")
+def profile(
+    current_user=Depends(
+        get_current_user
+    )
+):
+
+    return {
+        "user": current_user
+    }
+
+Request:
+
+Authorization: Bearer TOKEN
+Role-Based Authorization
+
+User Table:
+
+username
+password
+role
+
+Roles:
+
+ADMIN
+USER
+MANAGER
+Admin Dependency
+def admin_required(user):
+
+    if user.role != "ADMIN":
+
+        raise HTTPException(
+            403,
+            "Forbidden"
+        )
+Admin API
+@app.delete("/customers/{id}")
+def delete_customer():
+
+    admin_required(user)
+
+    return "Deleted"
+Refresh Tokens
+
+Problem:
+
+Access Token
+Expires in 15 mins
+
+User must login again.
+
+Solution:
+
+Access Token
+15 mins
+
+Refresh Token
+7 Days
+
+Flow:
+
+Login
+ ↓
+Access Token
+ ↓ Expired
+Refresh Token
+ ↓
+New Access Token
+Banking Project Implementation
+User Registration
+POST /register
+
+Request:
+
+{
+  "username":"dileep",
+  "password":"admin123"
+}
+Login
+POST /login
+
+Returns:
+
+{
+  "access_token":"..."
+}
+Customer APIs
+
+Protected:
+
+GET /customers
+
+POST /customers
+
+PUT /customers/{id}
+Admin APIs
+DELETE /customers/{id}
+
+ADMIN only.
+
+Coding Exercises
+Exercise 1
+
+Create password hashing utility.
+
+hash_password()
+verify_password()
+Exercise 2
+
+Generate JWT token.
+
+create_access_token()
+Exercise 3
+
+Decode JWT.
+
+verify_token()
+Exercise 4
+
+Build Login API.
+
+POST /login
+Exercise 5
+
+Build Protected API.
+
+GET /profile
+Exercise 6
+
+Implement Role-Based Access.
+
+ADMIN
+USER
+Exercise 7
+
+Add Refresh Token API.
+
+POST /refresh
+Interview Questions
+1. Authentication vs Authorization?
+
+Authentication:
+
+Verify identity
+
+Authorization:
+
+Verify permissions
+2. Why JWT?
+Stateless
+Scalable
+Fast
+3. JWT Components?
+Header
+Payload
+Signature
+4. Why Hash Passwords?
+
+To avoid storing plain-text passwords.
+
+5. Why bcrypt?
+Salted hashing
+Resistant to brute force attacks
+6. What happens if JWT expires?
+
+User re-authenticates or uses a refresh token.
+
+7. What should not be stored in JWT?
+Passwords
+Credit card data
+Sensitive PII
+8. Difference Between 401 and 403?
+
+401:
+
+Authentication failed
+
+403:
+
+Authenticated but not authorized
+9. How do you invalidate JWT?
+Blacklist
+Redis
+Token versioning
+10. How would you secure a Banking API?
+HTTPS
+JWT
+Role-Based Access
+Password Hashing
+Rate Limiting
+Audit Logs
+Refresh Tokens
+DSA (90 Minutes)
+
+Solve:
+
+Valid Parentheses
+Binary Search
+Merge Intervals
+LRU Cache
+Number of Islands

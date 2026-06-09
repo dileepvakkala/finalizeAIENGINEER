@@ -1,0 +1,494 @@
+Day 12 – Background Tasks, PDF Processing Pipeline & Async Document Workflows
+
+Day 11 was about uploading PDFs.
+
+Day 12 is about processing them without making the user wait.
+
+In real systems:
+
+User Uploads PDF
+        ↓
+API returns immediately
+        ↓
+Background Processing Starts
+        ↓
+Text Extraction
+        ↓
+Chunking
+        ↓
+Embeddings
+        ↓
+Database Storage
+
+This is exactly how many GenAI, banking, and document-processing systems work.
+
+Goal of Day 12
+
+By the end of today:
+
+✅ Understand Background Tasks
+
+✅ FastAPI BackgroundTasks
+
+✅ Async Document Processing
+
+✅ PDF Text Extraction
+
+✅ Document Processing Pipeline
+
+✅ Logging Background Jobs
+
+✅ Store Processing Status
+
+✅ Build GenAI-Ready Architecture
+
+Session 1 (6 AM – 8 AM)
+Background Tasks Fundamentals
+Problem
+
+Normal API:
+
+@app.post("/upload")
+async def upload():
+    process_pdf()
+    return {"message": "done"}
+
+If PDF processing takes:
+
+30 seconds
+
+User waits 30 seconds.
+
+Bad experience.
+
+Better Approach
+Upload PDF
+      ↓
+Save File
+      ↓
+Return Response
+      ↓
+Background Task Starts
+
+User gets response instantly.
+
+FastAPI BackgroundTasks
+from fastapi import BackgroundTasks
+Example
+from fastapi import FastAPI
+from fastapi import BackgroundTasks
+
+app = FastAPI()
+
+def send_email():
+
+    print("Email Sent")
+
+@app.post("/register")
+async def register(
+    background_tasks: BackgroundTasks
+):
+
+    background_tasks.add_task(
+        send_email
+    )
+
+    return {
+        "message":
+        "User Created"
+    }
+
+Response returns immediately.
+
+How It Works
+Request
+   ↓
+API Response
+   ↓
+Background Task Executes
+Banking Example
+Loan Application
+      ↓
+Save Request
+      ↓
+Return Success
+      ↓
+Send Email
+      ↓
+Generate Report
+Session 2 (11 AM – 1 PM)
+PDF Processing Pipeline
+Folder Structure
+banking_app/
+
+uploads/
+
+processed/
+
+services/
+    pdf_service.py
+
+routers/
+    document_router.py
+PDF Service
+services/pdf_service.py
+from pypdf import PdfReader
+
+def extract_text(
+        file_path
+):
+
+    reader = PdfReader(
+        file_path
+    )
+
+    text = ""
+
+    for page in reader.pages:
+
+        text += (
+            page.extract_text()
+            or ""
+        )
+
+    return text
+Background Task
+def process_pdf(
+        file_path
+):
+
+    text = extract_text(
+        file_path
+    )
+
+    print(
+        "PDF Processed"
+    )
+
+    print(
+        text[:200]
+    )
+Upload API
+from fastapi import (
+    UploadFile,
+    File,
+    BackgroundTasks
+)
+
+@app.post("/upload")
+async def upload(
+        background_tasks:
+        BackgroundTasks,
+
+        file: UploadFile
+        = File(...)
+):
+
+    path = (
+        f"uploads/"
+        f"{file.filename}"
+    )
+
+    with open(
+        path,
+        "wb"
+    ) as buffer:
+
+        buffer.write(
+            await file.read()
+        )
+
+    background_tasks.add_task(
+        process_pdf,
+        path
+    )
+
+    return {
+        "message":
+        "Uploaded"
+    }
+Output
+API Response
+      ↓
+Uploaded
+
+Background:
+PDF Processed
+Session 3 (4 PM – 6 PM)
+Production-Style Processing
+Document Status
+
+Table:
+
+documents
+
+Columns:
+
+id
+filename
+status
+uploaded_at
+processed_at
+Status Values
+UPLOADED
+
+PROCESSING
+
+COMPLETED
+
+FAILED
+Workflow
+Upload PDF
+      ↓
+UPLOADED
+      ↓
+PROCESSING
+      ↓
+COMPLETED
+Example Service
+def process_document(
+        document_id,
+        path,
+        db
+):
+
+    try:
+
+        update_status(
+            document_id,
+            "PROCESSING"
+        )
+
+        text = extract_text(
+            path
+        )
+
+        save_text(
+            document_id,
+            text
+        )
+
+        update_status(
+            document_id,
+            "COMPLETED"
+        )
+
+    except Exception:
+
+        update_status(
+            document_id,
+            "FAILED"
+        )
+Logging Background Tasks
+logger.info(
+    f"Started processing "
+    f"{file_path}"
+)
+Error Logging
+except Exception as ex:
+
+    logger.error(
+        str(ex)
+    )
+Banking Example
+
+Customer uploads:
+
+Bank Statement.pdf
+
+System:
+
+Upload
+ ↓
+Store File
+ ↓
+Background Task
+ ↓
+Extract Text
+ ↓
+Store Metadata
+ ↓
+Mark Completed
+GenAI Example
+
+Customer uploads:
+
+Loan_Policy.pdf
+
+Background Task:
+
+Extract Text
+ ↓
+Chunk Text
+ ↓
+Create Embeddings
+ ↓
+Store in Vector DB
+
+This becomes your future RAG system.
+
+Advanced Background Processing
+
+FastAPI BackgroundTasks are good for:
+
+✅ Small jobs
+
+Examples:
+
+Email
+Logging
+PDF Extraction
+Notifications
+
+For large jobs use:
+
+Celery
+Distributed Workers
+Redis
+Task Queue
+
+Production Architecture:
+
+Upload API
+      ↓
+Redis Queue
+      ↓
+Celery Worker
+      ↓
+PDF Processing
+      ↓
+Database
+Interview Questions
+What are Background Tasks?
+
+Tasks executed after sending the response.
+
+Why use Background Tasks?
+
+Avoid blocking API requests.
+
+Difference Between Async and Background Tasks?
+
+Async:
+
+Waits inside request lifecycle
+
+Background Task:
+
+Runs after response is returned
+When should Background Tasks be used?
+Emails
+Notifications
+PDF Processing
+Logging
+When should Background Tasks NOT be used?
+
+Long-running jobs:
+
+Hours
+Large ML Training
+Heavy Processing
+
+Use Celery.
+
+What happens if the server crashes?
+
+FastAPI BackgroundTasks are lost.
+
+Production systems use:
+
+Celery
+Redis
+Message Queues
+How would you process PDFs in a GenAI system?
+Upload
+ ↓
+Extract Text
+ ↓
+Chunk
+ ↓
+Embeddings
+ ↓
+Vector Database
+What status values would you track?
+UPLOADED
+PROCESSING
+COMPLETED
+FAILED
+Why store document status?
+
+Frontend can check processing progress.
+
+How would you scale document processing?
+FastAPI
+   ↓
+Redis
+   ↓
+Celery Workers
+Coding Tasks
+Task 1
+
+Create:
+
+POST /upload
+
+Upload PDF.
+
+Task 2
+
+Store PDF in:
+
+uploads/
+Task 3
+
+Create background task:
+
+process_pdf()
+Task 4
+
+Extract text using:
+
+PdfReader
+Task 5
+
+Store document status.
+
+UPLOADED
+PROCESSING
+COMPLETED
+FAILED
+Task 6
+
+Add logging.
+
+logger.info(...)
+Task 7
+
+Create:
+
+GET /documents/{id}
+
+Return processing status.
+
+DSA (90 Minutes)
+
+Solve:
+
+Top K Frequent Elements
+Group Anagrams
+Kth Largest Element in an Array
+Diameter of Binary Tree
+Longest Consecutive Sequence
+End-of-Day Deliverable
+
+Your Banking + GenAI project should now support:
+
+JWT Authentication
+PDF Upload
+PDF Validation
+Background Processing
+Document Status Tracking
+PDF Text Extraction
+Logging
+Error Handling
+Production-Ready Workflow

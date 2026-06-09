@@ -1,0 +1,498 @@
+Day 10 – Middleware, Logging, Exception Handling & Production Readiness
+
+By Day 10, your Banking Application has:
+
+✅ FastAPI
+
+✅ Pydantic
+
+✅ SQLAlchemy
+
+✅ PostgreSQL
+
+✅ JWT Authentication
+
+✅ Role-Based Access
+
+✅ Async APIs
+
+Now you'll learn how to make it production-ready.
+
+Goal of Day 10
+
+By the end of today:
+
+✅ Understand Middleware
+
+✅ Implement Logging
+
+✅ Track Request/Response Time
+
+✅ Global Exception Handling
+
+✅ Custom Exceptions
+
+✅ Correlation IDs
+
+✅ Audit Logging
+
+✅ Production Monitoring Concepts
+
+Session 1 (6 AM – 8 AM)
+Middleware Fundamentals
+What is Middleware?
+
+Middleware runs before and after every request.
+
+Client Request
+      ↓
+Middleware
+      ↓
+API
+      ↓
+Middleware
+      ↓
+Response
+Real Banking Example
+
+When user calls:
+
+POST /deposit
+
+Middleware can:
+
+Log request
+Validate headers
+Measure execution time
+Add security headers
+
+before response returns.
+
+First Middleware
+from fastapi import FastAPI
+from fastapi import Request
+
+app = FastAPI()
+
+@app.middleware("http")
+async def log_request(
+        request: Request,
+        call_next
+):
+    print(
+        f"Request URL: {request.url}"
+    )
+
+    response = await call_next(
+        request
+    )
+
+    return response
+
+Request:
+
+GET /customers
+
+Console:
+
+Request URL: http://localhost:8000/customers
+Request Processing Flow
+Incoming Request
+      ↓
+Middleware
+      ↓
+Authentication
+      ↓
+Controller
+      ↓
+Service
+      ↓
+Repository
+      ↓
+Database
+      ↓
+Response
+Session 2 (11 AM – 1 PM)
+Logging
+Why Logging?
+
+Without logs:
+
+Application Failed
+
+No idea why.
+
+With logs:
+
+User: dileep
+Endpoint: /withdraw
+Amount: 5000
+Status: SUCCESS
+
+Easy debugging.
+
+Configure Logging
+logging_config.py
+import logging
+
+logging.basicConfig(
+    filename="bank.log",
+    level=logging.INFO,
+    format=(
+        "%(asctime)s "
+        "%(levelname)s "
+        "%(message)s"
+    )
+)
+
+logger = logging.getLogger(
+    __name__
+)
+Use Logger
+from logging_config import logger
+
+logger.info(
+    "Customer Created"
+)
+Error Logging
+try:
+
+    x = 10 / 0
+
+except Exception as ex:
+
+    logger.error(
+        str(ex)
+    )
+Audit Logging
+
+Banking systems require tracking:
+
+Deposit
+Withdraw
+Account Creation
+Customer Creation
+
+Example:
+
+logger.info(
+    f"Deposit of {amount}"
+)
+Request Timing Middleware
+import time
+
+@app.middleware("http")
+async def add_process_time(
+        request,
+        call_next
+):
+
+    start = time.time()
+
+    response = await call_next(
+        request
+    )
+
+    end = time.time()
+
+    response.headers[
+        "X-Process-Time"
+    ] = str(end - start)
+
+    return response
+
+Response Header:
+
+X-Process-Time: 0.032
+Session 3 (4 PM – 6 PM)
+Exception Handling
+Problem
+
+Without handling:
+
+10 / 0
+
+returns ugly error.
+
+Global Exception Handler
+from fastapi import Request
+from fastapi.responses import JSONResponse
+
+@app.exception_handler(
+    Exception
+)
+async def global_exception(
+        request: Request,
+        exc: Exception
+):
+
+    return JSONResponse(
+        status_code=500,
+        content={
+            "message":
+            "Internal Error"
+        }
+    )
+Custom Exception
+class InsufficientBalance(
+    Exception
+):
+    pass
+
+Raise:
+
+if amount > balance:
+
+    raise InsufficientBalance(
+        "Balance Too Low"
+    )
+
+Handle:
+
+@app.exception_handler(
+    InsufficientBalance
+)
+async def balance_handler(
+        request,
+        exc
+):
+
+    return JSONResponse(
+        status_code=400,
+        content={
+            "message":
+            str(exc)
+        }
+    )
+Banking Example
+def withdraw(
+        balance,
+        amount
+):
+
+    if amount > balance:
+
+        raise InsufficientBalance(
+            "Insufficient Balance"
+        )
+
+Response:
+
+{
+  "message":
+  "Insufficient Balance"
+}
+Correlation ID
+
+In production:
+
+Request A
+Request B
+Request C
+
+Need tracking.
+
+Generate ID:
+
+import uuid
+
+request_id = str(
+    uuid.uuid4()
+)
+
+Add Header:
+
+response.headers[
+    "X-Request-ID"
+] = request_id
+
+Example:
+
+X-Request-ID:
+a12b34c56
+
+Useful for debugging distributed systems.
+
+Secure Headers Middleware
+@app.middleware("http")
+async def security_headers(
+        request,
+        call_next
+):
+
+    response = await call_next(
+        request
+    )
+
+    response.headers[
+        "X-Content-Type-Options"
+    ] = "nosniff"
+
+    return response
+Production Logging Strategy
+
+Log:
+
+✅ Login
+
+✅ Logout
+
+✅ Customer Creation
+
+✅ Deposit
+
+✅ Withdraw
+
+✅ Failed Transactions
+
+Do NOT log:
+
+❌ Passwords
+
+❌ JWT Tokens
+
+❌ Credit Card Numbers
+
+Banking Middleware Project
+middleware.py
+import time
+import uuid
+
+from fastapi import Request
+
+@app.middleware("http")
+async def request_middleware(
+        request: Request,
+        call_next
+):
+
+    request_id = str(
+        uuid.uuid4()
+    )
+
+    start = time.time()
+
+    response = await call_next(
+        request
+    )
+
+    end = time.time()
+
+    response.headers[
+        "X-Request-ID"
+    ] = request_id
+
+    response.headers[
+        "X-Process-Time"
+    ] = str(end - start)
+
+    return response
+Interview Questions
+What is Middleware?
+
+Code executed before and after request processing.
+
+Why Use Middleware?
+Logging
+Authentication
+Monitoring
+Security
+Difference Between Middleware and Dependency?
+
+Middleware:
+
+Runs for every request
+
+Dependency:
+
+Runs only when used
+What is Audit Logging?
+
+Tracking important business actions.
+
+Examples:
+
+Deposits
+Withdrawals
+Customer Updates
+Why Global Exception Handling?
+
+Consistent error responses.
+
+What is Correlation ID?
+
+Unique identifier to trace requests.
+
+Why Add Process Time Header?
+
+Measure API performance.
+
+What Should Not Be Logged?
+Passwords
+JWT tokens
+Sensitive customer data
+How Do Banks Monitor APIs?
+Logs
+Metrics
+Request IDs
+Audit Trails
+Coding Tasks
+Task 1
+
+Create request logging middleware.
+
+Task 2
+
+Create process time middleware.
+
+Task 3
+
+Add correlation ID.
+
+Task 4
+
+Create global exception handler.
+
+Task 5
+
+Create custom exception:
+
+InsufficientBalance
+Task 6
+
+Log:
+
+Deposit
+Withdraw
+Customer Creation
+Login
+Task 7
+
+Add security headers middleware.
+
+DSA (90 Minutes)
+
+Solve:
+
+Product of Array Except Self
+Container With Most Water
+Binary Tree Inorder Traversal
+Climbing Stairs
+Coin Change
+End-of-Day Deliverable
+
+Your Banking Application should now include:
+
+FastAPI
+PostgreSQL
+SQLAlchemy
+JWT Authentication
+Role-Based Access
+Middleware
+Logging
+Audit Logs
+Global Exception Handling
+Custom Exceptions
+Correlation IDs
+Security Headers
+

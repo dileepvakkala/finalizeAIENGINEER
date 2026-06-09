@@ -1,0 +1,481 @@
+Day 9 – Coding JWT Validation Project & Secure APIs
+
+After Day 8 (JWT Authentication), Day 9 focuses on:
+
+✅ JWT Validation
+
+✅ Protected APIs
+
+✅ Current User Extraction
+
+✅ Role-Based Access Control (RBAC)
+
+✅ Access Token & Refresh Token
+
+✅ Secure Banking APIs
+
+✅ Production Security Practices
+
+Project Structure
+banking_app/
+
+├── app/
+│
+├── auth/
+│   ├── jwt_handler.py
+│   ├── auth_service.py
+│   ├── auth_router.py
+│   └── security.py
+│
+├── models/
+│   ├── user.py
+│   ├── customer.py
+│   └── account.py
+│
+├── routers/
+│   ├── customer_router.py
+│   └── account_router.py
+│
+├── database/
+│
+├── services/
+│
+└── main.py
+Step 1: JWT Utility
+auth/jwt_handler.py
+from jose import jwt
+from jose import JWTError
+from datetime import datetime
+from datetime import timedelta
+
+SECRET_KEY = "banking-secret-key"
+ALGORITHM = "HS256"
+
+ACCESS_TOKEN_EXPIRE_MINUTES = 30
+
+
+def create_access_token(data: dict):
+
+    payload = data.copy()
+
+    expire = (
+        datetime.utcnow()
+        + timedelta(
+            minutes=ACCESS_TOKEN_EXPIRE_MINUTES
+        )
+    )
+
+    payload.update(
+        {"exp": expire}
+    )
+
+    return jwt.encode(
+        payload,
+        SECRET_KEY,
+        algorithm=ALGORITHM
+    )
+
+
+def verify_token(token: str):
+
+    try:
+
+        payload = jwt.decode(
+            token,
+            SECRET_KEY,
+            algorithms=[ALGORITHM]
+        )
+
+        return payload
+
+    except JWTError:
+
+        return None
+Step 2: Password Hashing
+auth/security.py
+from passlib.context import CryptContext
+
+pwd_context = CryptContext(
+    schemes=["bcrypt"],
+    deprecated="auto"
+)
+
+def hash_password(password):
+
+    return pwd_context.hash(password)
+
+
+def verify_password(
+        plain_password,
+        hashed_password
+):
+
+    return pwd_context.verify(
+        plain_password,
+        hashed_password
+    )
+Step 3: User Model
+models/user.py
+from sqlalchemy import Column
+from sqlalchemy import Integer
+from sqlalchemy import String
+
+class User(Base):
+
+    __tablename__ = "users"
+
+    id = Column(
+        Integer,
+        primary_key=True
+    )
+
+    username = Column(
+        String,
+        unique=True
+    )
+
+    password = Column(String)
+
+    role = Column(String)
+Step 4: Login Schema
+from pydantic import BaseModel
+
+class LoginRequest(BaseModel):
+
+    username: str
+
+    password: str
+Step 5: Login API
+auth_router.py
+from fastapi import APIRouter
+from fastapi import HTTPException
+
+router = APIRouter()
+
+@router.post("/login")
+def login(
+        request: LoginRequest,
+        db: Session
+):
+
+    user = db.query(User).filter(
+        User.username ==
+        request.username
+    ).first()
+
+    if not user:
+
+        raise HTTPException(
+            401,
+            "User Not Found"
+        )
+
+    valid = verify_password(
+        request.password,
+        user.password
+    )
+
+    if not valid:
+
+        raise HTTPException(
+            401,
+            "Invalid Password"
+        )
+
+    token = create_access_token(
+        {
+            "sub": user.username,
+            "role": user.role
+        }
+    )
+
+    return {
+        "access_token": token
+    }
+Step 6: OAuth2 Security
+from fastapi.security import OAuth2PasswordBearer
+
+oauth2_scheme = OAuth2PasswordBearer(
+    tokenUrl="/login"
+)
+Step 7: Current User Dependency
+from fastapi import Depends
+from fastapi import HTTPException
+
+def get_current_user(
+    token: str = Depends(
+        oauth2_scheme
+    )
+):
+
+    payload = verify_token(token)
+
+    if not payload:
+
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid Token"
+        )
+
+    return payload
+Step 8: Secure API
+@router.get("/profile")
+def get_profile(
+    current_user=Depends(
+        get_current_user
+    )
+):
+
+    return {
+        "username":
+        current_user["sub"]
+    }
+Request
+GET /profile
+
+Authorization:
+Bearer eyJhbGci...
+Response
+{
+  "username":"dileep"
+}
+Step 9: Role-Based Access
+Admin Only
+def admin_required(
+    current_user=Depends(
+        get_current_user
+    )
+):
+
+    if (
+        current_user["role"]
+        != "ADMIN"
+    ):
+
+        raise HTTPException(
+            403,
+            "Access Denied"
+        )
+
+    return current_user
+Admin API
+@router.delete(
+    "/customers/{id}"
+)
+def delete_customer(
+    user=Depends(
+        admin_required
+    )
+):
+
+    return {
+        "message":
+        "Customer Deleted"
+    }
+Step 10: Secure Banking APIs
+Create Customer
+@router.post("/customers")
+def create_customer(
+        customer: CustomerRequest,
+        user=Depends(
+            get_current_user
+        )
+):
+
+    return {
+        "message":
+        "Customer Created"
+    }
+Get Accounts
+@router.get("/accounts")
+def get_accounts(
+    user=Depends(
+        get_current_user
+    )
+):
+    return []
+Deposit
+@router.post("/deposit")
+def deposit(
+    request: DepositRequest,
+    user=Depends(
+        get_current_user
+    )
+):
+    pass
+Withdraw
+@router.post("/withdraw")
+def withdraw(
+    request: WithdrawRequest,
+    user=Depends(
+        get_current_user
+    )
+):
+    pass
+Step 11: Refresh Token
+Create Refresh Token
+def create_refresh_token(
+        username
+):
+
+    expire = (
+        datetime.utcnow()
+        + timedelta(days=7)
+    )
+
+    payload = {
+        "sub": username,
+        "exp": expire
+    }
+
+    return jwt.encode(
+        payload,
+        SECRET_KEY,
+        algorithm=ALGORITHM
+    )
+Refresh API
+@router.post("/refresh")
+def refresh_token():
+
+    pass
+Step 12: Banking Authorization Rules
+CUSTOMER
+View Own Account
+Deposit
+Withdraw
+View Transactions
+MANAGER
+Approve Loans
+View Customers
+View Accounts
+ADMIN
+Delete Customers
+Delete Accounts
+Manage Users
+Real Banking Flow
+Register
+   ↓
+Login
+   ↓
+JWT Generated
+   ↓
+Profile API
+   ↓
+Customer APIs
+   ↓
+Account APIs
+   ↓
+Transaction APIs
+Security Best Practices
+Never Store
+Plain Passwords
+
+Use bcrypt.
+
+Never Hardcode
+SECRET_KEY = "abc123"
+
+Use .env.
+
+SECRET_KEY=bank-secret
+Always Use HTTPS
+Client
+ ↓ HTTPS
+FastAPI
+Token Expiration
+Access Token
+30 mins
+
+Refresh Token
+7 Days
+Interview Questions
+What is JWT?
+
+A signed token used for stateless authentication.
+
+What happens when JWT expires?
+
+User logs in again or uses a refresh token.
+
+Difference Between Authentication and Authorization?
+
+Authentication:
+
+Who are you?
+
+Authorization:
+
+What can you access?
+What is OAuth2PasswordBearer?
+
+FastAPI utility that extracts Bearer tokens.
+
+What should be stored inside JWT?
+
+Good:
+
+{
+  "sub":"dileep",
+  "role":"ADMIN"
+}
+
+Avoid passwords or sensitive personal data.
+
+Difference Between 401 and 403?
+
+401:
+
+Invalid authentication
+
+403:
+
+Authenticated but lacks permission
+How do you secure Banking APIs?
+JWT
+HTTPS
+Password Hashing
+Role-Based Access
+Rate Limiting
+Audit Logs
+Refresh Tokens
+Coding Tasks
+Task 1
+
+Implement:
+
+POST /register
+Task 2
+
+Implement:
+
+POST /login
+Task 3
+
+Implement:
+
+GET /profile
+Task 4
+
+Implement:
+
+DELETE /customers/{id}
+
+(Admin only)
+
+Task 5
+
+Implement:
+
+POST /refresh
+End-of-Day Deliverable
+
+Your Banking Application should now support:
+
+JWT Authentication
+Password Hashing
+Protected APIs
+Role-Based Access
+Refresh Tokens
+Current User Extraction
+Secure Customer APIs
+Secure Account APIs
