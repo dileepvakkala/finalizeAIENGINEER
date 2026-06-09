@@ -1,0 +1,758 @@
+Day 5 – Dependency Injection, CRUD, Exception Handling, Logging & JWT Authentication
+Goal of Day 5
+
+By the end of today, you should be able to:
+
+✅ Understand Dependency Injection (Depends)
+
+✅ Implement Full CRUD APIs
+
+✅ Handle Exceptions Properly
+
+✅ Add Logging
+
+✅ Use Environment Variables
+
+✅ Implement JWT Authentication
+
+✅ Build Production-Ready FastAPI APIs
+
+This is the level where your project starts looking like a real enterprise application.
+
+Session 1 (6:00 AM – 8:00 AM)
+Dependency Injection (Depends)
+
+Instead of creating DB connections manually:
+
+db = SessionLocal()
+
+FastAPI provides Dependency Injection:
+
+from fastapi import Depends
+from sqlalchemy.orm import Session
+
+@app.get("/customers")
+def get_customers(
+    db: Session = Depends(get_db)
+):
+    pass
+
+Benefits:
+
+Reusable
+Cleaner code
+Easier testing
+How Depends Works
+Request
+   ↓
+Depends(get_db)
+   ↓
+Database Session
+   ↓
+API Method
+Full CRUD Operations
+Create
+POST /customers
+Read
+GET /customers
+Update
+PUT /customers/{id}
+Delete
+DELETE /customers/{id}
+Update Customer Repository
+@staticmethod
+def update(db, customer_id, customer):
+
+    existing = db.query(Customer).filter(
+        Customer.id == customer_id
+    ).first()
+
+    if not existing:
+        return None
+
+    existing.name = customer.name
+    existing.city = customer.city
+
+    db.commit()
+    db.refresh(existing)
+
+    return existing
+Delete Customer
+@staticmethod
+def delete(db, customer_id):
+
+    customer = db.query(Customer).filter(
+        Customer.id == customer_id
+    ).first()
+
+    if not customer:
+        return False
+
+    db.delete(customer)
+    db.commit()
+
+    return True
+Session 2 (11:00 AM – 1:00 PM)
+Exception Handling
+
+Bad Example:
+
+customer = None
+
+customer.name
+
+Result:
+
+AttributeError
+
+User gets ugly error.
+
+HTTPException
+from fastapi import HTTPException
+
+Example:
+
+if not customer:
+
+    raise HTTPException(
+        status_code=404,
+        detail="Customer not found"
+    )
+Response
+{
+  "detail": "Customer not found"
+}
+Common Status Codes
+Code	Meaning
+200	Success
+201	Created
+400	Bad Request
+401	Unauthorized
+403	Forbidden
+404	Not Found
+500	Internal Server Error
+Custom Exception Handler
+from fastapi import Request
+from fastapi.responses import JSONResponse
+
+@app.exception_handler(Exception)
+async def global_exception_handler(
+        request: Request,
+        exc: Exception
+):
+
+    return JSONResponse(
+        status_code=500,
+        content={
+            "message": str(exc)
+        }
+    )
+Session 3 (4:00 PM – 6:00 PM)
+Logging
+
+Production systems never use:
+
+print("Customer Created")
+
+Use logging:
+
+import logging
+
+logging.basicConfig(
+    level=logging.INFO
+)
+
+logger = logging.getLogger(__name__)
+Log Example
+logger.info(
+    "Customer Created Successfully"
+)
+Log Levels
+DEBUG
+INFO
+WARNING
+ERROR
+CRITICAL
+Environment Variables
+
+Never hardcode:
+
+DATABASE_URL = "password123"
+
+Install:
+
+pip install python-dotenv
+.env
+DATABASE_URL=postgresql://postgres:admin@localhost/bankdb
+SECRET_KEY=mysecretkey
+config.py
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
+
+DATABASE_URL = os.getenv(
+    "DATABASE_URL"
+)
+
+SECRET_KEY = os.getenv(
+    "SECRET_KEY"
+)
+JWT Authentication
+
+Used in:
+
+Banking Apps
+E-commerce
+Enterprise APIs
+GenAI Applications
+Install
+pip install python-jose
+pip install passlib[bcrypt]
+Password Hashing
+from passlib.context import CryptContext
+
+pwd_context = CryptContext(
+    schemes=["bcrypt"],
+    deprecated="auto"
+)
+
+hashed = pwd_context.hash(
+    "admin123"
+)
+Verify Password
+pwd_context.verify(
+    "admin123",
+    hashed
+)
+Generate JWT Token
+from jose import jwt
+
+SECRET_KEY = "secret"
+
+token = jwt.encode(
+    {"sub": "dileep"},
+    SECRET_KEY,
+    algorithm="HS256"
+)
+Decode Token
+payload = jwt.decode(
+    token,
+    SECRET_KEY,
+    algorithms=["HS256"]
+)
+Protected Endpoint
+from fastapi.security import OAuth2PasswordBearer
+
+oauth2_scheme = OAuth2PasswordBearer(
+    tokenUrl="login"
+)
+@app.get("/profile")
+def profile(
+    token: str = Depends(
+        oauth2_scheme
+    )
+):
+    return {
+        "token": token
+    }
+Mini Project Enhancement
+
+Add:
+
+User Registration
+POST /register
+
+Request:
+
+{
+  "username": "dileep",
+  "password": "admin123"
+}
+Login
+POST /login
+
+Returns JWT token.
+
+Protected API
+GET /customers
+
+Requires:
+
+Authorization: Bearer TOKEN
+Interview Questions (Important)
+1. What is Dependency Injection?
+
+Providing dependencies automatically instead of creating them manually.
+
+2. Why use Depends()?
+Reusability
+Testability
+Cleaner code
+3. What is HTTPException?
+
+FastAPI exception class used for API errors.
+
+4. Difference Between 401 and 403?
+
+401:
+
+Authentication failed
+
+403:
+
+Authenticated but not authorized
+5. Why Use JWT?
+
+Stateless authentication.
+
+6. What are JWT Components?
+Header
+Payload
+Signature
+7. Why Hash Passwords?
+
+Never store plain-text passwords.
+
+8. What is OAuth2PasswordBearer?
+
+FastAPI security dependency that extracts Bearer tokens.
+
+9. Why Use Environment Variables?
+
+To avoid exposing secrets in source code.
+
+10. Why Logging?
+
+To monitor and troubleshoot applications in production.
+
+DSA for Day 5 (90 Minutes)
+
+Solve:
+
+Two Sum
+Valid Parentheses
+Binary Search
+Product of Array Except Self
+Top K Frequent Elements
+End-of-Day Deliverable
+
+Enhance your Banking App with:
+
+banking-app/
+│
+├── JWT Authentication
+├── Password Hashing
+├── Logging
+├── Environment Variables
+├── CRUD APIs
+├── Exception Handling
+└── PostgreSQL
+APIs
+POST /register
+POST /login
+
+GET /customers
+POST /customers
+PUT /customers/{id}
+DELETE /customers/{id}
+
+Day 5 Interview Questions (5+ Years Experience)
+FastAPI, Dependency Injection, JWT, Exception Handling, Logging, Configuration
+
+For a 5-year engineer, interviewers usually focus on "Why?", architecture decisions, scalability, and real-world scenarios, not just definitions.
+
+Dependency Injection
+1. What is Dependency Injection in FastAPI?
+
+Answer:
+Dependency Injection (DI) is a design pattern where dependencies are provided to a component instead of being created inside it.
+
+Example:
+
+@app.get("/customers")
+def get_customers(
+    db: Session = Depends(get_db)
+):
+    pass
+
+Benefits:
+
+Loose coupling
+Easier testing
+Better maintainability
+2. Why is Dependency Injection important?
+
+Without DI:
+
+def get_customer():
+    db = SessionLocal()
+
+Problems:
+
+Tight coupling
+Hard to mock during testing
+Repeated code
+3. How does FastAPI's Depends() work internally?
+
+FastAPI builds a dependency graph and resolves dependencies before executing the endpoint.
+
+Flow:
+
+Request
+ ↓
+Dependency Resolver
+ ↓
+get_db()
+ ↓
+Endpoint
+4. What happens if get_db() fails?
+
+FastAPI stops request processing and returns an error response.
+
+5. Can dependencies depend on other dependencies?
+
+Yes.
+
+Example:
+
+get_current_user()
+    ↓
+verify_token()
+    ↓
+get_db()
+Database Session Management
+6. Why use yield inside get_db()?
+def get_db():
+    db = SessionLocal()
+
+    try:
+        yield db
+    finally:
+        db.close()
+
+Ensures DB connection is closed after request completion.
+
+7. What happens if we don't close DB sessions?
+
+Problems:
+
+Connection leaks
+Connection pool exhaustion
+Application slowdown
+8. Difference between Session and Engine?
+
+Engine:
+
+Manages database connections
+
+Session:
+
+Manages transactions
+9. What is connection pooling?
+
+Reusing database connections instead of creating a new one per request.
+
+Benefits:
+
+Better performance
+Lower latency
+10. How do you optimize DB connections in production?
+Connection pooling
+Query optimization
+Indexing
+Read replicas
+Exception Handling
+11. Difference between Exception and HTTPException?
+
+Exception:
+
+raise Exception()
+
+Returns 500.
+
+HTTPException:
+
+raise HTTPException(
+    status_code=404
+)
+
+Returns custom HTTP response.
+
+12. When should you use HTTPException?
+
+Business validation failures.
+
+Example:
+
+Customer not found
+Account blocked
+Loan rejected
+13. Why avoid exposing stack traces?
+
+Security risk.
+
+May reveal:
+
+Internal architecture
+Database details
+Sensitive paths
+14. Explain global exception handling.
+
+Single place to handle all application exceptions.
+
+Benefits:
+
+Consistent responses
+Easier debugging
+15. Scenario
+
+A database is down.
+
+What should API return?
+
+{
+  "message": "Service temporarily unavailable"
+}
+
+Not raw SQL errors.
+
+JWT Authentication
+16. What is JWT?
+
+JSON Web Token used for stateless authentication.
+
+17. JWT Structure?
+Header
+Payload
+Signature
+18. Difference between Authentication and Authorization?
+
+Authentication:
+
+Who are you?
+
+Authorization:
+
+What can you access?
+19. Why use JWT?
+
+Advantages:
+
+Stateless
+Scalable
+No server-side session storage
+20. What data should not be stored in JWT?
+
+Never store:
+
+Passwords
+Credit card data
+Sensitive PII
+21. What happens when JWT expires?
+
+User must re-authenticate or use refresh token.
+
+22. What is a Refresh Token?
+
+Long-lived token used to generate a new access token.
+
+23. Difference between Access Token and Refresh Token?
+Access	Refresh
+Short-lived	Long-lived
+API access	Generate new token
+24. How do you invalidate JWT?
+
+Common methods:
+
+Blacklist table
+Redis cache
+Token versioning
+25. Why is JWT considered stateless?
+
+Server does not store session data.
+
+Security Questions
+26. Why hash passwords?
+
+To prevent storing plain-text passwords.
+
+27. Why use bcrypt?
+
+Features:
+
+Salt generation
+Slow hashing
+Resistant to brute force attacks
+28. Difference between hashing and encryption?
+
+Hashing:
+
+One-way
+
+Encryption:
+
+Two-way
+29. What happens if database gets leaked?
+
+Hashed passwords are harder to misuse than plain-text passwords.
+
+30. What is salting?
+
+Adding random data before hashing.
+
+Logging
+31. Why logging instead of print()?
+
+Logging:
+
+Persistent
+Configurable
+Production-ready
+32. Log Levels?
+DEBUG
+INFO
+WARNING
+ERROR
+CRITICAL
+33. What should never be logged?
+Passwords
+Tokens
+Personal data
+Bank account details
+34. How would you debug production issues?
+Application logs
+DB logs
+Monitoring tools
+Request tracing
+35. What logging framework have you used?
+
+Python logging module is common.
+
+Environment Variables
+36. Why use .env?
+
+Store secrets outside source code.
+
+37. What should be stored in .env?
+DB URL
+API Keys
+JWT Secret
+Redis URL
+38. Why not commit .env to Git?
+
+Security risk.
+
+39. How do you manage secrets in production?
+
+Examples:
+
+Kubernetes Secrets
+AWS Secrets Manager
+HashiCorp Vault
+40. What happens if SECRET_KEY changes?
+
+Existing JWT tokens become invalid.
+
+Scenario-Based Questions
+41. A user deletes a customer who has active accounts. What would you do?
+
+Options:
+
+Prevent deletion
+Soft delete
+Cascade delete based on business requirements
+42. A login API is receiving brute-force attacks. How would you handle it?
+Rate limiting
+CAPTCHA
+Account lockout
+Monitoring
+43. Customer API latency increased from 100ms to 2 seconds. How do you investigate?
+
+Check:
+
+Database queries
+Missing indexes
+Network latency
+Logs
+Connection pool
+44. JWT token is stolen. What is the impact?
+
+Attacker may access resources until token expiry.
+
+Mitigation:
+
+Short expiry
+Refresh tokens
+Token revocation
+45. Multiple APIs need authentication. How would you avoid duplicate code?
+
+Create dependency:
+
+get_current_user()
+
+Use:
+
+Depends(get_current_user)
+System Design Style Questions
+46. Design Authentication for Banking API.
+
+Expected discussion:
+
+JWT
+Refresh token
+Password hashing
+MFA
+Audit logs
+47. How would you secure customer APIs?
+JWT authentication
+Authorization checks
+HTTPS
+Input validation
+48. How would you handle 10,000 login requests per minute?
+Load balancer
+Multiple app instances
+Redis caching
+Connection pooling
+49. How would you implement role-based access?
+
+Example:
+
+ADMIN
+MANAGER
+CUSTOMER
+
+Check roles inside JWT claims.
+
+50. Explain a production FastAPI architecture.
+Client
+ ↓
+API Gateway
+ ↓
+FastAPI
+ ↓
+Service Layer
+ ↓
+Repository Layer
+ ↓
+PostgreSQL
+
+Redis
+Kafka
+Monitoring
+Questions a 5-Year Engineer Must Answer Confidently
+Dependency Injection lifecycle
+Session management
+JWT authentication flow
+Password hashing
+Refresh token strategy
+Global exception handling
+Logging best practices
+Environment variable management
+Database connection pooling
+Production API security
+Rate limiting
+API scalability
+Repository vs Service Layer
+Authentication vs Authorization
+Real-world debugging scenarios

@@ -1,0 +1,355 @@
+Day 4 – SQLAlchemy Relationships + Production FastAPI Structure
+Goal of Day 4
+
+By the end of today, you should be able to:
+
+✅ Understand Database Relationships
+
+✅ Implement One-to-Many Relationships
+
+✅ Use Foreign Keys
+
+✅ Separate Routes, Services, and Repositories
+
+✅ Build Production-Level FastAPI Structure
+
+✅ Design Real Banking APIs
+
+Session 1 (6:00 AM – 8:00 AM)
+Database Relationships
+
+In real applications, tables are connected.
+
+Example:
+
+Customer
+│
+├── Account 1
+├── Account 2
+└── Account 3
+
+One customer can have multiple accounts.
+
+One-to-One Relationship
+
+Example:
+
+Customer
+    │
+    └── KYC
+
+One customer → One KYC
+
+One-to-Many Relationship
+
+Example:
+
+Customer
+    │
+    ├── Account 1
+    ├── Account 2
+    └── Account 3
+
+One customer → Many accounts
+
+Many-to-Many Relationship
+
+Example:
+
+Student
+    │
+    ├── Course 1
+    └── Course 2
+
+Course
+    │
+    ├── Student A
+    └── Student B
+Foreign Key
+
+Foreign key creates relationship.
+
+Example:
+
+customer_id
+
+inside account table.
+
+Banking Example
+Customer Table
+CREATE TABLE customers(
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(100)
+);
+Account Table
+CREATE TABLE accounts(
+    id SERIAL PRIMARY KEY,
+    account_number VARCHAR(50),
+    customer_id INT REFERENCES customers(id)
+);
+Session 2 (11:00 AM – 1:00 PM)
+SQLAlchemy Relationships
+Customer Model
+from sqlalchemy import Column
+from sqlalchemy import Integer
+from sqlalchemy import String
+from sqlalchemy.orm import relationship
+
+class Customer(Base):
+
+    __tablename__ = "customers"
+
+    id = Column(Integer, primary_key=True)
+
+    name = Column(String)
+
+    accounts = relationship(
+        "Account",
+        back_populates="customer"
+    )
+Account Model
+from sqlalchemy import Column
+from sqlalchemy import Integer
+from sqlalchemy import String
+from sqlalchemy import ForeignKey
+from sqlalchemy.orm import relationship
+
+class Account(Base):
+
+    __tablename__ = "accounts"
+
+    id = Column(Integer, primary_key=True)
+
+    account_number = Column(String)
+
+    customer_id = Column(
+        Integer,
+        ForeignKey("customers.id")
+    )
+
+    customer = relationship(
+        "Customer",
+        back_populates="accounts"
+    )
+How Relationship Works
+Customer
+   |
+   | customer_id
+   |
+Account
+Create Tables
+Base.metadata.create_all(bind=engine)
+Session 3 (4:00 PM – 6:00 PM)
+Production FastAPI Structure
+
+Most beginners write:
+
+main.py
+
+Everything in one file.
+
+Bad practice.
+
+Enterprise Structure
+banking-app/
+
+│
+├── app/
+│
+├── database/
+│   └── database.py
+│
+├── models/
+│   ├── customer.py
+│   └── account.py
+│
+├── schemas/
+│   ├── customer.py
+│   └── account.py
+│
+├── repositories/
+│   └── customer_repo.py
+│
+├── services/
+│   └── customer_service.py
+│
+├── routers/
+│   └── customer_router.py
+│
+└── main.py
+Repository Layer
+
+Handles database operations.
+
+class CustomerRepository:
+
+    def get_all(self, db):
+
+        return db.query(Customer).all()
+Service Layer
+
+Handles business logic.
+
+class CustomerService:
+
+    def get_customers(self, db):
+
+        return repository.get_all(db)
+Router Layer
+
+Handles API endpoints.
+
+@router.get("/customers")
+def get_customers():
+
+    return service.get_customers()
+Flow
+Client
+   ↓
+Router
+   ↓
+Service
+   ↓
+Repository
+   ↓
+Database
+Why This Structure?
+
+Benefits:
+
+Clean code
+Easy testing
+Reusable logic
+Large team support
+Mini Project
+Banking Customer + Accounts
+Customer
+{
+  "name": "Dileep"
+}
+Account
+{
+  "account_number": "ACC12345",
+  "customer_id": 1
+}
+APIs
+Create Customer
+POST /customers
+Create Account
+POST /accounts
+Get Customer Accounts
+GET /customers/1/accounts
+Interview Questions
+What is a Foreign Key?
+
+A column that references another table's primary key.
+
+Difference Between Primary Key and Foreign Key?
+Primary Key	Foreign Key
+Unique identifier	References another table
+Unique	Can repeat
+One per table	Multiple allowed
+What is One-to-Many Relationship?
+
+One record in parent table can have many child records.
+
+Example:
+
+Customer
+    ↓
+Accounts
+What is SQLAlchemy Relationship?
+
+A way to map related tables as Python objects.
+
+Why use Repository Pattern?
+
+Separates database logic from business logic.
+
+Why use Service Layer?
+
+Contains business rules.
+
+Example:
+
+Loan approval logic
+Account validation
+Fraud checks
+Difference Between Router and Service?
+
+Router:
+
+Handles HTTP requests
+
+Service:
+
+Handles business logic
+Coding Questions
+Question 1
+
+Create:
+
+Department
+Employee
+
+One department has many employees.
+
+Question 2
+
+Create:
+
+Customer
+Loan
+
+One customer has many loans.
+
+Question 3
+
+Create:
+
+Teacher
+Student
+
+Many-to-many relationship.
+
+Question 4
+
+Implement repository class for Product.
+
+Question 5
+
+Implement service layer for Employee.
+
+DSA for Day 4 (90 Minutes)
+
+Solve:
+
+Valid Parentheses
+Merge Two Sorted Lists
+Linked List Cycle
+Maximum Subarray
+Longest Common Prefix
+End of Day Deliverable
+
+Build a Banking Customer & Account System:
+
+Database
+customers table
+accounts table
+Features
+One-to-Many relationship
+Repository pattern
+Service layer
+Router layer
+CRUD APIs
+Folder Structure
+banking-app/
+├── models
+├── schemas
+├── routers
+├── services
+├── repositories
+├── database
+└── main.py
+
+After Day 4, you'll be writing backend code much closer to what is used in enterprise FastAPI, microservices, and GenAI applications. Day 5 should focus on Dependency Injection, FastAPI Depends(), database sessions, and clean architecture, which are heavily used in production systems.
