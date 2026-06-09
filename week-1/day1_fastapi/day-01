@@ -1,0 +1,782 @@
+Goal of Day 1
+
+By the end of today, you should be able to:
+
+Understand REST APIs
+Understand FastAPI architecture
+Create APIs using FastAPI
+Run a FastAPI application
+Use Swagger UI
+Create GET endpoints
+Create Path Parameters
+Create Query Parameters
+Test APIs using Swagger
+Session 1 (6:00 AM – 8:00 AM)
+Topic 1: What is an API?
+
+API = Application Programming Interface
+
+Example:
+
+Frontend (React)
+      ↓
+      API
+      ↓
+Backend (FastAPI)
+      ↓
+Database
+
+When a user clicks "Get Customer Details":
+
+GET /customers/101
+
+Backend returns:
+
+{
+  "id": 101,
+  "name": "Dileep"
+}
+Topic 2: HTTP Methods
+GET
+
+Fetch data
+
+GET /users
+POST
+
+Create data
+
+POST /users
+PUT
+
+Update data
+
+PUT /users/1
+DELETE
+
+Delete data
+
+DELETE /users/1
+Topic 3: Why FastAPI?
+
+Compared with Flask:
+
+Feature	FastAPI	Flask
+Async Support	Yes	Limited
+Swagger UI	Built-in	External
+Validation	Pydantic	Manual
+Speed	High	Medium
+
+FastAPI is widely used in:
+
+AI applications
+GenAI systems
+Microservices
+RAG systems
+Session 2 (11:00 AM – 1:00 PM)
+Install Environment
+Create Virtual Environment
+python -m venv venv
+
+Activate:
+
+Windows
+
+venv\Scripts\activate
+Install Packages
+pip install fastapi uvicorn
+
+Verify:
+
+pip list
+Create Project
+
+Folder Structure
+
+day1_fastapi/
+│
+├── app.py
+└── requirements.txt
+First FastAPI Application
+app.py
+from fastapi import FastAPI
+
+app = FastAPI()
+
+@app.get("/")
+def home():
+    return {
+        "message": "Welcome to FastAPI"
+    }
+Run Server
+uvicorn app:app --reload
+
+Meaning:
+
+app.py -> app
+FastAPI instance -> app
+Output
+
+Open:
+
+http://127.0.0.1:8000
+
+Output:
+
+{
+  "message": "Welcome to FastAPI"
+}
+Swagger UI
+
+Open:
+
+http://127.0.0.1:8000/docs
+
+Swagger automatically generates API documentation.
+
+This is heavily used in enterprise projects.
+
+Topic 4: GET Endpoint
+from fastapi import FastAPI
+
+app = FastAPI()
+
+@app.get("/hello")
+def hello():
+    return {
+        "message": "Hello Dileep"
+    }
+
+Test:
+
+GET /hello
+
+Response:
+
+{
+  "message": "Hello Dileep"
+}
+Topic 5: Path Parameters
+
+Dynamic values inside URL.
+
+Example:
+
+@app.get("/users/{user_id}")
+def get_user(user_id: int):
+    return {
+        "user_id": user_id
+    }
+
+Test:
+
+GET /users/101
+
+Output:
+
+{
+  "user_id": 101
+}
+Topic 6: Query Parameters
+
+Used for filtering/searching.
+
+Example:
+
+@app.get("/search")
+def search(name: str):
+    return {
+        "name": name
+    }
+
+Test:
+
+GET /search?name=Dileep
+
+Output:
+
+{
+  "name": "Dileep
+}
+Session 3 (4:00 PM – 6:00 PM)
+Mini Project
+
+Build a Banking Customer API
+
+Requirements
+
+Endpoint 1
+
+GET /
+
+Response:
+
+{
+  "message": "Banking Service Running"
+}
+
+Endpoint 2
+
+GET /customer/101
+
+Response:
+
+{
+  "customer_id": 101
+}
+
+Endpoint 3
+
+GET /search?name=dileep
+
+Response:
+
+{
+  "customer_name": "dileep"
+}
+Full Code
+from fastapi import FastAPI
+
+app = FastAPI()
+
+
+@app.get("/")
+def home():
+    return {
+        "message": "Banking Service Running"
+    }
+
+
+@app.get("/customer/{customer_id}")
+def get_customer(customer_id: int):
+    return {
+        "customer_id": customer_id
+    }
+
+
+@app.get("/search")
+def search_customer(name: str):
+    return {
+        "customer_name": name
+    }
+Homework
+Task 1
+
+Create Product API
+
+GET /product/1
+Task 2
+
+Create Employee API
+
+GET /employee/1001
+Task 3
+
+Create Search API
+
+GET /search?city=Chittoor
+Interview Questions
+What is REST API?
+
+A REST API is an API that follows REST principles and communicates using HTTP methods.
+
+Difference between GET and POST?
+
+GET:
+
+Retrieve data
+
+POST:
+
+Create data
+What is FastAPI?
+
+A modern Python framework used to build high-performance APIs.
+
+What is Swagger?
+
+An automatically generated API documentation UI available in FastAPI at:
+
+http://localhost:8000/docs
+End-of-Day Deliverable
+
+Push a Git repository with:
+
+day1-fastapi/
+│
+├── app.py
+├── requirements.txt
+└── README.md
+
+and working endpoints:
+
+/
+/customer/{id}
+/search?name=value
+
+1. What is an API?
+
+Answer:
+
+API (Application Programming Interface) is a mechanism that allows two applications to communicate with each other.
+
+Example:
+
+Frontend
+   ↓
+FastAPI API
+   ↓
+Database
+2. What is REST API?
+
+Answer:
+
+REST (Representational State Transfer) is an architectural style for designing APIs using HTTP methods.
+
+Features:
+
+Stateless
+Client-Server architecture
+Resource-based URLs
+Uses HTTP methods
+
+Example:
+
+GET /users
+POST /users
+PUT /users/1
+DELETE /users/1
+3. What is FastAPI?
+
+Answer:
+
+FastAPI is a modern Python framework for building high-performance APIs.
+
+Advantages:
+
+Fast
+Async support
+Automatic Swagger documentation
+Data validation using Pydantic
+4. Why is FastAPI preferred over Flask?
+Feature	FastAPI	Flask
+Async Support	Yes	Limited
+Validation	Built-in	Manual
+Swagger Docs	Automatic	External
+Performance	Higher	Lower
+5. What is Uvicorn?
+
+Answer:
+
+Uvicorn is an ASGI Asynchronous Server Gateway Interface server used to run FastAPI applications.
+
+Command:
+
+uvicorn app:app --reload
+6. Explain uvicorn app:app --reload
+
+Answer:
+
+uvicorn app:app --reload
+
+Meaning:
+
+First app → app.py file
+Second app → FastAPI object
+
+Example:
+
+from fastapi import FastAPI
+
+app = FastAPI()
+
+--reload automatically restarts the server when code changes.
+
+7. What are HTTP Methods?
+
+Answer:
+
+Method	Purpose
+GET	Retrieve data
+POST	Create data
+PUT	Update data
+DELETE	Delete data
+8. Difference Between GET and POST?
+GET
+
+Used to retrieve data.
+
+GET /users
+POST
+
+Used to create data.
+
+POST /users
+9. What is an Endpoint?
+
+Answer:
+
+An endpoint is a URL through which clients access an API.
+
+Example:
+
+/users
+/products
+/customers
+10. What is a Route in FastAPI?
+
+Answer:
+
+A route maps a URL to a Python function.
+
+Example:
+
+@app.get("/hello")
+def hello():
+    return {"message": "Hello"}
+11. What is a Path Parameter?
+
+Answer:
+
+A path parameter is a dynamic value in the URL.
+
+Example:
+
+@app.get("/users/{user_id}")
+def get_user(user_id: int):
+    return {"id": user_id}
+
+Request:
+
+GET /users/101
+12. What is a Query Parameter?
+
+Answer:
+
+Query parameters are key-value pairs appended to the URL.
+
+Example:
+
+@app.get("/search")
+def search(name: str):
+    return {"name": name}
+
+Request:
+
+GET /search?name=Dileep
+13. Difference Between Path Parameter and Query Parameter?
+Path Parameter	Query Parameter
+Mandatory	Usually optional
+Part of URL path	Appended after ?
+Identifies resource	Filters/searches data
+
+Example:
+
+/users/101
+
+vs
+
+/users?name=Dileep
+14. What is Swagger UI?
+
+Answer:
+
+Swagger UI is an automatically generated API documentation page.
+
+FastAPI provides it by default.
+
+URL:
+
+http://localhost:8000/docs
+
+Benefits:
+
+Test APIs
+View request schema
+View response schema
+15. What is OpenAPI?
+
+Answer:
+
+OpenAPI is the specification used by FastAPI to generate API documentation automatically.
+
+16. What Does @app.get() Mean?
+
+Answer:
+
+It is a decorator that maps a GET request to a function.
+
+Example:
+
+@app.get("/hello")
+def hello():
+    return {"message": "Hello"}
+17. What Does FastAPI Return?
+
+Answer:
+
+FastAPI automatically converts Python dictionaries into JSON responses.
+
+Example:
+
+return {"name": "Dileep"}
+
+Response:
+
+{
+  "name": "Dileep"
+}
+18. What is JSON?
+
+Answer:
+
+JSON (JavaScript Object Notation) is a lightweight data exchange format.
+
+Example:
+
+{
+  "id": 101,
+  "name": "Dileep"
+}
+19. What Happens if Path Parameter Type Doesn't Match?
+
+Example:
+
+@app.get("/users/{user_id}")
+def get_user(user_id: int):
+
+Request:
+
+/users/abc
+
+FastAPI returns:
+
+422 Unprocessable Entity
+
+because "abc" is not an integer.
+
+20. What is the Difference Between WSGI and ASGI?
+
+Answer:
+
+WSGI	ASGI
+Synchronous	Asynchronous
+Flask	FastAPI
+One request at a time	Multiple concurrent requests
+
+FastAPI uses ASGI through Uvicorn.
+
+Practical Coding Questions
+Q1
+
+Create a GET endpoint:
+
+GET /employee/101
+
+Expected Response:
+
+{
+  "employee_id": 101
+}
+Q2
+
+Create a Query Parameter API:
+
+GET /search?city=Chittoor
+
+Expected Response:
+
+{
+  "city": "Chittoor"
+}
+Q3
+
+Create a Banking API:
+
+GET /account/12345
+
+Response:
+
+{
+  "account_number": 12345
+}
+Day-01 Revision Checklist
+
+Before moving to Day-02, make sure you can explain:
+
+✅ API
+
+✅ REST API
+
+✅ FastAPI
+
+✅ Uvicorn
+
+✅ HTTP Methods
+
+✅ Route
+
+✅ Endpoint
+
+✅ Path Parameters
+
+✅ Query Parameters
+
+✅ Swagger UI
+
+✅ OpenAPI
+
+✅ JSON
+
+✅ ASGI vs WSGI
+
+✅ Build a simple FastAPI application from scratch
+
+For Day 1 (Python Fundamentals) and your goal of becoming a GenAI Engineer, don't jump straight into hard LeetCode problems. Focus on Python fundamentals and easy DSA questions.
+
+Day 1 LeetCode Problems
+Arrays
+1. Two Sum
+
+Difficulty: Easy
+
+Problem:
+Given an array and a target, return the indices of two numbers that add up to the target.
+
+Example:
+
+nums = [2,7,11,15]
+target = 9
+
+Output: [0,1]
+
+Concepts:
+
+HashMap (Dictionary)
+Time Complexity Optimization
+
+Entity: Two Sum
+
+2. Remove Duplicates from Sorted Array
+
+Concepts:
+
+Two Pointers
+Arrays
+
+Entity: Remove Duplicates from Sorted Array
+
+3. Best Time to Buy and Sell Stock
+
+Concepts:
+
+Array Traversal
+Greedy
+
+Entity: Best Time to Buy and Sell Stock
+
+Strings
+4. Valid Anagram
+
+Concepts:
+
+Dictionary
+Frequency Counting
+
+Entity: Valid Anagram
+
+Example:
+
+s = "listen"
+t = "silent"
+
+Output:
+
+True
+5. Valid Palindrome
+
+Concepts:
+
+String Manipulation
+Two Pointers
+
+Entity: Valid Palindrome
+
+6. Length of Last Word
+
+Concepts:
+
+Strings
+Split
+
+Entity: Length of Last Word
+
+HashMap / Dictionary
+7. Contains Duplicate
+
+Concepts:
+
+Set
+Hashing
+
+Entity: Contains Duplicate
+
+8. Intersection of Two Arrays
+
+Concepts:
+
+Set Operations
+
+Entity: Intersection of Two Arrays
+
+Stack
+9. Valid Parentheses
+
+Concepts:
+
+Stack
+Dictionary
+
+Entity: Valid Parentheses
+
+Example:
+
+()
+[]{}
+
+Output:
+
+True
+Linked List
+10. Reverse Linked List
+
+Concepts:
+
+Pointers
+Linked Lists
+
+Entity: Reverse Linked List
+
+Beginner Python Logic Questions
+
+These are excellent before LeetCode:
+
+11. Fibonacci Number
+
+Entity: Fibonacci Number
+
+12. Climbing Stairs
+
+Entity: Climbing Stairs
+
+13. Power of Two
+
+Entity: Power of Two
+
+14. Sqrt(x)
+
+Entity: Sqrt(x)
+
+15. Single Number
+
+Entity: Single Number

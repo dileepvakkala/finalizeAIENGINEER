@@ -1,0 +1,661 @@
+Day 02 — Pydantic Models, POST APIs & Request Validation
+Goal of Day 2
+
+By the end of today, you should be able to:
+
+✅ Create POST APIs
+
+✅ Accept JSON Request Bodies
+
+✅ Use Pydantic Models
+
+✅ Validate Input Data
+
+✅ Create Response Models
+
+✅ Build a Customer Management API
+
+This is extremely important because every GenAI application uses request validation before sending data to an LLM.
+
+Session 1 (6:00 AM – 8:00 AM)
+What is Pydantic?
+
+Pydantic is a data validation library used by FastAPI.
+
+Without validation:
+
+{
+  "name": 123,
+  "age": "abc"
+}
+
+Bad data enters the system.
+
+With Pydantic:
+
+class User(BaseModel):
+    name: str
+    age: int
+
+FastAPI automatically validates input.
+
+What is a Request Body?
+
+Client sends data:
+
+{
+  "name": "Dileep",
+  "age": 26
+}
+
+This JSON is called the Request Body.
+
+POST API Basics
+from fastapi import FastAPI
+
+app = FastAPI()
+
+@app.post("/users")
+def create_user():
+    return {"message": "User created"}
+Session 2 (11:00 AM – 1:00 PM)
+Create First Pydantic Model
+from pydantic import BaseModel
+
+class Customer(BaseModel):
+    name: str
+    age: int
+    city: str
+Using Model in API
+from fastapi import FastAPI
+from pydantic import BaseModel
+
+app = FastAPI()
+
+class Customer(BaseModel):
+    name: str
+    age: int
+    city: str
+
+@app.post("/customers")
+def create_customer(customer: Customer):
+    return customer
+Request
+{
+  "name": "Dileep",
+  "age": 26,
+  "city": "Chittoor"
+}
+Response
+{
+  "name": "Dileep",
+  "age": 26,
+  "city": "Chittoor"
+}
+Automatic Validation
+
+If user sends:
+
+{
+  "name": "Dileep",
+  "age": "twenty six"
+}
+
+FastAPI automatically returns:
+
+422 Unprocessable Entity
+Field Validation
+from pydantic import BaseModel, Field
+
+class Customer(BaseModel):
+
+    name: str = Field(min_length=3)
+    age: int = Field(gt=0)
+Example
+
+Valid:
+
+{
+  "name": "Dileep",
+  "age": 26
+}
+
+Invalid:
+
+{
+  "name": "Di",
+  "age": -10
+}
+Optional Fields
+from typing import Optional
+
+class Customer(BaseModel):
+
+    name: str
+    age: int
+    email: Optional[str] = None
+Session 3 (4:00 PM – 6:00 PM)
+Build Customer Management API
+Step 1
+from fastapi import FastAPI
+from pydantic import BaseModel
+
+app = FastAPI()
+
+customers = []
+Step 2
+class Customer(BaseModel):
+
+    id: int
+    name: str
+    age: int
+    city: str
+Step 3 - Add Customer
+@app.post("/customers")
+def add_customer(customer: Customer):
+
+    customers.append(customer)
+
+    return {
+        "message": "Customer added"
+    }
+Step 4 - Get Customers
+@app.get("/customers")
+def get_customers():
+
+    return customers
+Response Model
+
+Used to control output.
+
+class CustomerResponse(BaseModel):
+
+    id: int
+    name: str
+@app.get(
+    "/customer",
+    response_model=CustomerResponse
+)
+def get_customer():
+
+    return {
+        "id": 1,
+        "name": "Dileep",
+        "age": 26
+    }
+
+Output:
+
+{
+  "id": 1,
+  "name": "Dileep"
+}
+
+Notice:
+age is hidden.
+
+Full Mini Project
+from fastapi import FastAPI
+from pydantic import BaseModel
+
+app = FastAPI()
+
+customers = []
+
+class Customer(BaseModel):
+
+    id: int
+    name: str
+    age: int
+    city: str
+
+
+@app.post("/customers")
+def create_customer(customer: Customer):
+
+    customers.append(customer)
+
+    return {
+        "message": "Customer Created"
+    }
+
+
+@app.get("/customers")
+def get_customers():
+
+    return customers
+Homework
+Task 1
+
+Build Employee API
+
+POST:
+
+{
+  "id": 1,
+  "name": "John",
+  "salary": 50000
+}
+
+GET:
+
+GET /employees
+Task 2
+
+Build Product API
+
+POST:
+
+{
+  "id": 1,
+  "name": "Laptop",
+  "price": 70000
+}
+Task 3
+
+Add Validation
+
+Rules:
+
+Name minimum 3 characters
+Age > 18
+Salary > 0
+Interview Questions
+What is Pydantic?
+
+A validation library used by FastAPI to validate and serialize data.
+
+Why use Pydantic?
+Validation
+Serialization
+Automatic documentation
+Type safety
+What is a Request Body?
+
+Data sent by the client in a POST/PUT request.
+
+What happens when validation fails?
+
+FastAPI returns:
+
+422 Unprocessable Entity
+What is a Response Model?
+
+A model that controls what fields are returned to the client.
+
+Coding Questions
+Question 1
+
+Create a POST API:
+
+POST /students
+
+Request:
+
+{
+  "id": 1,
+  "name": "Dileep",
+  "age": 26
+}
+Question 2
+
+Add validation:
+
+Name min length = 3
+Age > 0
+Question 3
+
+Create GET API:
+
+GET /students
+
+Return all students.
+
+End of Day Deliverable
+
+GitHub Project Structure:
+
+day2-fastapi/
+│
+├── app.py
+├── models.py
+├── requirements.txt
+└── README.md
+
+Working APIs:
+
+POST /customers
+GET /customers
+Validation using Pydantic
+Response Models
+
+Day 02 — Pydantic Models, POST APIs & Request Validation
+Goal of Day 2
+
+By the end of today, you should be able to:
+
+✅ Create POST APIs
+
+✅ Accept JSON Request Bodies
+
+✅ Use Pydantic Models
+
+✅ Validate Input Data
+
+✅ Create Response Models
+
+✅ Build a Customer Management API
+
+This is extremely important because every GenAI application uses request validation before sending data to an LLM.
+
+Session 1 (6:00 AM – 8:00 AM)
+What is Pydantic?
+
+Pydantic is a data validation library used by FastAPI.
+
+Without validation:
+
+{
+  "name": 123,
+  "age": "abc"
+}
+
+Bad data enters the system.
+
+With Pydantic:
+
+class User(BaseModel):
+    name: str
+    age: int
+
+FastAPI automatically validates input.
+
+What is a Request Body?
+
+Client sends data:
+
+{
+  "name": "Dileep",
+  "age": 26
+}
+
+This JSON is called the Request Body.
+
+POST API Basics
+from fastapi import FastAPI
+
+app = FastAPI()
+
+@app.post("/users")
+def create_user():
+    return {"message": "User created"}
+Session 2 (11:00 AM – 1:00 PM)
+Create First Pydantic Model
+from pydantic import BaseModel
+
+class Customer(BaseModel):
+    name: str
+    age: int
+    city: str
+Using Model in API
+from fastapi import FastAPI
+from pydantic import BaseModel
+
+app = FastAPI()
+
+class Customer(BaseModel):
+    name: str
+    age: int
+    city: str
+
+@app.post("/customers")
+def create_customer(customer: Customer):
+    return customer
+Request
+{
+  "name": "Dileep",
+  "age": 26,
+  "city": "Chittoor"
+}
+Response
+{
+  "name": "Dileep",
+  "age": 26,
+  "city": "Chittoor"
+}
+Automatic Validation
+
+If user sends:
+
+{
+  "name": "Dileep",
+  "age": "twenty six"
+}
+
+FastAPI automatically returns:
+
+422 Unprocessable Entity
+Field Validation
+from pydantic import BaseModel, Field
+
+class Customer(BaseModel):
+
+    name: str = Field(min_length=3)
+    age: int = Field(gt=0)
+Example
+
+Valid:
+
+{
+  "name": "Dileep",
+  "age": 26
+}
+
+Invalid:
+
+{
+  "name": "Di",
+  "age": -10
+}
+Optional Fields
+from typing import Optional
+
+class Customer(BaseModel):
+
+    name: str
+    age: int
+    email: Optional[str] = None
+Session 3 (4:00 PM – 6:00 PM)
+Build Customer Management API
+Step 1
+from fastapi import FastAPI
+from pydantic import BaseModel
+
+app = FastAPI()
+
+customers = []
+Step 2
+class Customer(BaseModel):
+
+    id: int
+    name: str
+    age: int
+    city: str
+Step 3 - Add Customer
+@app.post("/customers")
+def add_customer(customer: Customer):
+
+    customers.append(customer)
+
+    return {
+        "message": "Customer added"
+    }
+Step 4 - Get Customers
+@app.get("/customers")
+def get_customers():
+
+    return customers
+Response Model
+
+Used to control output.
+
+class CustomerResponse(BaseModel):
+
+    id: int
+    name: str
+@app.get(
+    "/customer",
+    response_model=CustomerResponse
+)
+def get_customer():
+
+    return {
+        "id": 1,
+        "name": "Dileep",
+        "age": 26
+    }
+
+Output:
+
+{
+  "id": 1,
+  "name": "Dileep"
+}
+
+Notice:
+age is hidden.
+
+Full Mini Project
+from fastapi import FastAPI
+from pydantic import BaseModel
+
+app = FastAPI()
+
+customers = []
+
+class Customer(BaseModel):
+
+    id: int
+    name: str
+    age: int
+    city: str
+
+
+@app.post("/customers")
+def create_customer(customer: Customer):
+
+    customers.append(customer)
+
+    return {
+        "message": "Customer Created"
+    }
+
+
+@app.get("/customers")
+def get_customers():
+
+    return customers
+Homework
+Task 1
+
+Build Employee API
+
+POST:
+
+{
+  "id": 1,
+  "name": "John",
+  "salary": 50000
+}
+
+GET:
+
+GET /employees
+Task 2
+
+Build Product API
+
+POST:
+
+{
+  "id": 1,
+  "name": "Laptop",
+  "price": 70000
+}
+Task 3
+
+Add Validation
+
+Rules:
+
+Name minimum 3 characters
+Age > 18
+Salary > 0
+Interview Questions
+What is Pydantic?
+
+A validation library used by FastAPI to validate and serialize data.
+
+Why use Pydantic?
+Validation
+Serialization
+Automatic documentation
+Type safety
+What is a Request Body?
+
+Data sent by the client in a POST/PUT request.
+
+What happens when validation fails?
+
+FastAPI returns:
+
+422 Unprocessable Entity
+What is a Response Model?
+
+A model that controls what fields are returned to the client.
+
+Coding Questions
+Question 1
+
+Create a POST API:
+
+POST /students
+
+Request:
+
+{
+  "id": 1,
+  "name": "Dileep",
+  "age": 26
+}
+Question 2
+
+Add validation:
+
+Name min length = 3
+Age > 0
+Question 3
+
+Create GET API:
+
+GET /students
+
+Return all students.
+
+End of Day Deliverable
+
+GitHub Project Structure:
+
+day2-fastapi/
+│
+├── app.py
+├── models.py
+├── requirements.txt
+└── README.md
+
+Working APIs:
+
+POST /customers
+GET /customers
+Validation using Pydantic
+Response Models

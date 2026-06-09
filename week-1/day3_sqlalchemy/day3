@@ -1,0 +1,358 @@
+Day 03 – PostgreSQL + SQL + SQLAlchemy + FastAPI Integration
+Goal of Day 3
+
+By the end of today, you should be able to:
+
+✅ Install PostgreSQL
+
+✅ Write SQL Queries
+
+✅ Connect FastAPI to PostgreSQL
+
+✅ Use SQLAlchemy ORM
+
+✅ Perform CRUD Operations
+
+✅ Build Production-Level APIs
+
+This is where your APIs stop using Python lists and start using a real database.
+
+Session 1 (6:00 AM – 8:00 AM)
+What is a Database?
+
+A database stores data permanently.
+
+Example:
+
+Customer
+---------
+id
+name
+email
+city
+
+Without DB:
+
+customers = []
+
+Data is lost when server restarts.
+
+With DB:
+
+PostgreSQL
+
+Data persists.
+
+Why PostgreSQL?
+
+PostgreSQL
+
+Advantages:
+
+Open Source
+ACID compliant
+Enterprise grade
+Supports JSON
+Highly scalable
+
+Used by:
+
+Banking systems
+E-commerce
+AI platforms
+Install PostgreSQL
+
+Official Website:
+
+PostgreSQL Downloads
+
+Create Database
+CREATE DATABASE bankdb;
+Connect Database
+\c bankdb
+SQL Fundamentals
+Create Table
+CREATE TABLE customers (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(100),
+    age INT,
+    city VARCHAR(100)
+);
+Insert Data
+INSERT INTO customers(name, age, city)
+VALUES ('Dileep', 26, 'Chittoor');
+Select Data
+SELECT * FROM customers;
+Update Data
+UPDATE customers
+SET city='Bangalore'
+WHERE id=1;
+Delete Data
+DELETE FROM customers
+WHERE id=1;
+Session 2 (11:00 AM – 1:00 PM)
+SQLAlchemy ORM
+
+ORM = Object Relational Mapping
+
+Instead of:
+
+SELECT * FROM customers;
+
+We write:
+
+db.query(Customer).all()
+Install Packages
+pip install sqlalchemy psycopg2-binary
+Project Structure
+day3-fastapi-db/
+│
+├── main.py
+├── database.py
+├── models.py
+├── schemas.py
+└── crud.py
+Database Configuration
+database.py
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+
+DATABASE_URL = (
+    "postgresql://postgres:password@localhost/bankdb"
+)
+
+engine = create_engine(DATABASE_URL)
+
+SessionLocal = sessionmaker(
+    autocommit=False,
+    autoflush=False,
+    bind=engine
+)
+Create Model
+models.py
+from sqlalchemy import Column
+from sqlalchemy import Integer
+from sqlalchemy import String
+from sqlalchemy.orm import declarative_base
+
+Base = declarative_base()
+
+class Customer(Base):
+
+    __tablename__ = "customers"
+
+    id = Column(Integer, primary_key=True)
+    name = Column(String)
+    age = Column(Integer)
+    city = Column(String)
+Create Table
+Base.metadata.create_all(bind=engine)
+Session 3 (4:00 PM – 6:00 PM)
+Pydantic Schema
+schemas.py
+from pydantic import BaseModel
+
+class CustomerCreate(BaseModel):
+
+    name: str
+    age: int
+    city: str
+FastAPI Integration
+main.py
+from fastapi import FastAPI
+
+app = FastAPI()
+Create Customer
+@app.post("/customers")
+def create_customer():
+
+    pass
+Full Example
+from fastapi import FastAPI
+from pydantic import BaseModel
+
+app = FastAPI()
+
+customers = []
+
+class Customer(BaseModel):
+
+    name: str
+    age: int
+    city: str
+
+@app.post("/customers")
+def create_customer(customer: Customer):
+
+    customers.append(customer)
+
+    return customer
+
+Today you'll replace this list-based storage with PostgreSQL.
+
+SQL Interview Questions
+What is SQL?
+
+Structured Query Language used to interact with relational databases.
+
+Difference Between DELETE and TRUNCATE?
+DELETE	TRUNCATE
+Removes selected rows	Removes all rows
+Can use WHERE	Cannot use WHERE
+Slower	Faster
+Difference Between WHERE and HAVING?
+
+WHERE:
+
+Filters rows
+
+HAVING:
+
+Filters grouped results
+What is Primary Key?
+
+Unique identifier for a row.
+
+Example:
+
+id SERIAL PRIMARY KEY
+What is Foreign Key?
+
+Links one table with another.
+
+What is Index?
+
+Improves query performance.
+
+Example:
+
+CREATE INDEX idx_customer_name
+ON customers(name);
+SQLAlchemy Interview Questions
+What is ORM?
+
+Object Relational Mapping.
+
+Maps:
+
+Table  → Class
+Row    → Object
+Column → Attribute
+Why SQLAlchemy?
+Database abstraction
+Cleaner code
+Supports multiple DBs
+Difference Between SQL and ORM?
+
+SQL:
+
+SELECT * FROM customers;
+
+ORM:
+
+db.query(Customer).all()
+Day 3 Coding Questions
+Question 1
+
+Create table:
+
+employees
+
+Columns:
+
+id
+name
+salary
+department
+Question 2
+
+Write query:
+
+Find all employees with salary > 50000
+Question 3
+
+Create Product Model
+
+class Product(Base):
+
+Fields:
+
+id
+name
+price
+Question 4
+
+Insert Product using SQLAlchemy
+
+Question 5
+
+Fetch all products
+
+DSA for Day 3 (60–90 Minutes)
+
+Solve:
+
+Merge Sorted Array
+Move Zeroes
+Maximum Subarray
+Product of Array Except Self
+Linked List Cycle
+Mini Project
+Banking Customer Management System
+
+Features:
+
+POST
+POST /customers
+
+Add customer
+
+GET
+GET /customers
+
+Fetch customers
+
+PUT
+PUT /customers/{id}
+
+Update customer
+
+DELETE
+DELETE /customers/{id}
+
+Delete customer
+
+End of Day Deliverable
+
+GitHub Project:
+
+day3-postgresql-fastapi/
+│
+├── main.py
+├── database.py
+├── models.py
+├── schemas.py
+├── crud.py
+└── requirements.txt
+
+Working Features:
+
+✅ PostgreSQL connection
+
+✅ SQLAlchemy ORM
+
+✅ Customer table
+
+✅ CRUD APIs
+
+✅ FastAPI integration
+
+Tomorrow (Day 4) you'll move to:
+
+SQLAlchemy Relationships
+One-to-One
+One-to-Many
+Many-to-Many
+Repository Pattern
+Service Layer Pattern
+Production FastAPI Architecture
