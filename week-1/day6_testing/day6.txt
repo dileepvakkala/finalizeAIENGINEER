@@ -1,0 +1,971 @@
+Day 6 – Pytest, Unit Testing, Mocking, API Testing & Test Coverage
+Goal of Day 6
+
+By the end of today, you should be able to:
+
+✅ Write Unit Tests
+
+✅ Test FastAPI APIs
+
+✅ Mock Database Calls
+
+✅ Use Pytest Fixtures
+
+✅ Generate Test Coverage Reports
+
+✅ Test JWT Authentication
+
+✅ Test Service Layer Logic
+
+For a 5-year engineer, testing is extremely important because interviewers often ask:
+
+"How do you ensure your code quality?"
+
+The answer is:
+
+Unit Tests
+Integration Tests
+API Tests
+Coverage Reports
+Session 1 (6 AM - 8 AM)
+Introduction to Testing
+Types of Testing
+Unit Testing
+Integration Testing
+API Testing
+End-to-End Testing
+Unit Testing
+
+Testing one function in isolation.
+
+Example:
+
+def add(a, b):
+    return a + b
+
+Test:
+
+def test_add():
+
+    assert add(10, 20) == 30
+Install Pytest
+pip install pytest
+Project Structure
+banking_app/
+
+app/
+
+tests/
+
+    test_customer_service.py
+
+    test_auth_service.py
+
+    test_account_service.py
+First Test
+calculator.py
+def add(a, b):
+    return a + b
+test_calculator.py
+from calculator import add
+
+def test_add():
+
+    assert add(10, 20) == 30
+
+Run:
+
+pytest
+Assertions
+assert True
+
+assert False
+
+assert 10 == 10
+
+assert "abc" == "abc"
+Session 2 (11 AM - 1 PM)
+Testing Banking Services
+
+Suppose:
+
+class CustomerService:
+
+    def create_customer():
+        pass
+Test Customer Creation
+def test_customer_creation():
+
+    customer = {
+        "name": "Dileep"
+    }
+
+    assert customer["name"] == "Dileep"
+Testing Exceptions
+
+Service:
+
+def withdraw(balance, amount):
+
+    if amount > balance:
+
+        raise Exception(
+            "Insufficient Balance"
+        )
+
+Test:
+
+import pytest
+
+def test_insufficient_balance():
+
+    with pytest.raises(Exception):
+
+        withdraw(
+            5000,
+            10000
+        )
+Fixtures
+
+Reusable setup.
+
+Example:
+
+import pytest
+
+@pytest.fixture
+def customer():
+
+    return {
+        "name": "Dileep",
+        "city": "Chittoor"
+    }
+
+Use:
+
+def test_customer(customer):
+
+    assert customer["name"] == "Dileep"
+Parametrized Tests
+import pytest
+
+@pytest.mark.parametrize(
+    "a,b,result",
+    [
+        (1,2,3),
+        (5,5,10),
+        (10,20,30)
+    ]
+)
+def test_add(
+        a,
+        b,
+        result
+):
+
+    assert a+b == result
+Session 3 (4 PM - 6 PM)
+FastAPI API Testing
+
+Install:
+
+pip install httpx
+TestClient
+from fastapi.testclient import TestClient
+test_main.py
+from fastapi.testclient import TestClient
+
+from main import app
+
+client = TestClient(app)
+Test GET API
+def test_home():
+
+    response = client.get("/")
+
+    assert response.status_code == 200
+Test POST API
+def test_create_customer():
+
+    response = client.post(
+        "/customers",
+        json={
+            "name": "Dileep",
+            "city": "Chittoor"
+        }
+    )
+
+    assert response.status_code == 200
+JWT Authentication Testing
+
+Login:
+
+response = client.post(
+    "/login",
+    json={
+        "username": "admin",
+        "password": "admin123"
+    }
+)
+
+Get Token:
+
+token = response.json()[
+    "access_token"
+]
+
+Use Token:
+
+headers = {
+    "Authorization":
+    f"Bearer {token}"
+}
+
+Protected API:
+
+response = client.get(
+    "/customers",
+    headers=headers
+)
+Mocking Database Calls
+
+Install:
+
+pip install pytest-mock
+
+Suppose:
+
+repository.get_customer()
+
+hits DB.
+
+Don't call actual DB during unit tests.
+
+Mock Example
+
+def test_get_customer(
+        mocker
+):
+
+    mocker.patch(
+        "repository.get_customer",
+        return_value={
+            "id": 1,
+            "name": "Dileep"
+        }
+    )
+
+    result = repository.get_customer()
+
+    assert result["id"] == 1
+Service Layer Testing
+
+Service:
+
+class AccountService:
+
+    def deposit(
+            balance,
+            amount
+    ):
+        return balance + amount
+
+Test:
+
+def test_deposit():
+
+    result = AccountService.deposit(
+        5000,
+        2000
+    )
+
+    assert result == 7000
+Coverage Report
+
+Install:
+
+pip install pytest-cov
+
+Run:
+
+pytest --cov=app
+
+Output:
+
+85% Coverage
+Target Coverage
+Experience	Coverage
+Fresher	50%
+3 Years	70%
+5 Years	80-90%
+Interview Questions
+What is Unit Testing?
+
+Testing individual components in isolation.
+
+Difference Between Unit and Integration Testing?
+
+Unit:
+
+Single component
+
+Integration:
+
+Multiple components together
+Why Mock Dependencies?
+
+Avoid:
+
+Database calls
+External APIs
+Kafka
+Redis
+
+during tests.
+
+What is a Fixture?
+
+Reusable test setup.
+
+Why Test JWT Authentication?
+
+Verify:
+
+Login works
+Token validation works
+Protected APIs work
+What is Test Coverage?
+
+Percentage of code executed by tests.
+
+Why Use TestClient?
+
+Testing FastAPI APIs without starting the server.
+
+What Should Not Be Mocked?
+
+Business logic.
+
+Mock:
+
+Database
+External services
+
+Do not mock:
+
+Core logic being tested
+Coding Tasks
+Task 1
+
+Write unit tests for:
+
+deposit()
+withdraw()
+Task 2
+
+Test customer creation API.
+
+Task 3
+
+Test login API.
+
+Task 4
+
+Mock repository layer.
+
+Task 5
+
+Generate coverage report.
+
+DSA (90 Minutes)
+
+Solve:
+
+Longest Substring Without Repeating Characters
+Group Anagrams
+Top K Frequent Elements
+Valid Sudoku
+3Sum
+End-of-Day Deliverable
+
+Add a tests/ folder to your Banking Application:
+
+tests/
+
+├── test_auth.py
+├── test_customer.py
+├── test_account.py
+├── test_service.py
+└── conftest.py
+
+Features:
+
+✅ Unit Testing
+
+✅ API Testing
+
+✅ JWT Testing
+
+✅ Mocking
+
+✅ Fixtures
+
+✅ Coverage Reports
+
+Day 6 – Async vs Sync, Async APIs, asyncio, Concurrency
+
+This is one of the most important topics for FastAPI, GenAI, Microservices, and AI Platform Engineering interviews.
+
+Goal of Day 6
+
+By the end of today, you should understand:
+
+✅ Synchronous Programming
+
+✅ Asynchronous Programming
+
+✅ asyncio
+
+✅ async/await
+
+✅ Event Loop
+
+✅ FastAPI Async APIs
+
+✅ Concurrent API Calls
+
+✅ Async Database Operations
+
+✅ Async Interview Questions
+
+Session 1 (6 AM – 8 AM)
+Synchronous Programming
+
+In synchronous programming, tasks execute one after another.
+
+Example:
+
+import time
+
+def task1():
+    print("Task 1 Started")
+    time.sleep(3)
+    print("Task 1 Completed")
+
+def task2():
+    print("Task 2 Started")
+    time.sleep(2)
+    print("Task 2 Completed")
+
+task1()
+task2()
+
+Output:
+
+Task 1 Started
+(wait 3 sec)
+
+Task 1 Completed
+
+Task 2 Started
+(wait 2 sec)
+
+Task 2 Completed
+
+Total Time:
+
+5 seconds
+Problem with Sync
+
+Imagine:
+
+User Request
+   ↓
+DB Call (3 sec)
+   ↓
+External API (2 sec)
+   ↓
+Response
+
+Total:
+
+5 sec
+
+User waits.
+
+Asynchronous Programming
+
+Allows other tasks to run while waiting.
+
+Example:
+
+import asyncio
+
+async def task1():
+
+    print("Task 1 Started")
+
+    await asyncio.sleep(3)
+
+    print("Task 1 Completed")
+
+
+async def task2():
+
+    print("Task 2 Started")
+
+    await asyncio.sleep(2)
+
+    print("Task 2 Completed")
+
+
+async def main():
+
+    await asyncio.gather(
+        task1(),
+        task2()
+    )
+
+asyncio.run(main())
+
+Output:
+
+Task1 Started
+Task2 Started
+
+Task2 Completed
+Task1 Completed
+
+Total:
+
+3 seconds
+
+instead of 5.
+
+async Keyword
+
+Defines asynchronous function.
+
+async def fetch_data():
+    pass
+await Keyword
+
+Pauses current coroutine until task completes.
+
+await fetch_data()
+Event Loop
+
+Heart of asyncio.
+
+Event Loop
+
+Task1
+Task2
+Task3
+Task4
+
+Runs efficiently
+Session 2 (11 AM – 1 PM)
+asyncio
+Simple Example
+import asyncio
+
+async def greet():
+
+    await asyncio.sleep(2)
+
+    print("Hello")
+
+asyncio.run(
+    greet()
+)
+Multiple Tasks
+import asyncio
+
+async def task(name):
+
+    await asyncio.sleep(2)
+
+    print(name)
+
+async def main():
+
+    await asyncio.gather(
+        task("A"),
+        task("B"),
+        task("C")
+    )
+
+asyncio.run(main())
+
+Output:
+
+A
+B
+C
+
+after 2 seconds.
+
+asyncio.create_task()
+
+Runs task in background.
+
+task = asyncio.create_task(
+    fetch_data()
+)
+Async File Processing
+import asyncio
+
+async def process():
+
+    await asyncio.sleep(2)
+
+    return "Completed"
+CPU Bound vs IO Bound
+IO Bound
+
+Examples:
+
+Database Calls
+API Calls
+File Reads
+Kafka
+Redis
+
+Use Async.
+
+CPU Bound
+
+Examples:
+
+ML Training
+Image Processing
+Video Processing
+Large Loops
+
+Use:
+
+Multiprocessing
+ThreadPool
+
+Not Async.
+
+Session 3 (4 PM – 6 PM)
+FastAPI Async APIs
+Sync Endpoint
+from fastapi import FastAPI
+
+app = FastAPI()
+
+@app.get("/sync")
+def sync_api():
+
+    return {
+        "message":"Sync"
+    }
+Async Endpoint
+from fastapi import FastAPI
+
+app = FastAPI()
+
+@app.get("/async")
+async def async_api():
+
+    return {
+        "message":"Async"
+    }
+Async External API Call
+
+Install:
+
+pip install httpx
+import httpx
+
+async def get_users():
+
+    async with httpx.AsyncClient() as client:
+
+        response = await client.get(
+            "https://jsonplaceholder.typicode.com/users"
+        )
+
+        return response.json()
+Async Route
+@app.get("/users")
+async def users():
+
+    data = await get_users()
+
+    return data
+Concurrent API Calls
+
+Without Async:
+
+Service A → 2 sec
+Service B → 3 sec
+
+Total = 5 sec
+
+With Async:
+
+results = await asyncio.gather(
+    service_a(),
+    service_b()
+)
+
+Total:
+
+3 sec
+Banking Example
+
+Fetch:
+
+Customer Details
+Account Details
+Transaction Details
+
+simultaneously.
+
+await asyncio.gather(
+    customer_service(),
+    account_service(),
+    transaction_service()
+)
+Async Database
+
+Install:
+
+pip install asyncpg
+
+SQLAlchemy Async Engine
+
+from sqlalchemy.ext.asyncio import (
+    create_async_engine
+)
+
+Connection:
+
+engine = create_async_engine(
+    DATABASE_URL
+)
+Async Repository
+async def get_customer():
+
+    result = await session.execute(
+        query
+    )
+
+    return result.scalars().all()
+Coding Exercises
+Exercise 1
+
+Print:
+
+Task A
+Task B
+Task C
+
+using asyncio.
+
+Exercise 2
+
+Run:
+
+fetch_customer()
+fetch_account()
+
+concurrently.
+
+Exercise 3
+
+Create Async FastAPI API.
+
+GET /customers
+Exercise 4
+
+Call two external APIs concurrently.
+
+Exercise 5
+
+Build:
+
+GET /dashboard
+
+Return:
+
+{
+  "customer":{},
+  "accounts":[],
+  "transactions":[]
+}
+
+using asyncio.gather().
+
+Real-Time GenAI Example
+
+Without Async:
+
+LLM Call
+ ↓
+Vector DB Search
+ ↓
+Metadata Search
+
+Takes longer.
+
+With Async:
+
+await asyncio.gather(
+    vector_search(),
+    metadata_search()
+)
+
+LLM receives data faster.
+
+Interview Questions
+1. Difference Between Sync and Async?
+
+Sync:
+
+One task at a time
+
+Async:
+
+Multiple waiting tasks handled concurrently
+2. What is asyncio?
+
+Python library for asynchronous programming.
+
+3. What is Event Loop?
+
+Core engine that schedules async tasks.
+
+4. What is async keyword?
+
+Defines coroutine.
+
+async def process():
+5. What is await?
+
+Waits for async operation without blocking thread.
+
+6. What is Coroutine?
+
+Function defined using:
+
+async def
+7. What is asyncio.gather()?
+
+Runs multiple coroutines concurrently.
+
+await asyncio.gather(
+    task1(),
+    task2()
+)
+8. When should Async be used?
+
+For:
+
+APIs
+DB Calls
+Redis
+Kafka
+External Services
+9. When should Async NOT be used?
+
+CPU-intensive tasks:
+
+Model Training
+Image Processing
+Encryption
+10. Difference Between Multithreading and Async?
+
+Async:
+
+Single thread
+Event loop
+
+Multithreading:
+
+Multiple threads
+11. Difference Between Concurrency and Parallelism?
+
+Concurrency:
+
+Task A
+Task B
+Task C
+
+Managed together.
+
+Parallelism:
+
+CPU1 → Task A
+CPU2 → Task B
+
+Runs simultaneously.
+
+12. What happens if you use time.sleep() inside async function?
+
+Bad practice.
+
+Blocks event loop.
+
+Use:
+
+await asyncio.sleep()
+13. Why is FastAPI fast?
+
+Because it is built on:
+
+ASGI
+asyncio
+Starlette
+14. Explain Async in Banking Application.
+
+Examples:
+
+Account Lookup
+Customer Lookup
+Transaction History
+Fraud Service Call
+
+can execute concurrently.
+
+15. Explain Async in GenAI.
+
+Examples:
+
+Vector Search
+Metadata Retrieval
+Tool Calling
+External APIs
+
+run concurrently before LLM response generation.
+
+Day 6 Deliverable
+
+Enhance your Banking Application:
+
+GET /dashboard
+
+Fetch:
+Customer
+Accounts
+Transactions
+
+using asyncio.gather()
+
+Implement:
+
+✅ Async APIs
+
+✅ Async Service Layer
+
+✅ Async HTTP Calls
+
+✅ Async Database Access
+
+✅ Concurrent Execution
+
+By the end of Day 6, you'll have a banking application that not only works but is also tested like a professional production application, which is a major differentiator in senior backend and GenAI engineering interviews.
