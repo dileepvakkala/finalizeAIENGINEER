@@ -1,0 +1,507 @@
+Day 18 – CRUD Operations with FastAPI + SQLAlchemy + PostgreSQL
+
+Today is one of the most important days because almost every backend service is built around CRUD operations.
+
+For Goldman Sachs-level interviews, you should be able to:
+
+✅ Design REST APIs
+
+✅ Implement CRUD using SQLAlchemy
+
+✅ Handle Exceptions
+
+✅ Validate Requests
+
+✅ Return Proper Responses
+
+✅ Use Service Layer Pattern
+
+✅ Handle Transactions
+
+Day 18 Goals
+
+Learn:
+
+Create
+Read
+Update
+Delete
+
+using:
+
+FastAPI
+SQLAlchemy
+PostgreSQL
+Pydantic
+Project Structure
+app/
+
+├── database/
+│   └── database.py
+│
+├── models/
+│   └── customer.py
+│
+├── schemas/
+│   └── customer_schema.py
+│
+├── services/
+│   └── customer_service.py
+│
+├── routers/
+│   └── customer_router.py
+│
+└── main.py
+Session 1 (6 AM – 8 AM)
+Create Customer API
+Customer Model
+from sqlalchemy import Column
+from sqlalchemy import Integer
+from sqlalchemy import String
+
+from database.database import Base
+
+class Customer(Base):
+
+    __tablename__ = "customers"
+
+    id = Column(
+        Integer,
+        primary_key=True,
+        index=True
+    )
+
+    name = Column(
+        String,
+        nullable=False
+    )
+
+    email = Column(
+        String,
+        unique=True
+    )
+Request Schema
+from pydantic import BaseModel
+from pydantic import EmailStr
+
+class CustomerCreate(
+    BaseModel
+):
+    name: str
+    email: EmailStr
+Response Schema
+class CustomerResponse(
+    BaseModel
+):
+
+    id: int
+    name: str
+    email: str
+
+    class Config:
+        from_attributes = True
+Create API
+@router.post(
+    "/customers",
+    response_model=
+    CustomerResponse
+)
+def create_customer(
+    request: CustomerCreate,
+    db: Session =
+    Depends(get_db)
+):
+
+    customer = Customer(
+        name=request.name,
+        email=request.email
+    )
+
+    db.add(customer)
+
+    db.commit()
+
+    db.refresh(customer)
+
+    return customer
+Flow
+POST /customers
+      ↓
+Pydantic Validation
+      ↓
+SQLAlchemy Model
+      ↓
+Commit
+      ↓
+Response
+Session 2 (11 AM – 1 PM)
+Read Operations
+Get All Customers
+@router.get(
+    "/customers"
+)
+def get_customers(
+        db: Session =
+        Depends(get_db)
+):
+
+    return (
+        db.query(Customer)
+        .all()
+    )
+Get Customer By Id
+@router.get(
+    "/customers/{id}"
+)
+def get_customer(
+    id: int,
+    db: Session =
+    Depends(get_db)
+):
+
+    customer = (
+        db.query(Customer)
+        .filter(
+            Customer.id == id
+        )
+        .first()
+    )
+
+    return customer
+Handle Not Found
+from fastapi import HTTPException
+if not customer:
+
+    raise HTTPException(
+        status_code=404,
+        detail=
+        "Customer Not Found"
+    )
+Session 3 (4 PM – 6 PM)
+Update & Delete
+Update Customer
+@router.put(
+    "/customers/{id}"
+)
+def update_customer(
+        id: int,
+        request:
+        CustomerCreate,
+
+        db: Session =
+        Depends(get_db)
+):
+
+    customer = (
+        db.query(Customer)
+        .filter(
+            Customer.id == id
+        )
+        .first()
+    )
+
+    if not customer:
+
+        raise HTTPException(
+            404,
+            "Customer Not Found"
+        )
+
+    customer.name = (
+        request.name
+    )
+
+    customer.email = (
+        request.email
+    )
+
+    db.commit()
+
+    db.refresh(customer)
+
+    return customer
+Delete Customer
+@router.delete(
+    "/customers/{id}"
+)
+def delete_customer(
+        id: int,
+        db: Session =
+        Depends(get_db)
+):
+
+    customer = (
+        db.query(Customer)
+        .filter(
+            Customer.id == id
+        )
+        .first()
+    )
+
+    if not customer:
+
+        raise HTTPException(
+            404,
+            "Customer Not Found"
+        )
+
+    db.delete(customer)
+
+    db.commit()
+
+    return {
+        "message":
+        "Deleted Successfully"
+    }
+Service Layer Pattern
+
+Avoid putting business logic in routers.
+
+customer_service.py
+class CustomerService:
+
+    @staticmethod
+    def create_customer(
+        request,
+        db
+    ):
+
+        customer = Customer(
+            name=request.name,
+            email=request.email
+        )
+
+        db.add(customer)
+
+        db.commit()
+
+        db.refresh(customer)
+
+        return customer
+Router
+return (
+    CustomerService
+    .create_customer(
+        request,
+        db
+    )
+)
+Production Enhancements
+Duplicate Email Validation
+existing_customer = (
+    db.query(Customer)
+      .filter(
+          Customer.email
+          ==
+          request.email
+      )
+      .first()
+)
+if existing_customer:
+
+    raise HTTPException(
+        400,
+        "Email already exists"
+    )
+Pagination
+
+Bad:
+
+db.query(Customer).all()
+
+Good:
+
+customers = (
+    db.query(Customer)
+      .offset(skip)
+      .limit(limit)
+      .all()
+)
+Search API
+@router.get(
+    "/customers/search"
+)
+def search_customer(
+        email: str,
+        db: Session
+):
+    return (
+        db.query(Customer)
+          .filter(
+              Customer.email
+              == email
+          )
+          .first()
+    )
+Banking Example
+
+Customer CRUD
+
+Create Customer
+Update Customer
+Delete Customer
+Get Customer
+
+used by:
+
+Account Service
+Loan Service
+Transaction Service
+Interview Questions
+What is CRUD?
+Create
+Read
+Update
+Delete
+
+operations.
+
+POST vs PUT?
+
+POST:
+
+Create
+
+PUT:
+
+Update
+PUT vs PATCH?
+
+PUT:
+
+Complete update
+
+PATCH:
+
+Partial update
+Why use Pydantic?
+
+Request validation.
+
+Why use Response Models?
+
+Control response format.
+
+Why use HTTPException?
+
+Return proper HTTP errors.
+
+Why use Service Layer?
+
+Separation of concerns.
+
+Why refresh() after commit()?
+
+Retrieve generated values.
+
+How do you prevent duplicate customers?
+unique=True
+
+and validation.
+
+How would you implement pagination?
+offset()
+limit()
+Goldman Sachs Style Questions
+1. Design Customer CRUD APIs for a banking system.
+
+Expected:
+
+Controller
+ ↓
+Service
+ ↓
+Repository
+ ↓
+PostgreSQL
+2. How would you handle concurrent updates?
+
+Optimistic locking/versioning.
+
+3. How would you ensure transactional consistency?
+
+Use DB transactions.
+
+4. How would you implement soft delete?
+
+Add:
+
+is_deleted BOOLEAN
+
+instead of physical delete.
+
+5. Why avoid physical deletes in banking?
+
+Audit and compliance requirements.
+
+6. How would you handle millions of customers?
+Pagination
+Indexing
+Caching
+Partitioning
+7. How would you optimize slow customer search?
+
+Add index on email.
+
+8. How would you design audit logging?
+
+Track:
+
+Before Value
+After Value
+User
+Timestamp
+9. How would you prevent duplicate API submissions?
+
+Idempotency keys.
+
+10. How would you design CRUD APIs for microservices?
+API Gateway
+ ↓
+Customer Service
+ ↓
+PostgreSQL
+Coding Tasks
+Task 1
+
+Create Customer CRUD APIs.
+
+Task 2
+
+Add duplicate email validation.
+
+Task 3
+
+Add pagination.
+
+Task 4
+
+Add search API.
+
+Task 5
+
+Implement Service Layer.
+
+Task 6
+
+Add proper exception handling.
+
+DSA (90 Minutes)
+
+Solve:
+
+Maximum Subarray
+Move Zeroes
+Reverse Linked List
+Balanced Binary Tree
+Climbing Stairs
+End-of-Day Deliverable
+FastAPI CRUD APIs
+SQLAlchemy CRUD
+PostgreSQL Integration
+Pydantic Validation
+Service Layer
+Pagination
+Search APIs
+Exception Handling
+Production-Ready Structure

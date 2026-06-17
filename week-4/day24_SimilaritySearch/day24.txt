@@ -1,0 +1,529 @@
+Day 24 – Similarity Search (Core Retrieval Engine of RAG)
+
+Today you will build the heart of every RAG application.
+
+Without similarity search:
+
+User Question
+    ↓
+Keyword Search
+    ↓
+Poor Results
+
+With similarity search:
+
+User Question
+    ↓
+Embedding
+    ↓
+Vector Search
+    ↓
+Most Relevant Chunks
+    ↓
+LLM
+    ↓
+Answer
+
+This is the exact mechanism used in enterprise GenAI systems.
+
+Day 24 Goals
+
+✅ Similarity Search Fundamentals
+
+✅ Cosine Similarity
+
+✅ Euclidean Distance
+
+✅ Top-K Retrieval
+
+✅ ChromaDB Search
+
+✅ Metadata Filtering
+
+✅ Ranking Results
+
+✅ Banking RAG Search
+
+✅ FastAPI Retrieval API
+
+Session 1 (6 AM – 8 AM)
+Understanding Similarity Search
+Traditional Search
+
+Stored Document:
+
+Home Loan Interest Rate
+
+User Query:
+
+Mortgage Interest
+
+Keyword search:
+
+No Match
+Vector Search
+
+Documents:
+
+Home Loan
+Housing Loan
+Mortgage Loan
+
+All are semantically related.
+
+Embeddings place them close together in vector space.
+
+Similarity Calculation
+
+Most common metric:
+
+cos(θ)=
+∥A∥∥B∥
+A⋅B
+	​
+
+
+Where:
+
+1.0 → Very Similar
+0.8 → Similar
+0.5 → Somewhat Similar
+0.0 → Unrelated
+Example
+
+Query:
+
+Housing Loan
+
+Results:
+
+Home Loan Policy         0.92
+Mortgage Guidelines      0.88
+Credit Card Policy       0.21
+
+Retrieve top results.
+
+Top-K Retrieval
+
+Instead of one result:
+
+Top 3
+Top 5
+Top 10
+
+Example:
+
+results = collection.query(
+    query_texts=[
+        "housing loan"
+    ],
+    n_results=3
+)
+Session 2 (11 AM – 1 PM)
+ChromaDB Similarity Search
+Setup
+import chromadb
+
+client = chromadb.PersistentClient(
+    path="./chroma_db"
+)
+
+collection = (
+    client.get_or_create_collection(
+        name="bank_docs"
+    )
+)
+Add Documents
+collection.add(
+
+    ids=["1","2","3"],
+
+    documents=[
+
+        "Home loan interest rate is 8%",
+
+        "Credit card interest rate is 20%",
+
+        "Car loan eligibility criteria"
+    ]
+)
+Query Documents
+result = collection.query(
+
+    query_texts=[
+        "housing loan"
+    ],
+
+    n_results=2
+)
+
+print(result)
+
+Expected:
+
+Home loan interest rate is 8%
+Car loan eligibility criteria
+Understanding Results
+print(result)
+
+Returns:
+
+{
+ 'ids':[['1','3']],
+ 'documents':[[...]],
+ 'distances':[[...]]
+}
+Distances
+
+Smaller distance:
+
+More Similar
+
+Larger distance:
+
+Less Similar
+Session 3 (4 PM – 6 PM)
+Metadata Filtering
+Why Metadata?
+
+Documents:
+
+Loan Policies
+Insurance Policies
+Credit Cards
+Accounts
+
+User asks:
+
+Home loan information
+
+Filter:
+
+Only Loan Documents
+Store Metadata
+collection.add(
+
+    ids=["1"],
+
+    documents=[
+        "Home loan interest is 8%"
+    ],
+
+    metadatas=[
+        {
+            "type":"loan"
+        }
+    ]
+)
+Metadata Search
+results = collection.query(
+
+    query_texts=[
+        "interest rate"
+    ],
+
+    where={
+        "type":"loan"
+    }
+)
+
+Returns only:
+
+Loan Documents
+Ranking Results
+
+RAG systems:
+
+1000 Documents
+ ↓
+Similarity Search
+ ↓
+Top 5 Chunks
+ ↓
+Prompt
+ ↓
+LLM
+Top-K Selection
+results = collection.query(
+    query_texts=[
+        query
+    ],
+    n_results=5
+)
+
+Common:
+
+Top 3
+Top 5
+Top 10
+Banking RAG Example
+
+Documents:
+
+Home Loan Policy
+Personal Loan Policy
+Insurance Policy
+Credit Card Policy
+
+User:
+
+What is mortgage eligibility?
+
+Flow:
+
+Question
+ ↓
+Embedding
+ ↓
+Similarity Search
+ ↓
+Home Loan Policy
+ ↓
+LLM
+ ↓
+Answer
+FastAPI Similarity Search API
+Request Model
+from pydantic import BaseModel
+
+class QueryRequest(
+    BaseModel
+):
+    question: str
+API
+from fastapi import APIRouter
+
+router = APIRouter()
+
+@router.post("/search")
+def search_docs(
+    request:
+    QueryRequest
+):
+
+    result = (
+        collection.query(
+            query_texts=[
+                request.question
+            ],
+            n_results=3
+        )
+    )
+
+    return result
+Test
+{
+  "question":
+  "housing loan"
+}
+
+Response:
+
+{
+  "documents":[
+      [
+        "Home loan interest rate is 8%"
+      ]
+  ]
+}
+Advanced Retrieval Concepts
+Similarity Threshold
+
+Reject weak matches.
+
+Example:
+
+Similarity > 0.75
+
+Only return relevant chunks.
+
+Hybrid Search
+
+Combine:
+
+Keyword Search
++
+Vector Search
+
+Used in many enterprise systems.
+
+Re-ranking
+
+Flow:
+
+Top 20 Results
+      ↓
+LLM Re-Ranker
+      ↓
+Top 5 Results
+
+Improves answer quality.
+
+Interview Questions
+What is Similarity Search?
+
+Finding documents closest in meaning to a query.
+
+Why use similarity search?
+
+To retrieve semantically relevant information.
+
+Difference between keyword search and similarity search?
+
+Keyword:
+
+Exact words
+
+Similarity:
+
+Meaning-based retrieval
+What is Cosine Similarity?
+
+Measures similarity between vectors.
+
+Why use Top-K retrieval?
+
+Provides multiple relevant contexts for the LLM.
+
+What is Metadata Filtering?
+
+Restrict retrieval to specific document categories.
+
+What are vector distances?
+
+Measure closeness between embeddings.
+
+Why not return all matching documents?
+
+Too much context increases token cost and reduces answer quality.
+
+What is Hybrid Search?
+
+Keyword search plus vector search.
+
+What is Re-ranking?
+
+Reordering retrieved results using a stronger model.
+
+Goldman Sachs Style Questions
+1. Explain similarity search in simple terms.
+
+Convert text into vectors and find the closest vectors.
+
+2. Why is similarity search critical in RAG?
+
+The quality of retrieval directly affects the quality of generated answers.
+
+3. How would you improve retrieval accuracy?
+Better embeddings
+Better chunking
+Metadata filtering
+Re-ranking
+Hybrid search
+4. What happens if Top-K is too large?
+More tokens
+Higher cost
+More noise
+5. What happens if Top-K is too small?
+Missing relevant context
+6. How would you build a banking policy chatbot?
+PDF
+ ↓
+Chunking
+ ↓
+Embeddings
+ ↓
+ChromaDB
+ ↓
+Similarity Search
+ ↓
+LLM
+7. What metrics evaluate retrieval quality?
+Precision
+Recall
+MRR
+Hit Rate
+8. Why use metadata filtering?
+
+Reduce irrelevant retrievals.
+
+9. What is the difference between retrieval and generation?
+
+Retrieval finds context.
+
+Generation creates the answer.
+
+10. What is the biggest challenge in RAG?
+
+Retrieving the correct context consistently.
+
+Coding Tasks
+Task 1
+
+Store 20 banking documents.
+
+Task 2
+
+Perform similarity search.
+
+Task 3
+
+Implement Top-K retrieval.
+
+Task 4
+
+Add metadata filtering.
+
+Task 5
+
+Create FastAPI Search API.
+
+Task 6
+
+Return top 5 relevant chunks.
+
+Task 7
+
+Add similarity threshold logic.
+
+Example:
+
+if score > 0.75:
+    return result
+Task 8
+
+Build a Banking Knowledge Search Service.
+
+Banking Project Integration
+
+Build:
+
+Document Upload API
+        ↓
+PDF Extraction
+        ↓
+Chunking
+        ↓
+Embeddings
+        ↓
+ChromaDB
+        ↓
+Similarity Search API
+
+This becomes the retrieval layer of your banking RAG application.
+
+DSA (90 Minutes)
+
+Solve:
+
+Merge K Sorted Lists
+Longest Palindromic Substring
+Implement Trie (Prefix Tree)
+Pacific Atlantic Water Flow
+Task Scheduler
+End-of-Day Deliverable
+Similarity Search Working
+Top-K Retrieval
+Metadata Filtering
+FastAPI Search API
+Ranking Results

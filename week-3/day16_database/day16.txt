@@ -1,0 +1,730 @@
+Day 16 – PostgreSQL Installation & SQL Basics
+
+This phase starts building the foundation for your future RAG system.
+
+By Day 25, your architecture will look like:
+
+PDF Upload
+    ↓
+PostgreSQL
+    ↓
+Chunking
+    ↓
+Embeddings
+    ↓
+Vector DB
+    ↓
+Semantic Search
+    ↓
+LLM
+Day 16 Goals
+
+Learn:
+
+✅ PostgreSQL Installation
+
+✅ Database Creation
+
+✅ SQL Fundamentals
+
+✅ DDL
+
+✅ DML
+
+✅ Constraints
+
+✅ Primary Keys
+
+✅ Foreign Keys
+
+✅ Banking Database Design
+
+✅ Interview Questions
+
+Session 1 (6 AM – 8 AM)
+What is PostgreSQL?
+
+PostgreSQL is an open-source relational database.
+
+Popular companies using PostgreSQL:
+
+Instagram
+Spotify
+Reddit
+Why PostgreSQL for GenAI?
+
+Stores:
+
+Users
+Documents
+Metadata
+Chat History
+Embeddings Metadata
+Audit Logs
+PostgreSQL Installation
+Windows
+
+Download:
+
+PostgreSQL Download Center
+
+Install:
+
+Version: Latest Stable
+Password: postgres
+Port: 5432
+Verify Installation
+
+Open:
+
+psql -U postgres
+
+or
+
+pgAdmin
+Create Database
+CREATE DATABASE banking_db;
+
+Check:
+
+\l
+Connect Database
+\c banking_db
+Session 2 (11 AM – 1 PM)
+SQL Basics
+What is SQL?
+
+Structured Query Language.
+
+Used to:
+
+Create
+Read
+Update
+Delete
+
+data.
+
+Create Table
+CREATE TABLE customers (
+
+    id SERIAL PRIMARY KEY,
+
+    name VARCHAR(100),
+
+    email VARCHAR(100)
+);
+Insert Data
+INSERT INTO customers
+(name,email)
+
+VALUES
+('Dileep',
+'dileep@gmail.com');
+Select Data
+SELECT * FROM customers;
+Filter Data
+SELECT *
+FROM customers
+WHERE id = 1;
+Update Data
+UPDATE customers
+
+SET name='Dileep V'
+
+WHERE id=1;
+Delete Data
+DELETE FROM customers
+
+WHERE id=1;
+CRUD
+Create → INSERT
+
+Read → SELECT
+
+Update → UPDATE
+
+Delete → DELETE
+Session 3 (4 PM – 6 PM)
+Constraints
+Primary Key
+
+Uniquely identifies a row.
+
+id SERIAL PRIMARY KEY
+Unique Constraint
+email VARCHAR(100) UNIQUE
+
+No duplicates allowed.
+
+Not Null
+name VARCHAR(100) NOT NULL
+
+Mandatory field.
+
+Default
+status VARCHAR(20)
+DEFAULT 'ACTIVE'
+Check Constraint
+balance DECIMAL
+CHECK(balance >= 0)
+Banking Example
+CREATE TABLE accounts (
+
+    id SERIAL PRIMARY KEY,
+
+    account_number VARCHAR(20)
+    UNIQUE,
+
+    balance DECIMAL
+    CHECK(balance >=0)
+);
+Foreign Key
+
+Customer → Accounts
+
+CREATE TABLE accounts (
+
+    id SERIAL PRIMARY KEY,
+
+    customer_id INT,
+
+    FOREIGN KEY(customer_id)
+
+    REFERENCES customers(id)
+);
+Relationship
+Customer
+   |
+   | One To Many
+   |
+Account
+Banking Schema
+customers
+    |
+accounts
+    |
+transactions
+Sample Tables
+Customers
+CREATE TABLE customers(
+
+ id SERIAL PRIMARY KEY,
+
+ name VARCHAR(100),
+
+ email VARCHAR(100)
+);
+Accounts
+CREATE TABLE accounts(
+
+ id SERIAL PRIMARY KEY,
+
+ account_number VARCHAR(20),
+
+ balance DECIMAL,
+
+ customer_id INT
+ REFERENCES customers(id)
+);
+Transactions
+CREATE TABLE transactions(
+
+ id SERIAL PRIMARY KEY,
+
+ amount DECIMAL,
+
+ transaction_type VARCHAR(20),
+
+ account_id INT
+ REFERENCES accounts(id)
+);
+Interview Questions
+What is PostgreSQL?
+
+Open-source relational database.
+
+Difference between PostgreSQL and MySQL?
+PostgreSQL	MySQL
+More advanced features	Easier setup
+Strong ACID support	Widely used
+Better JSON support	Faster simple reads
+What is a Primary Key?
+
+Uniquely identifies a row.
+
+Can a table have multiple Primary Keys?
+
+No.
+
+Only one primary key definition.
+
+What is a Composite Key?
+PRIMARY KEY(col1,col2)
+What is a Foreign Key?
+
+Maintains referential integrity.
+
+Difference between DELETE and TRUNCATE?
+
+DELETE:
+
+Row-by-row
+Can rollback
+
+TRUNCATE:
+
+Faster
+Removes all rows
+Difference between DROP and TRUNCATE?
+
+DROP:
+
+Deletes table
+
+TRUNCATE:
+
+Deletes data only
+What is a Constraint?
+
+Rule applied to table data.
+
+What is Normalization?
+
+Reducing redundancy.
+
+What is Denormalization?
+
+Improving read performance by duplicating data.
+
+Coding Practice
+Problem 1
+
+Create:
+
+employees
+
+table.
+
+Fields:
+
+id
+name
+salary
+Problem 2
+
+Insert 10 records.
+
+Problem 3
+
+Fetch employees with salary > 50000.
+
+Problem 4
+
+Update salary by 10%.
+
+Problem 5
+
+Delete employees with salary < 20000.
+
+Banking Mini Project
+
+Create:
+
+customers
+accounts
+transactions
+
+Insert:
+
+3 customers
+5 accounts
+10 transactions
+
+Write queries:
+
+SELECT *
+FROM customers;
+SELECT *
+FROM accounts;
+SELECT *
+FROM transactions;
+DSA (90 Minutes)
+
+Solve:
+
+Two Sum
+Valid Parentheses
+Merge Sorted Array
+Binary Search
+Linked List Cycle
+End-of-Day Deliverable
+
+You should have:
+
+PostgreSQL Installed
+banking_db Created
+customers Table
+accounts Table
+transactions Table
+CRUD Operations
+Constraints
+Foreign Keys
+Basic SQL Knowledge
+
+1. What is PostgreSQL?
+
+PostgreSQL is an open-source relational database management system (RDBMS) that supports ACID transactions, indexing, JSON data types, and advanced SQL features.
+
+2. Why PostgreSQL over MySQL?
+PostgreSQL	MySQL
+Advanced SQL features	Simpler
+Better JSON support	Limited
+Window functions	Limited older support
+Strong ACID compliance	Good ACID support
+3. What is ACID?
+Atomicity
+Consistency
+Isolation
+Durability
+
+Example: Bank transfer should either complete fully or roll back.
+
+4. What is a Database?
+
+A collection of organized data.
+
+Example:
+
+banking_db
+
+contains:
+
+customers
+accounts
+transactions
+5. Difference between Database and Schema?
+
+Database:
+
+banking_db
+
+Schema:
+
+public
+audit
+reports
+
+inside the database.
+
+Table Design
+6. What is a Table?
+
+A collection of rows and columns.
+
+7. What is a Row?
+
+Single record.
+
+Example:
+
+1 | Dileep | dileep@gmail.com
+8. What is a Column?
+
+Attribute of data.
+
+Example:
+
+id
+name
+email
+9. What is a Primary Key?
+
+Uniquely identifies each row.
+
+id SERIAL PRIMARY KEY
+10. Why is Primary Key important?
+No duplicate records
+Faster lookups
+Relationship mapping
+Constraints
+11. What are Constraints?
+
+Rules applied on data.
+
+Examples:
+
+PRIMARY KEY
+UNIQUE
+NOT NULL
+CHECK
+FOREIGN KEY
+12. What is UNIQUE Constraint?
+
+Prevents duplicate values.
+
+email VARCHAR(100) UNIQUE
+13. Difference between PRIMARY KEY and UNIQUE?
+
+PRIMARY KEY:
+
+Unique
+Not Null
+
+UNIQUE:
+
+Unique
+Can contain NULL (depending on DB behavior)
+14. What is NOT NULL?
+
+Mandatory field.
+
+name VARCHAR(100) NOT NULL
+15. What is CHECK Constraint?
+
+Validates condition.
+
+CHECK(balance >= 0)
+Foreign Keys
+16. What is a Foreign Key?
+
+Maintains relationship between tables.
+
+customer_id REFERENCES customers(id)
+17. Why use Foreign Keys?
+
+Ensures referential integrity.
+
+Cannot create account for non-existing customer.
+
+18. What happens if referenced row doesn't exist?
+
+Insert fails.
+
+19. Explain One-to-Many Relationship.
+Customer
+   |
+   | 1:N
+   |
+Accounts
+
+One customer can have multiple accounts.
+
+20. Explain Banking Database Relationships.
+Customer
+   ↓
+Account
+   ↓
+Transaction
+SQL Commands
+21. Difference between DDL and DML?
+
+DDL:
+
+CREATE
+ALTER
+DROP
+TRUNCATE
+
+DML:
+
+INSERT
+UPDATE
+DELETE
+22. What is DQL?
+
+Data Query Language.
+
+SELECT
+23. Difference between DELETE and TRUNCATE?
+
+DELETE:
+
+DELETE FROM customers;
+Row-by-row
+Can use WHERE
+
+TRUNCATE:
+
+TRUNCATE TABLE customers;
+Removes all rows
+Faster
+24. Difference between DROP and DELETE?
+
+DELETE:
+
+Removes rows
+
+DROP:
+
+Removes entire table
+25. Difference between TRUNCATE and DROP?
+
+TRUNCATE:
+
+Table remains
+
+DROP:
+
+Table removed
+PostgreSQL Internals
+26. What is SERIAL?
+
+Auto-increment integer.
+
+id SERIAL
+27. What is Sequence?
+
+Object used to generate unique numbers.
+
+Used internally by SERIAL.
+
+28. How to see all databases?
+\l
+29. How to connect database?
+\c banking_db
+30. How to see tables?
+\dt
+Scenario-Based Questions
+31. Customer deleted accidentally. How do you recover?
+Backup restore
+Point-in-time recovery
+32. How do you prevent duplicate account numbers?
+UNIQUE(account_number)
+33. How do you ensure account balance never becomes negative?
+CHECK(balance >= 0)
+34. Can CHECK Constraint replace business logic?
+
+No.
+
+Database validates data.
+
+Application handles business rules.
+
+35. What happens if two users update same account simultaneously?
+
+Potential concurrency issue.
+
+Requires transaction management.
+
+Banking Scenarios
+36. Design Customer Table.
+
+Expected:
+
+id
+name
+email
+phone
+created_at
+37. Design Account Table.
+
+Expected:
+
+id
+account_number
+balance
+customer_id
+38. Design Transaction Table.
+
+Expected:
+
+id
+amount
+transaction_type
+account_id
+created_at
+39. Why separate transactions table?
+
+Audit history.
+
+Never lose transaction records.
+
+40. Why not store transactions in account table?
+
+Violates normalization.
+
+PostgreSQL Performance Basics
+41. What is an Index?
+
+Data structure used to speed up searches.
+
+42. Why Primary Key is fast?
+
+Database automatically creates index.
+
+43. What happens without index?
+
+Full table scan.
+
+44. What is Full Table Scan?
+
+Database reads every row.
+
+45. Why are indexes important in banking systems?
+
+Millions of customer records.
+
+Need fast retrieval.
+
+Goldman Sachs Scenario Questions
+46. How would you design a banking database for 10 million customers?
+
+Discuss:
+
+Normalization
+Indexes
+Partitioning
+Transactions
+47. How would you ensure account numbers are unique?
+
+UNIQUE constraint + sequence generation.
+
+48. How would you prevent duplicate transactions?
+
+Use:
+
+Transaction Reference Number
+UNIQUE Constraint
+49. What database constraints would you add to Account table?
+PRIMARY KEY
+UNIQUE(account_number)
+NOT NULL
+CHECK(balance >=0)
+FOREIGN KEY(customer_id)
+50. What is the most important property for a banking database?
+
+Consistency and ACID compliance.
+
+A transaction should never leave data in an inconsistent state.
+
+Coding Questions
+Easy
+Create Employee table.
+Insert 5 records.
+Fetch employees with salary > 50000.
+Update employee salary.
+Delete inactive employees.
+Medium
+Create Customer and Account tables.
+Add Foreign Key relationship.
+Insert sample data.
+Retrieve customer details.
+Find accounts with balance > 100000.
+Banking Scenario
+Create a transaction table.
+Prevent negative balances.
+Prevent duplicate account numbers.
+Add default account status.
+Design complete banking schema.
+
+If you're preparing for Goldman Sachs, spend extra time on:
+
+ACID Properties
+Primary Key vs Unique Key
+Foreign Keys
+Normalization
+DELETE vs TRUNCATE vs DROP
+Index Basics
+Banking Database Design
+Transaction Management (Day 17–18 topics)

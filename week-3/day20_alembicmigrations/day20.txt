@@ -1,0 +1,432 @@
+Day 20 – Alembic Migrations (Database Version Control)
+
+Today you'll learn how professional teams manage database schema changes without manually running SQL scripts.
+
+This is heavily used in:
+
+FastAPI Projects
+Microservices
+Banking Applications
+GenAI/RAG Platforms
+Why Alembic?
+
+Without Alembic:
+
+Developer A:
+CREATE TABLE customers
+
+Developer B:
+ALTER TABLE customers
+ADD phone_number
+
+Developer C:
+ALTER TABLE customers
+ADD address
+
+Chaos occurs when moving code across environments.
+
+Alembic provides:
+
+Database Version Control
+
+similar to:
+
+Git for Database Schema
+Day 20 Goals
+
+✅ Install Alembic
+
+✅ Initialize Migration Project
+
+✅ Create Migration
+
+✅ Upgrade Database
+
+✅ Downgrade Database
+
+✅ Auto-generate Migrations
+
+✅ Production Migration Workflow
+
+Session 1 (6 AM – 8 AM)
+Install Alembic
+pip install alembic
+
+Verify:
+
+alembic --version
+Initialize Alembic
+
+Run from project root:
+
+alembic init alembic
+
+Generated structure:
+
+project/
+
+├── alembic.ini
+│
+├── alembic/
+│   ├── env.py
+│   ├── script.py.mako
+│   └── versions/
+Configure Database URL
+
+Open:
+
+alembic.ini
+
+Update:
+
+sqlalchemy.url = postgresql://postgres:password@localhost:5432/banking_db
+Session 2 (11 AM – 1 PM)
+Configure env.py
+
+Import Base metadata.
+
+from database.database import Base
+
+Replace:
+
+target_metadata = None
+
+with:
+
+target_metadata = Base.metadata
+
+Import all models:
+
+from models.customer import Customer
+from models.account import Account
+Create First Migration
+alembic revision --autogenerate -m "create customers table"
+
+Generated file:
+
+alembic/versions/
+
+xxxxxxxx_create_customers_table.py
+
+Example:
+
+def upgrade():
+
+    op.create_table(
+        "customers",
+
+        sa.Column(
+            "id",
+            sa.Integer(),
+            primary_key=True
+        ),
+
+        sa.Column(
+            "name",
+            sa.String()
+        )
+    )
+Apply Migration
+alembic upgrade head
+
+Verify:
+
+SELECT *
+FROM customers;
+Session 3 (4 PM – 6 PM)
+Modify Existing Table
+
+Suppose we add:
+
+phone_number = Column(
+    String
+)
+
+to Customer model.
+
+Generate Migration
+
+alembic revision --autogenerate -m "add phone column"
+
+Generated:
+
+def upgrade():
+
+    op.add_column(
+        "customers",
+
+        sa.Column(
+            "phone_number",
+            sa.String()
+        )
+    )
+
+Apply:
+
+alembic upgrade head
+Downgrade
+
+Rollback one migration:
+
+alembic downgrade -1
+
+Rollback specific version:
+
+alembic downgrade
+abc12345
+Check Migration History
+alembic history
+
+Current Version
+
+alembic current
+Important Alembic Commands
+Create Migration
+alembic revision --autogenerate -m "message"
+Apply Latest
+alembic upgrade head
+Rollback One Version
+alembic downgrade -1
+Show History
+alembic history
+Current Version
+alembic current
+Banking Example
+
+Initial Table
+
+class Customer(Base):
+
+    id = Column(Integer,
+                primary_key=True)
+
+    name = Column(String)
+
+New Requirement:
+
+phone_number = Column(String)
+
+kyc_status = Column(String)
+
+Generate Migration
+
+alembic revision
+--autogenerate
+-m "add customer fields"
+
+Apply:
+
+alembic upgrade head
+Production Migration Workflow
+Developer
+      ↓
+Model Change
+      ↓
+Migration Generate
+      ↓
+Code Review
+      ↓
+Git Commit
+      ↓
+Deploy
+      ↓
+Run Migration
+Common Mistakes
+Mistake 1
+
+Using:
+
+Base.metadata.create_all()
+
+in production.
+
+Why bad?
+
+No version tracking
+Mistake 2
+
+Editing migration files manually without review.
+
+Mistake 3
+
+Running migration directly on production.
+
+Always test in:
+
+Dev
+QA
+UAT
+Production
+FastAPI Startup Integration
+
+Avoid:
+
+Base.metadata.create_all(
+    bind=engine
+)
+
+once Alembic is adopted.
+
+Use migrations instead.
+
+Interview Questions
+What is Alembic?
+
+Database migration tool for SQLAlchemy.
+
+Why use Alembic?
+
+Version control for database schema changes.
+
+Difference between create_all() and Alembic?
+
+create_all():
+
+Creates tables
+No version tracking
+
+Alembic:
+
+Tracks schema changes
+Supports rollback
+What is Migration?
+
+A database schema change.
+
+What is upgrade()?
+
+Applies changes.
+
+What is downgrade()?
+
+Rolls back changes.
+
+Why use autogenerate?
+
+Detect model changes automatically.
+
+Can autogenerate detect everything?
+
+No.
+
+Review migration file before applying.
+
+What is head?
+
+Latest migration version.
+
+What table does Alembic create?
+alembic_version
+
+Tracks current DB version.
+
+Goldman Sachs Style Questions
+1. Why is create_all() dangerous in production?
+
+No version tracking.
+
+No rollback.
+
+2. How would you deploy DB changes safely?
+Migration
+Testing
+Backup
+Deployment
+Verification
+3. What happens if migration fails halfway?
+
+Transaction rollback (if supported).
+
+4. How would you handle schema updates for millions of rows?
+Backward-compatible changes
+Incremental rollout
+Online migration strategy
+5. How would you add a NOT NULL column to a large table?
+
+Typical approach:
+
+Add nullable column
+Populate values
+Add NOT NULL constraint
+6. How would you rename a column?
+
+Create migration and carefully handle existing data.
+
+7. How would you recover from a bad migration?
+alembic downgrade
+
+or restore backup.
+
+8. Why should migration files be committed to Git?
+
+So all environments stay synchronized.
+
+9. How do microservices manage migrations?
+
+Each service owns its schema and migration history.
+
+10. Explain a real-world migration strategy.
+Develop
+Generate Migration
+Review
+Test
+Deploy
+Upgrade
+Monitor
+Coding Tasks
+Task 1
+
+Install Alembic.
+
+Task 2
+
+Configure PostgreSQL connection.
+
+Task 3
+
+Create first migration.
+
+Task 4
+
+Apply migration.
+
+Task 5
+
+Add phone_number field.
+
+Task 6
+
+Generate new migration.
+
+Task 7
+
+Rollback migration.
+
+Task 8
+
+Create banking tables:
+
+customers
+accounts
+transactions
+
+using Alembic.
+
+DSA (90 Minutes)
+
+Solve:
+
+Group Anagrams
+3Sum
+Coin Change
+Lowest Common Ancestor of a Binary Search Tree
+Merge Intervals
+End-of-Day Deliverable
+Alembic Installed
+Migration Setup
+Auto-generated Migrations
+Upgrade Commands
+Downgrade Commands
+Version Tracking
+Production Migration Workflow
+Banking DB Managed by Alembic

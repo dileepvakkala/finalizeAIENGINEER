@@ -1,0 +1,893 @@
+Day 17 – SQLAlchemy ORM
+
+Today you'll move from writing raw SQL to using Python objects to interact with PostgreSQL.
+
+This is one of the most important topics for:
+
+FastAPI Developers
+Backend Engineers
+AI Engineers
+Microservices Developers
+Day 17 Goals
+
+Learn:
+
+✅ ORM Concepts
+
+✅ SQLAlchemy Architecture
+
+✅ Engine
+
+✅ Session
+
+✅ Models
+
+✅ CRUD Operations
+
+✅ Relationships
+
+✅ FastAPI Integration
+
+✅ Production Best Practices
+
+Session 1 (6 AM – 8 AM)
+ORM Fundamentals
+What is ORM?
+
+ORM = Object Relational Mapping
+
+It maps:
+
+Python Class
+     ↓
+Database Table
+
+Example:
+
+class Customer:
+    id: int
+    name: str
+
+maps to:
+
+customers
+---------
+id
+name
+Without ORM
+SELECT * FROM customers;
+With ORM
+customers = session.query(Customer).all()
+Why ORM?
+
+Benefits:
+
+Less SQL
+Cleaner code
+Easier maintenance
+Database abstraction
+Faster development
+SQLAlchemy Architecture
+FastAPI
+   ↓
+SQLAlchemy ORM
+   ↓
+PostgreSQL
+Installation
+pip install sqlalchemy
+pip install psycopg2-binary
+Project Structure
+app/
+
+database/
+    database.py
+
+models/
+    customer.py
+
+schemas/
+    customer_schema.py
+
+routers/
+    customer_router.py
+Session 2 (11 AM – 1 PM)
+Database Connection
+database/database.py
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import declarative_base
+
+DATABASE_URL = (
+    "postgresql://postgres:"
+    "password@localhost:5432/"
+    "banking_db"
+)
+
+engine = create_engine(
+    DATABASE_URL
+)
+
+SessionLocal = sessionmaker(
+    autocommit=False,
+    autoflush=False,
+    bind=engine
+)
+
+Base = declarative_base()
+Create Model
+models/customer.py
+from sqlalchemy import Column
+from sqlalchemy import Integer
+from sqlalchemy import String
+
+from database.database import Base
+
+
+class Customer(Base):
+
+    __tablename__ = "customers"
+
+    id = Column(
+        Integer,
+        primary_key=True,
+        index=True
+    )
+
+    name = Column(
+        String,
+        nullable=False
+    )
+
+    email = Column(
+        String,
+        unique=True
+    )
+Create Table
+from database.database import engine
+from models.customer import Customer
+
+Base.metadata.create_all(
+    bind=engine
+)
+Equivalent SQL
+CREATE TABLE customers(
+ id SERIAL PRIMARY KEY,
+ name VARCHAR(255),
+ email VARCHAR(255)
+);
+Session 3 (4 PM – 6 PM)
+CRUD Operations
+Insert
+customer = Customer(
+    name="Dileep",
+    email="dileep@gmail.com"
+)
+
+db.add(customer)
+
+db.commit()
+
+db.refresh(customer)
+Read
+Get All
+customers = (
+    db.query(Customer)
+      .all()
+)
+Get By ID
+customer = (
+    db.query(Customer)
+      .filter(
+         Customer.id == 1
+      )
+      .first()
+)
+Update
+customer.name = (
+    "Dileep V"
+)
+
+db.commit()
+Delete
+db.delete(customer)
+
+db.commit()
+Dependency Injection
+
+FastAPI Database Session
+
+from database.database import (
+    SessionLocal
+)
+
+def get_db():
+
+    db = SessionLocal()
+
+    try:
+
+        yield db
+
+    finally:
+
+        db.close()
+FastAPI Integration
+from sqlalchemy.orm import Session
+
+@app.get("/customers")
+def get_customers(
+    db: Session = Depends(get_db)
+):
+
+    return (
+        db.query(Customer)
+          .all()
+    )
+Relationships
+One Customer → Many Accounts
+Customer Model
+from sqlalchemy.orm import relationship
+
+class Customer(Base):
+
+    __tablename__ = "customers"
+
+    id = Column(
+        Integer,
+        primary_key=True
+    )
+
+    accounts = relationship(
+        "Account",
+        back_populates=
+        "customer"
+    )
+Account Model
+from sqlalchemy import ForeignKey
+from sqlalchemy.orm import relationship
+
+class Account(Base):
+
+    __tablename__ = "accounts"
+
+    id = Column(
+        Integer,
+        primary_key=True
+    )
+
+    customer_id = Column(
+        Integer,
+        ForeignKey(
+            "customers.id"
+        )
+    )
+
+    customer = relationship(
+        "Customer",
+        back_populates=
+        "accounts"
+    )
+Relationship Diagram
+Customer
+    |
+    | One-to-Many
+    |
+Accounts
+Banking Example
+customer = Customer(
+    name="Dileep"
+)
+
+account1 = Account(
+    balance=1000
+)
+
+account2 = Account(
+    balance=5000
+)
+
+customer.accounts.append(
+    account1
+)
+
+customer.accounts.append(
+    account2
+)
+Interview Questions
+What is ORM?
+
+Object Relational Mapping.
+
+Maps Python objects to database tables.
+
+Why SQLAlchemy?
+
+Most popular Python ORM.
+
+Supports PostgreSQL, MySQL, SQLite.
+
+Difference Between ORM and Raw SQL?
+
+ORM:
+
+db.query(Customer).all()
+
+Raw SQL:
+
+SELECT * FROM customers;
+What is Engine?
+
+Database connection manager.
+
+What is Session?
+
+Used for DB operations.
+
+add()
+commit()
+query()
+delete()
+Difference Between add() and commit()?
+db.add(obj)
+
+Stages changes.
+
+db.commit()
+
+Persists changes.
+
+Why refresh()?
+
+Loads generated values.
+
+Example:
+
+customer.id
+
+after insert.
+
+What is declarative_base()?
+
+Base class for ORM models.
+
+What is Relationship?
+
+Represents table associations.
+
+What is ForeignKey?
+
+Maintains referential integrity.
+
+Difference Between .all() and .first()?
+.all()
+
+Returns list.
+
+.first()
+
+Returns one row.
+
+Goldman Sachs Style Questions
+1. Why use ORM instead of SQL?
+
+Productivity and maintainability.
+
+2. ORM advantages and disadvantages?
+
+Advantages:
+
+Less code
+Safer
+Easier maintenance
+
+Disadvantages:
+
+Performance overhead
+Complex query optimization
+3. When would you prefer raw SQL?
+
+Complex joins, reporting, performance-critical queries.
+
+4. What happens if commit() fails?
+
+Transaction rollback required.
+
+db.rollback()
+5. How does SQLAlchemy manage connections?
+
+Using connection pooling.
+
+6. What is lazy loading?
+
+Related data loaded only when accessed.
+
+7. What is eager loading?
+
+Related data loaded immediately.
+
+8. How do you avoid N+1 query problems?
+
+Use:
+
+joinedload()
+9. What is connection pooling?
+
+Reusing DB connections instead of creating new ones.
+
+10. Explain Session lifecycle.
+Create Session
+      ↓
+Query/Insert
+      ↓
+Commit/Rollback
+      ↓
+Close Session
+Coding Tasks
+Task 1
+
+Create:
+
+Customer
+
+model.
+
+Task 2
+
+Create:
+
+Account
+
+model.
+
+Task 3
+
+Add:
+
+One-to-Many
+Relationship
+Task 4
+
+Implement CRUD APIs.
+
+Task 5
+
+Insert:
+
+5 Customers
+10 Accounts
+Task 6
+
+Fetch:
+
+Customer with Accounts
+DSA (90 Minutes)
+
+Solve:
+
+Best Time to Buy and Sell Stock
+Contains Duplicate
+Invert Binary Tree
+Maximum Depth of Binary Tree
+Product of Array Except Self
+End-of-Day Deliverable
+
+By the end of Day 17 you should have:
+
+PostgreSQL Connected
+SQLAlchemy Installed
+Engine Configured
+Session Created
+Customer Model
+Account Model
+Relationships
+CRUD Operations
+FastAPI Integration
+
+1. What is ORM?
+
+ORM (Object Relational Mapping) maps database tables to Python classes and database rows to Python objects.
+
+Example:
+
+class Customer(Base):
+    __tablename__ = "customers"
+2. Why use ORM?
+
+Benefits:
+
+Less SQL code
+Better maintainability
+Database abstraction
+Faster development
+3. ORM vs Raw SQL?
+ORM	Raw SQL
+Easy to maintain	More control
+Less code	More verbose
+Portable	DB-specific
+Slight overhead	Faster for complex queries
+4. When would you prefer Raw SQL?
+Complex reporting queries
+Heavy aggregations
+Performance-critical queries
+Stored procedure calls
+5. What is SQLAlchemy?
+
+A Python toolkit and ORM used to interact with relational databases.
+
+SQLAlchemy Architecture
+6. Explain SQLAlchemy Architecture.
+Application
+     ↓
+Session
+     ↓
+Engine
+     ↓
+Database
+7. What is Engine?
+
+Engine manages database connectivity.
+
+engine = create_engine(DB_URL)
+8. What is Session?
+
+Session is a transaction boundary used for:
+
+add()
+query()
+commit()
+rollback()
+delete()
+9. What is declarative_base()?
+
+Base class from which ORM models inherit.
+
+Base = declarative_base()
+10. Why do all models inherit Base?
+
+To register them with SQLAlchemy metadata.
+
+CRUD Operations
+11. How do you insert data?
+customer = Customer(name="Dileep")
+
+db.add(customer)
+
+db.commit()
+12. Why do we call commit()?
+
+To persist changes into database.
+
+13. What happens if commit() is not called?
+
+Data remains only in session memory.
+
+14. What is refresh()?
+
+Reloads database-generated values.
+
+Example:
+
+db.refresh(customer)
+
+Used to retrieve generated ID.
+
+15. Difference between add() and commit()?
+
+add()
+
+Stages object
+
+commit()
+
+Saves object
+Query Operations
+16. Difference between first() and all()?
+.first()
+
+Returns one record.
+
+.all()
+
+Returns list.
+
+17. Difference between filter() and filter_by()?
+
+filter()
+
+.filter(Customer.id == 1)
+
+filter_by()
+
+.filter_by(id=1)
+18. What does one() do?
+
+Returns exactly one row.
+
+Throws exception if:
+
+0 rows
+or
+More than 1 row
+19. What does count() do?
+
+Returns total rows.
+
+db.query(Customer).count()
+20. How do you fetch specific columns?
+db.query(
+    Customer.id,
+    Customer.name
+)
+Transactions
+21. What is a transaction?
+
+A logical unit of work.
+
+Example:
+
+Debit Account
+Credit Account
+
+Must succeed together.
+
+22. Why are transactions important?
+
+Prevent partial updates.
+
+23. What happens if commit fails?
+
+Rollback required.
+
+db.rollback()
+24. What is rollback()?
+
+Undo pending transaction changes.
+
+25. Explain transaction flow.
+Begin
+ ↓
+Execute
+ ↓
+Commit
+ ↓
+Success
+
+or
+
+Begin
+ ↓
+Error
+ ↓
+Rollback
+Relationships
+26. What is relationship()?
+
+Defines ORM relationship between tables.
+
+27. Difference between ForeignKey and relationship?
+
+ForeignKey:
+
+Database-level relationship
+
+relationship:
+
+ORM-level navigation
+28. Explain One-to-Many relationship.
+Customer
+     ↓
+Accounts
+
+One customer can own many accounts.
+
+29. Explain Many-to-One relationship.
+Account
+     ↓
+Customer
+
+Many accounts belong to one customer.
+
+30. Explain Many-to-Many relationship.
+Users
+  ↔
+Roles
+
+Using association table.
+
+FastAPI Integration
+31. Why use Depends(get_db)?
+
+Provides DB session per request.
+
+32. Why close DB session?
+
+Prevent connection leaks.
+
+33. Explain get_db() lifecycle.
+db = SessionLocal()
+
+yield db
+
+db.close()
+34. What happens if sessions are not closed?
+
+Connection pool exhaustion.
+
+35. Why use dependency injection?
+
+Reusable and testable code.
+
+Performance Questions
+36. What is N+1 Query Problem?
+
+Example:
+
+customers = db.query(Customer).all()
+
+for customer in customers:
+    print(customer.accounts)
+
+Produces:
+
+1 Query for customers
+N Queries for accounts
+37. How do you solve N+1 problem?
+
+Use:
+
+joinedload()
+38. What is Lazy Loading?
+
+Load related data only when accessed.
+
+39. What is Eager Loading?
+
+Load related data immediately.
+
+40. Which is faster?
+
+Depends on use case.
+
+Usually eager loading avoids N+1.
+
+Connection Pooling
+41. What is Connection Pooling?
+
+Reuse existing database connections.
+
+42. Why is pooling important?
+
+Creating DB connections is expensive.
+
+43. What happens without pooling?
+
+High latency.
+
+Resource waste.
+
+44. How does SQLAlchemy handle pooling?
+
+Automatically through Engine.
+
+45. What is pool exhaustion?
+
+All connections are busy.
+
+New requests must wait.
+
+Scenario-Based Questions
+46. Customer created but account creation failed. What should happen?
+
+Rollback entire transaction.
+
+47. How would you transfer money between accounts?
+
+Single database transaction.
+
+Debit
+Credit
+Commit
+48. How would you prevent duplicate customer emails?
+email = Column(
+    String,
+    unique=True
+)
+49. How would you fetch customer with all accounts efficiently?
+joinedload(Customer.accounts)
+50. Why should business logic not be inside models?
+
+Separation of concerns.
+
+Models represent data.
+
+Services contain business logic.
+
+Goldman Sachs Senior-Level Questions
+51. SQLAlchemy ORM vs Core?
+
+ORM:
+
+Object Oriented
+
+Core:
+
+SQL Expression Language
+
+More performant.
+
+52. How would you handle 10,000 inserts?
+
+Use:
+
+bulk_save_objects()
+
+or batch inserts.
+
+53. What is Unit of Work Pattern?
+
+Session tracks all changes and commits together.
+
+54. How would you implement audit logging?
+
+Store before/after changes in audit tables.
+
+55. How would you optimize a slow ORM query?
+Add indexes
+Analyze SQL generated
+Use joins
+Avoid N+1
+Use pagination
+56. How do you view generated SQL?
+create_engine(
+    DB_URL,
+    echo=True
+)
+57. How would you handle concurrent account updates?
+
+Use transactions and row locking.
+
+58. Explain optimistic vs pessimistic locking.
+
+Optimistic:
+
+Version column
+
+Pessimistic:
+
+SELECT FOR UPDATE
+59. Why can ORM become slow?
+Too many joins
+N+1 queries
+Loading unnecessary data
+60. Design a Banking Account Service using SQLAlchemy.
+
+Expected discussion:
+
+FastAPI
+ ↓
+Service Layer
+ ↓
+Repository Layer
+ ↓
+SQLAlchemy ORM
+ ↓
+PostgreSQL
+Coding Questions
+Easy
+Create Customer ORM model.
+Create Account ORM model.
+Insert records.
+Fetch all customers.
+Update customer email.
+Medium
+Create one-to-many relationship.
+Fetch customer with accounts.
+Delete customer and related accounts.
+Implement pagination.
+Implement search by email.
+Advanced
+Money transfer using transaction.
+Rollback on failure.
+Prevent duplicate accounts.
+Bulk insert customers.
+Optimize N+1 query problem.

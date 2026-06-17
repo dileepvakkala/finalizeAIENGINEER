@@ -1,0 +1,584 @@
+Day 19 Goals
+
+Learn:
+
+✅ One-to-One Relationship
+
+✅ One-to-Many Relationship
+
+✅ Many-to-Many Relationship
+
+✅ Joins
+
+✅ Lazy Loading
+
+✅ Eager Loading
+
+✅ N+1 Problem
+
+✅ Advanced Querying
+
+✅ Production Database Design
+
+Session 1 (6 AM – 8 AM)
+Relationships
+One-to-One Relationship
+
+Example:
+
+Customer
+    ↓
+KYC Details
+
+One customer has one KYC.
+
+Customer Model
+class Customer(Base):
+
+    __tablename__ = "customers"
+
+    id = Column(
+        Integer,
+        primary_key=True
+    )
+
+    kyc = relationship(
+        "KYC",
+        back_populates="customer",
+        uselist=False
+    )
+KYC Model
+class KYC(Base):
+
+    __tablename__ = "kyc"
+
+    id = Column(
+        Integer,
+        primary_key=True
+    )
+
+    customer_id = Column(
+        Integer,
+        ForeignKey(
+            "customers.id"
+        ),
+        unique=True
+    )
+
+    customer = relationship(
+        "Customer",
+        back_populates="kyc"
+    )
+One-to-Many Relationship
+
+Example:
+
+Customer
+     ↓
+Accounts
+
+One customer can own multiple accounts.
+
+Customer
+class Customer(Base):
+
+    __tablename__ = "customers"
+
+    id = Column(
+        Integer,
+        primary_key=True
+    )
+
+    accounts = relationship(
+        "Account",
+        back_populates=
+        "customer"
+    )
+Account
+class Account(Base):
+
+    __tablename__ = "accounts"
+
+    id = Column(
+        Integer,
+        primary_key=True
+    )
+
+    customer_id = Column(
+        Integer,
+        ForeignKey(
+            "customers.id"
+        )
+    )
+
+    customer = relationship(
+        "Customer",
+        back_populates=
+        "accounts"
+    )
+Many-to-Many Relationship
+
+Example:
+
+Users
+  ↔
+Roles
+Association Table
+user_role = Table(
+
+    "user_role",
+
+    Base.metadata,
+
+    Column(
+        "user_id",
+        Integer,
+        ForeignKey("users.id")
+    ),
+
+    Column(
+        "role_id",
+        Integer,
+        ForeignKey("roles.id")
+    )
+)
+User Model
+class User(Base):
+
+    __tablename__ = "users"
+
+    id = Column(
+        Integer,
+        primary_key=True
+    )
+
+    roles = relationship(
+        "Role",
+        secondary=user_role
+    )
+Role Model
+class Role(Base):
+
+    __tablename__ = "roles"
+
+    id = Column(
+        Integer,
+        primary_key=True
+    )
+
+    users = relationship(
+        "User",
+        secondary=user_role
+    )
+Session 2 (11 AM – 1 PM)
+SQLAlchemy Joins
+Inner Join
+
+SQL:
+
+SELECT *
+
+FROM customers c
+
+INNER JOIN accounts a
+
+ON c.id = a.customer_id;
+SQLAlchemy
+customers = (
+
+    db.query(
+        Customer,
+        Account
+    )
+
+    .join(
+        Account,
+        Customer.id ==
+        Account.customer_id
+    )
+
+    .all()
+)
+Left Join
+
+SQL:
+
+SELECT *
+
+FROM customers c
+
+LEFT JOIN accounts a
+
+ON c.id = a.customer_id;
+SQLAlchemy
+db.query(
+    Customer
+).outerjoin(
+    Account
+)
+Banking Example
+
+Get all customers and accounts:
+
+result = (
+
+    db.query(
+        Customer
+    )
+
+    .join(Account)
+
+    .all()
+)
+Filtering Join Results
+db.query(
+    Customer
+)
+
+.join(Account)
+
+.filter(
+    Account.balance > 10000
+)
+
+.all()
+Session 3 (4 PM – 6 PM)
+Performance Optimization
+N+1 Query Problem
+
+Bad:
+
+customers = (
+    db.query(Customer)
+    .all()
+)
+
+for customer in customers:
+
+    print(
+        customer.accounts
+    )
+
+Generated:
+
+1 Query Customers
+
+100 Queries Accounts
+
+Total:
+
+101 Queries
+Solution: joinedload()
+from sqlalchemy.orm import (
+    joinedload
+)
+customers = (
+
+    db.query(Customer)
+
+    .options(
+        joinedload(
+            Customer.accounts
+        )
+    )
+
+    .all()
+)
+
+Generated:
+
+Single Query
+Lazy Loading
+
+Default:
+
+customer.accounts
+
+loads only when accessed.
+
+Eager Loading
+joinedload()
+
+loads immediately.
+
+Banking Example
+
+Fetch:
+
+Customer
+Accounts
+Transactions
+
+in one query.
+
+customers = (
+
+    db.query(Customer)
+
+    .options(
+
+        joinedload(
+            Customer.accounts
+        )
+
+    )
+
+    .all()
+)
+Advanced Querying
+Count
+db.query(
+    Customer
+).count()
+Order By
+db.query(
+    Customer
+)
+
+.order_by(
+    Customer.name
+)
+
+.all()
+Limit
+db.query(
+    Customer
+)
+
+.limit(10)
+
+.all()
+Offset
+db.query(
+    Customer
+)
+
+.offset(20)
+
+.limit(10)
+
+.all()
+Group By
+from sqlalchemy import func
+
+db.query(
+
+    Account.customer_id,
+
+    func.count(
+        Account.id
+    )
+
+)
+
+.group_by(
+    Account.customer_id
+)
+
+.all()
+Banking Project Exercise
+
+Create:
+
+Customer
+Account
+Transaction
+KYC
+
+Relationships:
+
+Customer
+   ↓
+Account
+   ↓
+Transaction
+
+Customer
+   ↓
+KYC
+Interview Questions
+What is relationship()?
+
+ORM-level association between tables.
+
+Difference Between ForeignKey and relationship()?
+
+ForeignKey:
+
+Database relationship
+
+relationship():
+
+Python object navigation
+One-to-One Example?
+Customer ↔ KYC
+One-to-Many Example?
+Customer ↔ Accounts
+Many-to-Many Example?
+Users ↔ Roles
+What is a Join?
+
+Combines data from multiple tables.
+
+Difference Between INNER JOIN and LEFT JOIN?
+
+INNER:
+
+Matching rows only
+
+LEFT:
+
+All left rows
+What is Lazy Loading?
+
+Load related data only when accessed.
+
+What is Eager Loading?
+
+Load related data immediately.
+
+What is N+1 Problem?
+
+One query for parent records and N queries for child records.
+
+How do you solve N+1?
+joinedload()
+Goldman Sachs Style Questions
+1. Customer has 100 accounts. How would you fetch efficiently?
+
+Use:
+
+joinedload()
+2. Difference between join() and relationship()?
+
+join()
+
+Query operation
+
+relationship()
+
+Model mapping
+3. Why can lazy loading hurt performance?
+
+Generates multiple queries.
+
+4. How would you identify N+1 issues?
+
+Enable SQL logging.
+
+create_engine(
+    DB_URL,
+    echo=True
+)
+5. How would you optimize customer-account queries?
+Proper indexes
+joinedload
+Pagination
+6. When would you avoid eager loading?
+
+Large child collections causing huge result sets.
+
+7. Explain Many-to-Many implementation.
+
+Association table stores relationships.
+
+8. What happens if foreign key integrity is violated?
+
+Insert/update fails.
+
+9. How would you fetch customer, accounts and transactions in one query?
+
+Nested eager loading.
+
+joinedload(
+    Customer.accounts
+).joinedload(
+    Account.transactions
+)
+10. Design Banking Relationship Model.
+Customer
+   ↓
+Account
+   ↓
+Transaction
+
+Customer
+   ↓
+KYC
+Coding Tasks
+Task 1
+
+Implement:
+
+Customer
+
+and
+
+KYC
+
+One-to-One.
+
+Task 2
+
+Implement:
+
+Customer
+
+and
+
+Account
+
+One-to-Many.
+
+Task 3
+
+Implement:
+
+User
+
+and
+
+Role
+
+Many-to-Many.
+
+Task 4
+
+Write Join Queries.
+
+Task 5
+
+Implement:
+
+joinedload()
+Task 6
+
+Build:
+
+Customer API
+Account API
+Transaction API
+
+with relationships.
+
+DSA (90 Minutes)
+
+Solve:
+
+Top K Frequent Elements
+Longest Consecutive Sequence
+Number of Islands
+Kth Largest Element in an Array
+Course Schedule
+End-of-Day Deliverable
+One-to-One Relationships
+One-to-Many Relationships
+Many-to-Many Relationships
+SQLAlchemy Joins
+Inner Join
+Left Join
+Lazy Loading
+Eager Loading
+joinedload()
+N+1 Problem Solution
+Advanced Queries

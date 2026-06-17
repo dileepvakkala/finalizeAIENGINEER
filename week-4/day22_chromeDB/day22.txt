@@ -1,0 +1,439 @@
+Day 22 – ChromaDB Basics (Vector Database Fundamentals)
+
+Today you begin the most important GenAI phase.
+
+This is where your learning path shifts from traditional backend development to RAG (Retrieval-Augmented Generation).
+
+A large percentage of modern GenAI applications use vector databases such as:
+
+Chroma
+Pinecone
+Weaviate
+Milvus
+
+Since your resume already includes Pinecone and RAG projects, ChromaDB is a great way to understand vector databases deeply before moving to advanced RAG.
+
+Day 22 Goals
+
+Learn:
+
+✅ What is a Vector Database
+
+✅ Embeddings
+
+✅ Similarity Search
+
+✅ ChromaDB Installation
+
+✅ Collections
+
+✅ Store Documents
+
+✅ Store Metadata
+
+✅ Query Documents
+
+✅ Banking RAG Use Case
+
+Session 1 (6 AM – 8 AM)
+Vector Database Fundamentals
+Traditional Database Search
+
+PostgreSQL:
+
+SELECT *
+FROM customers
+WHERE name='Dileep';
+
+Searches exact values.
+
+Problem
+
+Suppose documents contain:
+
+Home Loan Policy
+
+User asks:
+
+Housing Loan Rules
+
+Traditional DB may not find a match.
+
+Vector Search
+
+Instead of exact matching:
+
+Text
+ ↓
+Embedding
+ ↓
+Vector
+ ↓
+Similarity Search
+What is an Embedding?
+
+Embedding = Numerical representation of text.
+
+Example:
+
+"Bank Loan"
+
+↓
+
+[0.23, 0.45, 0.11, ...]
+Similar Texts
+Home Loan
+
+Housing Loan
+
+Mortgage Loan
+
+produce similar vectors.
+
+Why Vector DB?
+
+Stores:
+
+Text
+Vector
+Metadata
+
+and performs:
+
+Semantic Search
+Session 2 (11 AM – 1 PM)
+ChromaDB Installation
+Install
+pip install chromadb
+Create First Database
+import chromadb
+
+client = chromadb.PersistentClient(
+    path="./chroma_db"
+)
+Create Collection
+
+Collection = Table equivalent.
+
+collection = client.create_collection(
+    name="bank_docs"
+)
+Add Documents
+collection.add(
+    ids=["1"],
+
+    documents=[
+        "Home loan interest rate is 8%"
+    ]
+)
+Query Documents
+results = collection.query(
+    query_texts=[
+        "housing loan"
+    ],
+    n_results=1
+)
+
+print(results)
+Expected Result
+Home loan interest rate is 8%
+
+Even though:
+
+housing loan
+
+was not stored.
+
+Session 3 (4 PM – 6 PM)
+Metadata & Collections
+Add Metadata
+collection.add(
+    ids=["2"],
+
+    documents=[
+        "Savings account minimum balance is 5000"
+    ],
+
+    metadatas=[
+        {
+            "type":"account"
+        }
+    ]
+)
+Query with Metadata
+results = collection.query(
+    query_texts=[
+        "minimum balance"
+    ]
+)
+Multiple Documents
+collection.add(
+
+    ids=[
+        "1",
+        "2",
+        "3"
+    ],
+
+    documents=[
+
+        "Home Loan Policy",
+
+        "Car Loan Policy",
+
+        "Credit Card Rules"
+    ]
+)
+View Collection
+collection.count()
+Delete Document
+collection.delete(
+    ids=["1"]
+)
+Get Documents
+collection.get()
+Banking RAG Example
+
+Documents:
+
+Home Loan Policy
+Car Loan Policy
+Credit Card Policy
+Insurance Policy
+
+User asks:
+
+What is housing loan interest?
+
+Flow:
+
+Question
+    ↓
+Embedding
+    ↓
+Chroma Search
+    ↓
+Relevant Documents
+    ↓
+LLM
+    ↓
+Answer
+Full Example
+import chromadb
+
+client = chromadb.PersistentClient(
+    path="./chroma_db"
+)
+
+collection = client.get_or_create_collection(
+    name="bank_docs"
+)
+
+collection.add(
+
+    ids=["1","2"],
+
+    documents=[
+        "Home loan interest is 8%",
+        "Credit card interest is 20%"
+    ]
+)
+
+result = collection.query(
+
+    query_texts=[
+        "housing loan"
+    ],
+
+    n_results=1
+)
+
+print(result)
+Chroma Concepts
+SQL	Chroma
+Database	Client
+Table	Collection
+Row	Document
+Primary Key	ID
+Query	Similarity Search
+Interview Questions
+What is ChromaDB?
+
+Open-source vector database for storing embeddings and performing similarity search.
+
+Why use ChromaDB?
+
+For semantic search in RAG applications.
+
+What is a Vector Database?
+
+Database optimized for storing vectors and similarity searching.
+
+Difference between PostgreSQL and ChromaDB?
+PostgreSQL	ChromaDB
+Exact search	Semantic search
+Structured data	Embeddings
+SQL queries	Similarity search
+What is an Embedding?
+
+Numerical representation of text.
+
+Why are embeddings useful?
+
+Capture semantic meaning.
+
+What is Similarity Search?
+
+Finding vectors closest to query vector.
+
+What is a Collection?
+
+Equivalent to a table in ChromaDB.
+
+What is Metadata?
+
+Additional information stored with documents.
+
+Example:
+
+{
+ "type":"loan"
+}
+What is RAG?
+
+Retrieval-Augmented Generation.
+
+Retrieve relevant documents before sending context to the LLM.
+
+Goldman Sachs Style Questions
+1. Why not store embeddings in PostgreSQL?
+
+Possible, but vector databases are optimized for similarity search.
+
+2. What problem does ChromaDB solve?
+
+Efficient semantic retrieval.
+
+3. Explain semantic search.
+
+Search by meaning instead of exact keywords.
+
+4. What happens when millions of documents are stored?
+
+Vector indexing techniques improve retrieval efficiency.
+
+5. Difference between keyword search and vector search?
+
+Keyword:
+
+Exact words
+
+Vector:
+
+Meaning-based search
+6. How would you build a banking chatbot using ChromaDB?
+Policies
+ ↓
+Chunking
+ ↓
+Embeddings
+ ↓
+ChromaDB
+ ↓
+Retriever
+ ↓
+LLM
+7. What is the role of metadata in RAG?
+
+Filtering and contextual retrieval.
+
+8. How does ChromaDB integrate with LangChain?
+
+As a retriever/vector store backend.
+
+9. What are limitations of ChromaDB?
+
+Not ideal for massive distributed enterprise deployments compared to managed vector platforms.
+
+10. Explain an end-to-end RAG flow.
+PDF
+ ↓
+Chunk
+ ↓
+Embedding
+ ↓
+Vector DB
+ ↓
+Retriever
+ ↓
+LLM
+ ↓
+Answer
+Coding Tasks
+Task 1
+
+Install ChromaDB.
+
+Task 2
+
+Create:
+
+bank_docs
+
+collection.
+
+Task 3
+
+Insert:
+
+10 Banking Documents
+Task 4
+
+Add metadata.
+
+Task 5
+
+Perform similarity search.
+
+Task 6
+
+Delete document.
+
+Task 7
+
+Build Banking Policy Search API.
+
+Banking Project Integration
+
+Create:
+
+Document Upload API
+      ↓
+PDF Processing
+      ↓
+Chunking
+      ↓
+Embeddings
+      ↓
+ChromaDB
+
+This becomes the foundation of your future RAG application.
+
+DSA (90 Minutes)
+
+Solve:
+
+Longest Substring Without Repeating Characters
+Container With Most Water
+Validate Binary Search Tree
+Permutations
+Daily Temperatures
+End-of-Day Deliverable
+ChromaDB Installed
+Collections Created
+Documents Stored
+Metadata Added
+Similarity Search Working
+Basic Banking Document Search Built
+Vector Database Fundamentals Understood
+

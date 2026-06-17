@@ -1,0 +1,540 @@
+Day 23 – Vector Embeddings (Core of RAG Systems)
+
+Today is one of the most important days in your entire GenAI roadmap.
+
+Without embeddings:
+
+PDF → LLM
+
+With embeddings:
+
+PDF
+ ↓
+Chunking
+ ↓
+Embeddings
+ ↓
+Vector DB
+ ↓
+Retrieval
+ ↓
+LLM
+
+This is the foundation of:
+
+ChatGPT style document chat
+Banking RAG systems
+Insurance assistants
+Enterprise search
+Knowledge assistants
+Day 23 Goals
+
+Learn:
+
+✅ What are Embeddings
+
+✅ Vector Dimensions
+
+✅ Similarity Search
+
+✅ Cosine Similarity
+
+✅ Sentence Transformers
+
+✅ OpenAI Embeddings
+
+✅ Chunking
+
+✅ Embedding Storage
+
+✅ Banking RAG Pipeline
+
+Session 1 (6 AM – 8 AM)
+Understanding Embeddings
+What is an Embedding?
+
+An embedding is a numerical representation of text.
+
+Example:
+
+"Home Loan"
+
+↓
+
+[0.12, 0.55, 0.91, ...]
+Why Convert Text into Numbers?
+
+Machines understand numbers, not meaning.
+
+Embeddings capture semantic meaning.
+
+Example
+
+Texts:
+
+Home Loan
+
+Housing Loan
+
+Mortgage Loan
+
+produce vectors that are close together.
+
+Embedding Dimensions
+
+Example:
+
+[0.23, 0.67, 0.11]
+
+3 dimensions.
+
+Real models:
+
+384
+768
+1024
+1536
+3072
+
+dimensions.
+
+Similarity Search
+
+Instead of:
+
+Exact Match
+
+we search:
+
+Meaning Match
+
+Example:
+
+Stored:
+
+Home Loan Interest Rate
+
+User asks:
+
+Mortgage Interest
+
+Embeddings help retrieve the right document.
+
+Cosine Similarity
+
+Most common similarity metric.
+
+Formula:
+
+cos(θ)=
+∥A∥∥B∥
+A⋅B
+	​
+
+
+Interpretation:
+
+1.0  → Exactly Similar
+0.8  → Highly Similar
+0.5  → Somewhat Similar
+0.0  → Unrelated
+Session 2 (11 AM – 1 PM)
+Sentence Transformers
+
+Most popular open-source embedding approach.
+
+Install:
+
+pip install sentence-transformers
+Generate Embeddings
+from sentence_transformers import SentenceTransformer
+
+model = SentenceTransformer(
+    "all-MiniLM-L6-v2"
+)
+
+embedding = model.encode(
+    "Home loan interest rate"
+)
+
+print(len(embedding))
+
+Output:
+
+384
+Compare Two Sentences
+from sentence_transformers import (
+    SentenceTransformer
+)
+
+from sklearn.metrics.pairwise import (
+    cosine_similarity
+)
+
+model = SentenceTransformer(
+    "all-MiniLM-L6-v2"
+)
+
+text1 = model.encode(
+    "Home Loan"
+)
+
+text2 = model.encode(
+    "Housing Loan"
+)
+
+score = cosine_similarity(
+    [text1],
+    [text2]
+)
+
+print(score)
+
+Expected:
+
+Very high similarity
+Multiple Documents
+documents = [
+
+    "Home Loan Policy",
+
+    "Car Loan Policy",
+
+    "Credit Card Policy"
+]
+
+embeddings = model.encode(
+    documents
+)
+Session 3 (4 PM – 6 PM)
+Chunking Strategies
+Why Chunking?
+
+Suppose PDF contains:
+
+500 Pages
+
+LLMs cannot efficiently process the entire document.
+
+Split into chunks.
+
+Bad Chunking
+500 Pages
+ ↓
+One Chunk
+Better
+500 Pages
+ ↓
+1000 Character Chunks
+Example
+text = """
+Home loan policy...
+Interest rate...
+Eligibility...
+"""
+
+chunk_size = 100
+
+chunks = [
+
+    text[i:i+chunk_size]
+
+    for i in range(
+        0,
+        len(text),
+        chunk_size
+    )
+]
+LangChain Chunking
+pip install langchain
+from langchain.text_splitter import (
+    RecursiveCharacterTextSplitter
+)
+
+splitter = (
+    RecursiveCharacterTextSplitter(
+        chunk_size=500,
+        chunk_overlap=50
+    )
+)
+
+chunks = splitter.split_text(text)
+Why Overlap?
+
+Without overlap:
+
+Chunk 1:
+Home loan interest
+
+Chunk 2:
+rate is 8%
+
+Context lost.
+
+With overlap:
+
+Chunk 1:
+Home loan interest rate
+
+Chunk 2:
+interest rate is 8%
+Banking RAG Pipeline
+PDF Upload
+      ↓
+Text Extraction
+      ↓
+Chunking
+      ↓
+Embeddings
+      ↓
+ChromaDB
+      ↓
+Retriever
+      ↓
+LLM
+OpenAI Embeddings
+
+Install:
+
+pip install openai
+
+Example:
+
+from openai import OpenAI
+
+client = OpenAI()
+
+response = (
+    client.embeddings.create(
+        model="text-embedding-3-small",
+        input="Home Loan"
+    )
+)
+
+embedding = (
+    response.data[0].embedding
+)
+Open Source vs OpenAI
+Open Source	OpenAI
+Free	Paid
+Local execution	API
+More control	Better quality often
+Requires resources	Managed service
+Banking Example
+
+Documents:
+
+Home Loan Policy
+Credit Card Policy
+Insurance Policy
+
+Generate:
+
+Chunks
+ ↓
+Embeddings
+ ↓
+Store in ChromaDB
+
+User:
+
+What is mortgage interest?
+
+Retrieve:
+
+Home Loan Policy
+Interview Questions
+What is an Embedding?
+
+Numerical representation of text capturing semantic meaning.
+
+Why are Embeddings Important?
+
+Enable semantic search.
+
+What is Vector Dimension?
+
+Length of embedding vector.
+
+Example:
+
+384
+768
+1536
+What is Cosine Similarity?
+
+Measures similarity between vectors.
+
+Why not use keyword search?
+
+Keyword search misses semantic meaning.
+
+What is Semantic Search?
+
+Search by meaning rather than exact words.
+
+Why is Chunking Required?
+
+Large documents cannot be efficiently embedded or retrieved as a single block.
+
+What is Chunk Overlap?
+
+Shared content between chunks to preserve context.
+
+Ideal Chunk Size?
+
+Depends on use case.
+
+Common values:
+
+300–1000 characters
+
+or token-based chunking.
+
+What is SentenceTransformer?
+
+Popular library for generating embeddings locally.
+
+What is RAG?
+
+Retrieval-Augmented Generation.
+
+Retrieve relevant content before calling the LLM.
+
+Goldman Sachs Style Questions
+1. Explain Embeddings to a Non-Technical Stakeholder.
+
+Convert text into numbers that preserve meaning, allowing systems to find related information.
+
+2. Why do similar sentences have similar vectors?
+
+Embedding models are trained to place semantically related text close together in vector space.
+
+3. What happens if chunk size is too large?
+Higher retrieval noise
+More tokens
+Lower relevance
+4. What happens if chunk size is too small?
+Context loss
+Poor answers
+5. How would you build a banking document search system?
+PDF
+ ↓
+Chunk
+ ↓
+Embedding
+ ↓
+ChromaDB
+ ↓
+Retriever
+ ↓
+LLM
+6. How do you evaluate embedding quality?
+Retrieval accuracy
+Similarity tests
+Precision/Recall
+Human evaluation
+7. Why use overlap during chunking?
+
+Preserve context across chunk boundaries.
+
+8. What embedding models have you used?
+
+Examples:
+
+all-MiniLM-L6-v2
+text-embedding-3-small
+text-embedding-3-large
+9. What are common embedding dimensions?
+384
+768
+1536
+3072
+10. Explain end-to-end RAG retrieval.
+Question
+ ↓
+Embedding
+ ↓
+Vector Search
+ ↓
+Top K Chunks
+ ↓
+Prompt
+ ↓
+LLM
+ ↓
+Answer
+Coding Tasks
+Task 1
+
+Install Sentence Transformers.
+
+Task 2
+
+Generate embeddings for:
+
+Home Loan Policy
+Car Loan Policy
+Credit Card Policy
+Task 3
+
+Calculate cosine similarity.
+
+Task 4
+
+Implement text chunking.
+
+Task 5
+
+Use LangChain splitter.
+
+Task 6
+
+Store chunks in ChromaDB.
+
+Task 7
+
+Perform semantic search.
+
+Task 8
+
+Build Banking Policy Retrieval API.
+
+Banking Project Integration
+
+Implement:
+
+Upload PDF
+ ↓
+Extract Text
+ ↓
+Chunk
+ ↓
+Generate Embeddings
+ ↓
+Store in ChromaDB
+ ↓
+Retrieve Relevant Chunks
+
+This is the first real step toward the Graph-RAG and Banking RAG systems you want to build.
+
+DSA (90 Minutes)
+
+Solve:
+
+LRU Cache
+Binary Tree Level Order Traversal
+Subarray Sum Equals K
+Decode Ways
+Rotting Oranges
+End-of-Day Deliverable
+Understand Embeddings
+Generate Embeddings
+Cosine Similarity
+Chunking Strategies
+Chunk Overlap
+Sentence Transformers
+OpenAI Embeddings
+Semantic Search
+ChromaDB Integration
+Basic Retrieval Pipeline

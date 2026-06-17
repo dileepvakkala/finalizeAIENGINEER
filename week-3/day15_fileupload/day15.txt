@@ -1,0 +1,823 @@
+Day 15 – Project: Document Upload Service (Production-Ready)
+
+This is your first GenAI-ready microservice.
+
+The service will:
+
+Upload PDF
+      ↓
+Validate File
+      ↓
+Store File
+      ↓
+Save Metadata
+      ↓
+Background Processing
+      ↓
+Extract Text
+      ↓
+Store Content
+      ↓
+Ready for RAG
+Architecture
+Client
+  ↓
+FastAPI
+  ↓
+JWT Authentication
+  ↓
+Document Service
+  ↓
+PostgreSQL
+  ↓
+File Storage
+
+Background Task
+  ↓
+PDF Processing
+Project Structure
+document-upload-service/
+
+├── app/
+│
+├── routers/
+│   └── document_router.py
+│
+├── services/
+│   └── document_service.py
+│
+├── models/
+│   └── document.py
+│
+├── schemas/
+│   └── document_schema.py
+│
+├── database/
+│   ├── database.py
+│   └── base.py
+│
+├── uploads/
+│
+├── utils/
+│   ├── logger.py
+│   └── pdf_processor.py
+│
+├── middleware/
+│
+├── main.py
+│
+└── requirements.txt
+Session 1 (Theory)
+Features
+Functional
+
+✅ Upload PDF
+
+✅ Get Document
+
+✅ List Documents
+
+✅ Delete Document
+
+✅ Process PDF
+
+✅ Extract Text
+
+Non-Functional
+
+✅ JWT Security
+
+✅ Logging
+
+✅ Exception Handling
+
+✅ Background Tasks
+
+✅ Validation
+
+Database Design
+documents table
+CREATE TABLE documents(
+
+id SERIAL PRIMARY KEY,
+
+filename VARCHAR(255),
+
+filepath VARCHAR(500),
+
+file_size BIGINT,
+
+status VARCHAR(50),
+
+uploaded_by VARCHAR(100),
+
+uploaded_at TIMESTAMP,
+
+processed_at TIMESTAMP
+
+);
+SQLAlchemy Model
+models/document.py
+from sqlalchemy import Column
+from sqlalchemy import Integer
+from sqlalchemy import String
+from sqlalchemy import BigInteger
+from sqlalchemy import DateTime
+
+from database.base import Base
+
+
+class Document(Base):
+
+    __tablename__ = "documents"
+
+    id = Column(
+        Integer,
+        primary_key=True,
+        index=True
+    )
+
+    filename = Column(String)
+
+    filepath = Column(String)
+
+    file_size = Column(
+        BigInteger
+    )
+
+    status = Column(String)
+
+    uploaded_by = Column(String)
+
+    uploaded_at = Column(
+        DateTime
+    )
+
+    processed_at = Column(
+        DateTime
+    )
+Pydantic Schema
+schemas/document_schema.py
+from pydantic import BaseModel
+
+
+class DocumentResponse(
+    BaseModel
+):
+
+    id: int
+
+    filename: str
+
+    status: str
+
+    class Config:
+
+        from_attributes = True
+Session 2 (Coding)
+Upload API
+routers/document_router.py
+from fastapi import APIRouter
+from fastapi import UploadFile
+from fastapi import File
+from fastapi import Depends
+from fastapi import BackgroundTasks
+
+router = APIRouter(
+    prefix="/documents"
+)
+Upload Endpoint
+@router.post("/upload")
+async def upload_document(
+        background_tasks:
+        BackgroundTasks,
+
+        file: UploadFile
+        = File(...)
+):
+
+    pass
+Validation
+Only PDF
+if file.content_type != "application/pdf":
+
+    raise HTTPException(
+        status_code=400,
+        detail="Only PDF files allowed"
+    )
+File Size Validation
+MAX_FILE_SIZE = (
+    10 * 1024 * 1024
+)
+
+10MB
+
+content = await file.read()
+
+if len(content) > MAX_FILE_SIZE:
+
+    raise HTTPException(
+        400,
+        "File too large"
+    )
+Save File
+import os
+import uuid
+
+file_name = (
+    f"{uuid.uuid4()}.pdf"
+)
+
+file_path = (
+    f"uploads/{file_name}"
+)
+
+with open(
+        file_path,
+        "wb"
+) as f:
+
+    f.write(content)
+Save Metadata
+document = Document(
+
+    filename=file.filename,
+
+    filepath=file_path,
+
+    file_size=len(content),
+
+    status="UPLOADED",
+
+    uploaded_by="dileep"
+
+)
+
+db.add(document)
+
+db.commit()
+
+db.refresh(document)
+Background Processing
+background_tasks.add_task(
+    process_document,
+    document.id,
+    file_path
+)
+Session 3 (Implementation)
+PDF Processing Service
+utils/pdf_processor.py
+from pypdf import PdfReader
+
+
+def extract_text(
+        file_path
+):
+
+    reader = PdfReader(
+        file_path
+    )
+
+    text = ""
+
+    for page in reader.pages:
+
+        text += (
+            page.extract_text()
+            or ""
+        )
+
+    return text
+Processing Service
+def process_document(
+        document_id,
+        file_path
+):
+
+    text = extract_text(
+        file_path
+    )
+
+    print(
+        text[:500]
+    )
+Status Update
+document.status = (
+    "PROCESSING"
+)
+
+After extraction:
+
+document.status = (
+    "COMPLETED"
+)
+
+Error:
+
+document.status = (
+    "FAILED"
+)
+Get Documents API
+@router.get("/")
+def get_documents(
+        db: Session
+):
+
+    return db.query(
+        Document
+    ).all()
+Get By Id
+@router.get("/{id}")
+def get_document(
+        id: int,
+        db: Session
+):
+
+    return db.query(
+        Document
+    ).filter(
+        Document.id == id
+    ).first()
+Delete Document
+@router.delete("/{id}")
+def delete_document(
+        id: int,
+        db: Session
+):
+
+    document = db.query(
+        Document
+    ).filter(
+        Document.id == id
+    ).first()
+
+    os.remove(
+        document.filepath
+    )
+
+    db.delete(document)
+
+    db.commit()
+
+    return {
+        "message":
+        "Deleted"
+    }
+Logging
+utils/logger.py
+import logging
+
+logging.basicConfig(
+
+    filename="document.log",
+
+    level=logging.INFO,
+
+    format=
+    "%(asctime)s "
+    "%(levelname)s "
+    "%(message)s"
+)
+
+logger = logging.getLogger(
+    __name__
+)
+Log Upload
+logger.info(
+    f"Uploaded {file.filename}"
+)
+Log Processing
+logger.info(
+    f"Processing "
+    f"{document_id}"
+)
+JWT Security
+
+Protect upload API:
+
+@router.post("/upload")
+async def upload_document(
+
+    user=Depends(
+        get_current_user
+    ),
+
+    file: UploadFile
+    = File(...)
+):
+Production Enhancements
+Store Text
+document_content
+
+table
+
+id
+document_id
+content
+Virus Scan
+
+Use:
+
+ClamAV
+Cloud Storage
+
+Use:
+
+Amazon Web Services S3
+Google Cloud Storage
+Async Processing
+
+Use:
+
+Celery
+Redis
+Interview Questions
+Why use UploadFile instead of bytes?
+
+Memory efficient streaming.
+
+Why use BackgroundTasks?
+
+Avoid blocking request thread.
+
+How would you process 1000 PDFs?
+
+Use:
+
+FastAPI
+    ↓
+Redis
+    ↓
+Celery Workers
+What validations would you perform?
+File Type
+File Size
+Virus Scan
+Duplicate Check
+How would you secure uploads?
+JWT
+HTTPS
+File Validation
+Virus Scan
+How does this fit into a RAG system?
+Upload PDF
+     ↓
+Extract Text
+     ↓
+Chunking
+     ↓
+Embeddings
+     ↓
+Vector DB
+     ↓
+LLM
+End-of-Day Deliverable
+
+You should have a working service with:
+
+FastAPI
+JWT Authentication
+PDF Upload API
+Background Processing
+PostgreSQL
+SQLAlchemy
+Logging
+Exception Handling
+Document Metadata
+PDF Text Extraction
+DSA (30 Minutes)
+
+Solve:
+
+Merge Intervals
+Meeting Rooms II
+LRU Cache
+
+Day 16 should be your first complete RAG Pipeline:
+
+Document Chunking
+Embeddings
+Vector Database (FAISS/ChromaDB)
+Semantic Search
+Retrieval APIs
+Banking Knowledge Assistant using uploaded PDFs.
+
+1. How does file upload work in FastAPI?
+
+Using:
+
+UploadFile = File(...)
+
+FastAPI receives multipart/form-data and streams the file.
+
+2. Difference between UploadFile and bytes?
+UploadFile	bytes
+Streamed	Entire file loaded
+Memory efficient	High memory usage
+Suitable for large files	Suitable for small files
+3. Why is UploadFile preferred in production?
+
+Large PDFs (100MB+) won't consume excessive RAM.
+
+4. What is multipart/form-data?
+
+HTTP content type used for sending files and form data.
+
+5. How do browsers upload files?
+Browser
+   ↓
+multipart/form-data
+   ↓
+FastAPI
+Security Questions
+6. How do you validate uploaded files?
+MIME Type
+File Extension
+File Size
+Virus Scan
+7. Why is file extension validation not enough?
+
+Attackers can rename:
+
+virus.exe
+
+to
+
+virus.pdf
+8. How do you verify the file is actually a PDF?
+
+Check:
+
+file.content_type
+
+and validate PDF structure using a PDF parser.
+
+9. How would you prevent malicious uploads?
+JWT Authentication
+File Size Limits
+Virus Scanning
+MIME Validation
+Storage Isolation
+10. What is path traversal attack?
+
+Example:
+
+../../../etc/passwd
+
+Never trust user-provided filenames.
+
+Database Design
+11. What metadata should be stored?
+Document ID
+Filename
+Filepath
+Size
+Status
+Uploaded By
+Upload Date
+12. Why store metadata separately?
+
+Searching database is faster than scanning file system.
+
+13. Should file content be stored in DB?
+
+Generally:
+
+No
+
+Store file externally and metadata in DB.
+
+14. When would you store files inside DB?
+
+Small files (<1MB) and special compliance requirements.
+
+15. Why use UUID filenames?
+
+Avoid collisions.
+
+uuid.uuid4()
+Background Processing
+16. Why use BackgroundTasks?
+
+User receives response immediately.
+
+17. What happens if PDF extraction takes 30 seconds?
+
+Without background tasks:
+
+Request waits 30 seconds
+18. Difference between async and background task?
+
+Async:
+
+Within request lifecycle
+
+Background:
+
+After response returns
+19. What if FastAPI crashes during processing?
+
+Background task is lost.
+
+20. How do production systems solve this?
+
+Use:
+
+Celery
+Redis
+Message Queues
+Scalability Questions
+21. How would you process 1000 PDFs simultaneously?
+
+Architecture:
+
+FastAPI
+   ↓
+Redis Queue
+   ↓
+Celery Workers
+   ↓
+PDF Processing
+22. Why not process inside API?
+
+Blocks worker threads.
+
+23. What bottlenecks occur in document processing?
+CPU
+Disk I/O
+Memory
+Database writes
+24. How would you horizontally scale?
+
+Multiple:
+
+FastAPI Instances
+
+behind load balancer.
+
+25. How would you store millions of files?
+
+Use cloud storage:
+
+Amazon S3
+Google Cloud Storage
+Logging & Monitoring
+26. What should be logged?
+Upload Start
+Upload Success
+Upload Failure
+Processing Start
+Processing End
+27. What should NOT be logged?
+Passwords
+JWT Tokens
+Sensitive customer data
+28. How would you trace a failed upload?
+
+Using:
+
+Request ID
+Correlation ID
+Logs
+29. How do you monitor upload failures?
+
+Metrics dashboard.
+
+30. What KPIs would you track?
+Upload Count
+Failure Rate
+Processing Time
+Queue Size
+PDF Processing Questions
+31. How do you extract text from PDF?
+
+Using:
+
+PdfReader
+32. What challenges exist with PDF extraction?
+Scanned PDFs
+Images
+Corrupted PDFs
+Complex Layouts
+33. How do you process scanned PDFs?
+
+OCR tools.
+
+Example:
+
+Tesseract OCR
+34. What if PDF has only images?
+
+Text extraction returns empty.
+
+Need OCR.
+
+35. How would you detect corrupted PDFs?
+
+Exception handling around PDF parser.
+
+RAG / GenAI Questions
+36. Why is document upload important for RAG?
+
+Documents become knowledge sources.
+
+37. Explain RAG workflow.
+Upload PDF
+ ↓
+Extract Text
+ ↓
+Chunking
+ ↓
+Embeddings
+ ↓
+Vector DB
+ ↓
+LLM Retrieval
+38. What is chunking?
+
+Splitting large text into smaller pieces.
+
+39. Why not send entire PDF to LLM?
+
+Token limit and cost.
+
+40. What happens after extraction?
+
+Generate embeddings.
+
+System Design Questions
+41. Design a document upload service for a bank.
+
+Expected answer:
+
+API Gateway
+ ↓
+FastAPI
+ ↓
+S3
+ ↓
+PostgreSQL
+ ↓
+Redis
+ ↓
+Celery
+ ↓
+Processing Workers
+42. How would you handle duplicate uploads?
+
+Hash file content.
+
+43. How would you version documents?
+document_v1.pdf
+document_v2.pdf
+
+or version table.
+
+44. How would you support resumable uploads?
+
+Chunk-based upload protocol.
+
+45. How would you handle 2GB files?
+
+Multipart uploads.
+
+Scenario-Based Questions
+46. Users complain uploads are slow. What would you investigate?
+Network
+Disk
+DB
+File Size
+Queue Delays
+47. PDF processing queue grows continuously. Why?
+
+Workers slower than upload rate.
+
+48. One PDF keeps failing. How would you debug?
+Check logs
+Open file manually
+Validate PDF
+Reproduce locally
+49. Upload succeeds but metadata missing. Possible reasons?
+DB transaction rollback
+Commit failure
+Exception after save
+50. How would you make this production ready?
+JWT Security
+S3 Storage
+Redis Queue
+Celery Workers
+Logging
+Monitoring
+Rate Limiting
+Retry Mechanisms
+Goldman Sachs Senior-Level Scenario Questions
+Design a document upload service handling 10 million PDFs per month.
+How would you ensure exactly-once document processing?
+How would you prevent duplicate processing across multiple workers?
+Redis vs Kafka for document processing queues?
+How would you implement retries for failed PDF extraction?
+How would you process documents across multiple regions?
+How would you encrypt uploaded documents at rest?
+How would you meet banking compliance requirements for document storage?
+How would you design audit trails for every document action?
+How would you integrate this upload service into a GenAI RAG platform?

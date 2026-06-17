@@ -1,0 +1,538 @@
+Day 21 Goals
+
+Learn:
+
+✅ Indexing
+
+✅ Query Optimization
+
+✅ EXPLAIN ANALYZE
+
+✅ Composite Indexes
+
+✅ Covering Indexes
+
+✅ Pagination
+
+✅ N+1 Query Problem
+
+✅ Connection Pooling
+
+✅ Database Performance Tuning
+
+Session 1 (6 AM – 8 AM)
+Understanding Query Performance
+Why Queries Become Slow
+
+Common reasons:
+
+No Index
+Full Table Scan
+Too Many Joins
+N+1 Queries
+Large Result Sets
+Bad Pagination
+Example
+
+Customer Table:
+
+10 Million Records
+
+Query:
+
+SELECT *
+FROM customers
+WHERE email='abc@gmail.com';
+
+Without index:
+
+Reads all 10 million rows
+What is an Index?
+
+An index is a data structure that speeds up data retrieval.
+
+Think of:
+
+Book Index
+
+instead of reading every page.
+
+Create Index
+CREATE INDEX idx_customer_email
+ON customers(email);
+Check Existing Indexes
+SELECT *
+FROM pg_indexes
+WHERE tablename='customers';
+Primary Key Index
+id SERIAL PRIMARY KEY
+
+Automatically creates an index.
+
+Session 2 (11 AM – 1 PM)
+Query Analysis
+EXPLAIN
+
+Shows execution plan.
+
+EXPLAIN
+
+SELECT *
+
+FROM customers
+
+WHERE email='abc@gmail.com';
+EXPLAIN ANALYZE
+
+Actually runs query.
+
+EXPLAIN ANALYZE
+
+SELECT *
+
+FROM customers
+
+WHERE email='abc@gmail.com';
+Full Table Scan Example
+Seq Scan on customers
+
+Means:
+
+Database scans every row
+
+Bad.
+
+Index Scan Example
+Index Scan
+
+Good.
+
+Composite Index
+
+Query:
+
+SELECT *
+
+FROM accounts
+
+WHERE customer_id=1
+AND status='ACTIVE';
+
+Create:
+
+CREATE INDEX idx_account_customer_status
+
+ON accounts(
+customer_id,
+status
+);
+Why Composite Index?
+
+Optimizes multi-column searches.
+
+Session 3 (4 PM – 6 PM)
+SQLAlchemy Optimization
+Problem
+customers = (
+    db.query(Customer)
+      .all()
+)
+
+If table has:
+
+10 Million Rows
+
+Huge memory issue.
+
+Use Pagination
+customers = (
+
+    db.query(Customer)
+
+    .offset(0)
+
+    .limit(50)
+
+    .all()
+)
+Avoid SELECT *
+
+Bad:
+
+db.query(Customer).all()
+
+Good:
+
+db.query(
+    Customer.id,
+    Customer.name
+)
+N+1 Query Problem
+
+Bad:
+
+customers = (
+    db.query(Customer)
+      .all()
+)
+
+for customer in customers:
+
+    print(
+        customer.accounts
+    )
+
+Produces:
+
+1 + N Queries
+Solution
+from sqlalchemy.orm import joinedload
+customers = (
+
+    db.query(Customer)
+
+    .options(
+        joinedload(
+            Customer.accounts
+        )
+    )
+
+    .all()
+)
+Connection Pooling
+
+Every request:
+
+Open Connection
+Execute
+Close Connection
+
+Expensive.
+
+SQLAlchemy uses connection pools.
+
+Example:
+
+engine = create_engine(
+
+    DATABASE_URL,
+
+    pool_size=20,
+
+    max_overflow=30
+)
+Banking Optimization Example
+
+Tables:
+
+customers
+accounts
+transactions
+
+Query:
+
+SELECT *
+
+FROM transactions
+
+WHERE account_id=100;
+
+Create:
+
+CREATE INDEX idx_transaction_account
+
+ON transactions(account_id);
+Query Optimization Checklist
+
+Before deployment:
+
+Check
+Indexes
+EXPLAIN ANALYZE
+Pagination
+Joins
+Connection Pooling
+SQL Optimization Techniques
+EXISTS instead of IN
+
+Bad:
+
+SELECT *
+
+FROM customers
+
+WHERE id IN
+(
+SELECT customer_id
+FROM accounts
+);
+
+Better:
+
+SELECT *
+
+FROM customers c
+
+WHERE EXISTS
+(
+SELECT 1
+FROM accounts a
+
+WHERE a.customer_id=c.id
+);
+Avoid SELECT *
+
+Bad:
+
+SELECT *
+FROM customers;
+
+Good:
+
+SELECT id,name
+FROM customers;
+Database Monitoring
+
+Useful Queries:
+
+Active Sessions:
+
+SELECT *
+FROM pg_stat_activity;
+
+Long Running Queries:
+
+SELECT *
+FROM pg_stat_activity
+WHERE state='active';
+Banking Scenario
+
+Transfer Service
+
+Query:
+
+SELECT *
+
+FROM accounts
+
+WHERE account_number='123456';
+
+Create:
+
+CREATE UNIQUE INDEX
+idx_account_number
+
+ON accounts(
+account_number
+);
+Interview Questions
+Basics
+1. What is an Index?
+
+Data structure that speeds up searches.
+
+2. Why are indexes important?
+
+Avoid full table scans.
+
+3. What is a Full Table Scan?
+
+Database reads every row.
+
+4. What is EXPLAIN?
+
+Shows query execution plan.
+
+5. What is EXPLAIN ANALYZE?
+
+Runs query and shows actual execution statistics.
+
+6. Difference Between Index Scan and Sequential Scan?
+
+Index Scan:
+
+Uses index
+
+Sequential Scan:
+
+Reads all rows
+7. What is Composite Index?
+
+Index on multiple columns.
+
+8. When should Composite Index be used?
+
+When query filters multiple columns together.
+
+9. Can too many indexes hurt performance?
+
+Yes.
+
+More storage and slower inserts/updates.
+
+10. What is Pagination?
+
+Retrieving data in chunks.
+
+SQLAlchemy Questions
+11. What is N+1 Query Problem?
+
+One parent query and N child queries.
+
+12. How do you solve N+1?
+joinedload()
+13. What is Lazy Loading?
+
+Load related data only when accessed.
+
+14. What is Eager Loading?
+
+Load immediately.
+
+15. Why avoid query.all() on huge tables?
+
+Memory issues.
+
+16. How do you paginate in SQLAlchemy?
+.limit()
+.offset()
+17. What is Connection Pooling?
+
+Reusing database connections.
+
+18. Why is connection pooling important?
+
+Reduces connection overhead.
+
+19. How does SQLAlchemy support pooling?
+
+Through Engine.
+
+20. What happens when pool is exhausted?
+
+Requests wait for available connection.
+
+Goldman Sachs Style Questions
+21. Query suddenly becomes slow after data grows. What do you check?
+Execution plan
+Indexes
+Table size
+Statistics
+22. How would you optimize a 5-second query?
+Add indexes
+Analyze joins
+Reduce columns
+Pagination
+23. How do you identify slow queries?
+EXPLAIN ANALYZE
+24. Why is SELECT * considered bad?
+
+Fetches unnecessary data.
+
+25. Difference between clustered and non-clustered indexes?
+
+PostgreSQL primarily uses B-tree indexes; conceptually clustered indexes affect physical row ordering, while non-clustered indexes do not.
+
+26. How would you optimize customer search?
+
+Index:
+
+CREATE INDEX idx_email
+ON customers(email);
+27. How would you optimize transaction lookup?
+
+Index:
+
+CREATE INDEX idx_account_id
+ON transactions(account_id);
+28. What is a covering index?
+
+An index containing all columns needed by a query.
+
+29. Why can indexes slow inserts?
+
+Every insert updates indexes.
+
+30. Design optimization strategy for banking database.
+
+Expected discussion:
+
+Indexes
+Partitioning
+Connection Pooling
+Pagination
+Caching
+Query Tuning
+Coding Tasks
+Task 1
+
+Create index on:
+
+customers(email)
+Task 2
+
+Run:
+
+EXPLAIN ANALYZE
+
+for customer lookup.
+
+Task 3
+
+Create composite index.
+
+Task 4
+
+Implement pagination API.
+
+Task 5
+
+Fix N+1 query using:
+
+joinedload()
+Task 6
+
+Configure connection pooling.
+
+Task 7
+
+Analyze generated SQL.
+
+create_engine(
+    DB_URL,
+    echo=True
+)
+Banking Project Enhancement
+
+Optimize:
+
+Customer APIs
+Account APIs
+Transaction APIs
+
+using:
+
+Indexes
+Pagination
+Joins
+Connection Pooling
+DSA (90 Minutes)
+
+Solve:
+
+Search in Rotated Sorted Array
+Find Minimum in Rotated Sorted Array
+Word Search
+House Robber
+Combination Sum
+End-of-Day Deliverable
+Indexes Created
+EXPLAIN ANALYZE Used
+Composite Indexes
+Pagination Implemented
+Connection Pooling Configured
+N+1 Problem Solved
+Query Optimization Skills
+Performance Monitoring Basics
+
+This prepares you for Day 22: Redis Caching with FastAPI, where you'll learn how to reduce database load and improve API response times in production systems.

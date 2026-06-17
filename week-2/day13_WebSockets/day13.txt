@@ -1,0 +1,864 @@
+Day 13 – WebSockets, Real-Time Communication & Chat Application
+
+Day 13 introduces one of the most important topics for:
+
+✅ GenAI Chat Applications
+
+✅ ChatGPT-like Systems
+
+✅ Real-Time Notifications
+
+✅ Trading Platforms
+
+✅ Banking Alerts
+
+✅ Multi-Agent Systems
+
+Goal of Day 13
+
+By the end of today:
+
+✅ Understand WebSockets
+
+✅ Difference Between HTTP and WebSocket
+
+✅ Build Real-Time Chat
+
+✅ Broadcast Messages
+
+✅ Multiple Client Connections
+
+✅ Connection Manager
+
+✅ Real-Time AI Chat Architecture
+
+Session 1 (6 AM – 8 AM)
+Theory – WebSockets
+Traditional HTTP
+
+Normal API:
+
+Client
+   ↓ Request
+Server
+   ↓ Response
+Client
+
+Connection closes after response.
+
+Example:
+
+GET /customers
+
+Response:
+
+{
+  "name":"Dileep"
+}
+
+Connection closed.
+
+Problem
+
+For chat applications:
+
+User A sends message
+
+Need immediate delivery.
+
+HTTP is inefficient.
+
+WebSocket Solution
+Client
+   ↕
+WebSocket
+   ↕
+Server
+
+Connection remains open.
+
+Server can send data anytime.
+
+Real-Time Examples
+Banking
+Transaction Alerts
+
+Account Updates
+
+Fraud Alerts
+GenAI
+ChatGPT
+
+Claude
+
+Gemini
+
+Live AI Streaming
+Trading
+Stock Prices
+
+Crypto Prices
+HTTP vs WebSocket
+HTTP	WebSocket
+Request/Response	Full Duplex
+Connection Closed	Persistent
+Stateless	Stateful
+REST APIs	Real-Time Apps
+FastAPI WebSocket
+from fastapi import WebSocket
+Basic Example
+from fastapi import FastAPI
+from fastapi import WebSocket
+
+app = FastAPI()
+
+@app.websocket("/ws")
+async def websocket_endpoint(
+        websocket: WebSocket
+):
+
+    await websocket.accept()
+
+    while True:
+
+        message = await websocket.receive_text()
+
+        await websocket.send_text(
+            f"Received: {message}"
+        )
+Flow
+Client
+  ↓ hello
+
+Server
+  ↓ Received: hello
+Session 2 (11 AM – 1 PM)
+Real-Time Chat Application
+Connection Manager
+
+Production systems maintain active users.
+
+connection_manager.py
+from fastapi import WebSocket
+
+class ConnectionManager:
+
+    def __init__(self):
+
+        self.active_connections = []
+
+    async def connect(
+            self,
+            websocket: WebSocket
+    ):
+
+        await websocket.accept()
+
+        self.active_connections.append(
+            websocket
+        )
+
+    def disconnect(
+            self,
+            websocket
+    ):
+
+        self.active_connections.remove(
+            websocket
+        )
+
+    async def send_message(
+            self,
+            message,
+            websocket
+    ):
+
+        await websocket.send_text(
+            message
+        )
+
+    async def broadcast(
+            self,
+            message
+    ):
+
+        for connection in self.active_connections:
+
+            await connection.send_text(
+                message
+            )
+Create Manager
+manager = ConnectionManager()
+Chat Endpoint
+from fastapi import WebSocket
+from fastapi import WebSocketDisconnect
+
+@app.websocket("/chat")
+async def chat(
+        websocket: WebSocket
+):
+
+    await manager.connect(
+        websocket
+    )
+
+    try:
+
+        while True:
+
+            message = (
+                await websocket
+                .receive_text()
+            )
+
+            await manager.broadcast(
+                message
+            )
+
+    except WebSocketDisconnect:
+
+        manager.disconnect(
+            websocket
+        )
+Result
+
+User A:
+
+Hello
+
+User B sees:
+
+Hello
+
+Instantly.
+
+Session 3 (4 PM – 6 PM)
+Banking + GenAI Integration
+Banking Notification Service
+Deposit
+    ↓
+Kafka Event
+    ↓
+Notification Service
+    ↓
+WebSocket
+    ↓
+User
+
+Message:
+
+{
+  "message":
+  "₹5000 credited"
+}
+
+Real-time.
+
+AI Chat Architecture
+Frontend
+     ↓
+WebSocket
+     ↓
+FastAPI
+     ↓
+OpenAI / LLM
+     ↓
+Stream Response
+     ↓
+Frontend
+Streaming AI Responses
+
+Instead of:
+
+Wait 10 Seconds
+Get Full Answer
+
+Use:
+
+H
+He
+Hel
+Hell
+Hello
+
+Token streaming.
+
+Example Streaming
+@app.websocket("/ai-chat")
+async def ai_chat(
+        websocket: WebSocket
+):
+
+    await websocket.accept()
+
+    while True:
+
+        prompt = (
+            await websocket.receive_text()
+        )
+
+        response = (
+            "Hello Dileep"
+        )
+
+        for ch in response:
+
+            await websocket.send_text(
+                ch
+            )
+
+Output:
+
+H
+e
+l
+l
+o
+
+Streaming.
+
+Real-Time Banking Chatbot
+
+Architecture:
+
+Customer
+    ↓
+WebSocket
+    ↓
+FastAPI
+    ↓
+RAG System
+    ↓
+Vector DB
+    ↓
+LLM
+    ↓
+Response Stream
+Production Considerations
+Handle Disconnect
+from fastapi import WebSocketDisconnect
+except WebSocketDisconnect:
+    manager.disconnect(
+        websocket
+    )
+Connection Limits
+
+Track:
+
+Connected Users
+Active Sessions
+Authentication
+
+JWT + WebSocket
+
+ws://localhost/chat?token=abc
+
+Validate before accepting.
+
+Logging
+logger.info(
+    "User Connected"
+)
+Coding Exercises
+Exercise 1
+
+Create:
+
+/ws
+
+Echo server.
+
+Exercise 2
+
+Create:
+
+/chat
+
+Broadcast chat.
+
+Exercise 3
+
+Implement:
+
+ConnectionManager
+Exercise 4
+
+Track:
+
+Connected Users
+Exercise 5
+
+Create:
+
+/notifications
+
+Send banking alerts.
+
+Exercise 6
+
+Create:
+
+/ai-chat
+
+Stream AI responses.
+
+Project – Real-Time Banking Notification System
+
+Features:
+
+Deposit Alert
+
+Withdrawal Alert
+
+Loan Approval Alert
+
+Account Creation Alert
+
+Architecture:
+
+FastAPI
+      ↓
+WebSocket
+      ↓
+Connected Users
+Interview Questions
+What is WebSocket?
+
+A protocol that enables two-way communication between client and server over a persistent connection.
+
+Difference Between HTTP and WebSocket?
+
+HTTP:
+
+Request → Response
+
+WebSocket:
+
+Client ↔ Server
+What is Full Duplex Communication?
+
+Both client and server can send data simultaneously.
+
+Why use WebSockets?
+Chat
+Notifications
+Live updates
+AI streaming
+What is WebSocketDisconnect?
+
+Exception raised when a client disconnects.
+
+What is Connection Manager?
+
+A class that manages active WebSocket connections.
+
+How would you secure WebSockets?
+JWT Authentication
+HTTPS/WSS
+Rate Limiting
+User Validation
+How does ChatGPT stream responses?
+LLM
+ ↓
+Token Streaming
+ ↓
+WebSocket/SSE
+ ↓
+Frontend
+WebSocket vs Server-Sent Events (SSE)?
+
+WebSocket:
+
+Two-way communication
+
+SSE:
+
+Server → Client only
+How are WebSockets used in Banking?
+Real-time transactions
+Fraud alerts
+Balance updates
+Customer notifications
+DSA (90 Minutes)
+
+Solve:
+
+3Sum
+Longest Substring Without Repeating Characters
+Search in Rotated Sorted Array
+Lowest Common Ancestor of a Binary Search Tree
+Word Break
+End-of-Day Deliverable
+
+Your Banking + GenAI Project should now include:
+
+FastAPI
+JWT Authentication
+PostgreSQL
+PDF Upload
+Background Tasks
+WebSockets
+Real-Time Chat
+Connection Manager
+AI Streaming APIs
+Banking Notifications
+
+Basic Level
+1. What is a WebSocket?
+
+A protocol providing full-duplex communication over a single persistent TCP connection.
+
+2. Difference between HTTP and WebSocket?
+HTTP	WebSocket
+Request-Response	Bidirectional
+Stateless	Stateful
+New connection per request	Persistent connection
+3. What is Full Duplex Communication?
+
+Client and server can send messages simultaneously.
+
+4. What is WebSocket Handshake?
+
+Initial HTTP Upgrade request:
+
+GET /chat HTTP/1.1
+Upgrade: websocket
+Connection: Upgrade
+
+Server responds:
+
+101 Switching Protocols
+5. Why not use REST APIs for chat applications?
+
+REST requires polling.
+
+WebSockets provide instant updates.
+
+FastAPI Questions
+6. How do you create a WebSocket endpoint in FastAPI?
+@app.websocket("/chat")
+async def chat(websocket: WebSocket):
+    await websocket.accept()
+7. What happens if you forget await websocket.accept()?
+
+Connection won't be established.
+
+8. Difference between:
+@app.get()
+
+and
+
+@app.websocket()
+
+GET = HTTP endpoint
+
+WebSocket = Persistent connection
+
+9. How do you receive data?
+await websocket.receive_text()
+10. How do you send data?
+await websocket.send_text()
+Connection Manager Questions
+11. Why do we need ConnectionManager?
+
+To track active users.
+
+12. What data structure stores connections?
+
+Usually:
+
+list[WebSocket]
+
+or
+
+dict[user_id, websocket]
+13. Why is a dictionary better than a list?
+
+Direct user lookup.
+
+active_users[user_id]
+
+O(1) access.
+
+14. How do you broadcast a message?
+
+Loop through all active connections.
+
+15. What happens if one client disconnects?
+
+Catch:
+
+WebSocketDisconnect
+
+and remove connection.
+
+Concurrency Questions
+16. Can multiple users connect simultaneously?
+
+Yes.
+
+FastAPI uses asyncio.
+
+17. Is WebSocket communication blocking?
+
+No.
+
+Uses async event loop.
+
+18. Difference between async API and WebSocket?
+
+Async API:
+
+Request → Response
+
+WebSocket:
+
+Persistent Connection
+19. How many WebSocket connections can FastAPI handle?
+
+Depends on:
+
+CPU
+Memory
+Uvicorn workers
+Network
+
+Typically thousands.
+
+20. What is backpressure?
+
+Server cannot process messages as fast as they arrive.
+
+Production Questions
+21. Would you store WebSocket connections in memory?
+
+Single instance → Yes
+
+Multiple instances → No
+
+22. Why is in-memory connection tracking a problem?
+
+With multiple servers:
+
+Server A
+Server B
+
+Users become fragmented.
+
+23. How do you scale WebSockets?
+
+Use:
+
+Redis Pub/Sub
+Kafka
+Load Balancer
+24. Explain Redis Pub/Sub with WebSockets.
+User sends message
+        ↓
+Redis Channel
+        ↓
+All WebSocket Servers
+        ↓
+Clients
+25. Explain Kafka + WebSocket architecture.
+Producer
+   ↓
+Kafka
+   ↓
+Notification Service
+   ↓
+WebSocket
+Security Questions
+26. How do you secure WebSockets?
+JWT
+WSS
+Rate Limiting
+Input Validation
+27. Can JWT be passed during WebSocket connection?
+
+Yes.
+
+ws://host/chat?token=jwt
+
+or
+
+Authorization Header
+28. What is WSS?
+
+Secure WebSocket.
+
+Equivalent of HTTPS.
+
+29. Why should WebSockets use WSS?
+
+Encryption.
+
+Protects sensitive data.
+
+30. How do you prevent unauthorized users?
+
+Validate JWT before:
+
+await websocket.accept()
+System Design Questions
+31. Design a WhatsApp-like chat system.
+
+Expected discussion:
+
+WebSocket
+Redis
+Kafka
+Message Store
+Notifications
+32. Design a Banking Notification System.
+Transaction
+      ↓
+Kafka
+      ↓
+Notification Service
+      ↓
+WebSocket
+      ↓
+Customer
+33. How would you handle 1 million active users?
+
+Need:
+
+Load Balancers
+Redis
+Multiple WebSocket Servers
+Kafka
+34. How would you handle offline users?
+
+Store messages in database.
+
+Deliver on reconnect.
+
+35. How do you identify users?
+
+JWT → user_id mapping.
+
+GenAI Questions
+36. Why are WebSockets important in GenAI?
+
+Streaming responses.
+
+37. How does ChatGPT stream answers?
+LLM
+ ↓
+Token Generation
+ ↓
+Streaming
+ ↓
+Frontend
+38. Why not wait for full LLM response?
+
+Poor user experience.
+
+39. Explain token streaming.
+
+Instead of:
+
+Hello Dileep
+
+Send:
+
+H
+He
+Hel
+Hell
+Hello
+40. WebSocket vs SSE for AI Streaming?
+
+SSE:
+
+Server → Client
+
+WebSocket:
+
+Client ↔ Server
+Scenario-Based Questions
+41. Users complain messages arrive twice. Possible reasons?
+Duplicate consumers
+Retry logic
+Multiple subscriptions
+42. Chat server memory keeps increasing. Why?
+
+Disconnected sockets not removed.
+
+43. One user doesn't receive notifications. How do you debug?
+
+Check:
+
+JWT
+Connection status
+Logs
+Redis subscription
+44. WebSocket server crashes. What happens?
+
+All connections lost.
+
+Need reconnect mechanism.
+
+45. How do clients reconnect?
+
+Exponential backoff.
+
+1 sec
+2 sec
+4 sec
+8 sec
+46. Would you store chat history in WebSocket?
+
+No.
+
+Store in DB.
+
+WebSocket only transports messages.
+
+47. Can WebSockets replace REST APIs?
+
+No.
+
+Use:
+
+REST → CRUD
+
+WebSocket → Real-time communication
+
+48. What metrics would you monitor?
+Active connections
+Messages/sec
+Latency
+Errors
+Disconnects
+49. How would you monitor WebSocket health?
+Heartbeats
+Ping/Pong frames
+50. Explain a real-time AI Banking Assistant architecture.
+User
+  ↓
+WebSocket
+  ↓
+FastAPI
+  ↓
+RAG Service
+  ↓
+Vector DB
+  ↓
+LLM
+  ↓
+Streaming Response
+  ↓
+User
+Goldman Sachs–Style Advanced Questions
+Difference between concurrency and parallelism in WebSocket systems?
+How would you handle 100K concurrent connections?
+How would you prevent memory leaks in ConnectionManager?
+Redis Pub/Sub vs Kafka for notifications?
+How do you ensure message ordering?
+How would you design fault-tolerant WebSocket services?
+How would you stream LLM responses to multiple users simultaneously?
+What happens if one WebSocket consumer is slow?
+How would you implement rate limiting per user?
+How would you design a real-time fraud alert system using WebSockets?

@@ -1,0 +1,502 @@
+Day 25 – Project: Document Storage Service (FastAPI + PostgreSQL + ChromaDB)
+
+Today you'll build your first real GenAI microservice.
+
+This service will:
+
+Upload Documents
+      ↓
+Store Metadata in PostgreSQL
+      ↓
+Extract Text
+      ↓
+Generate Embeddings
+      ↓
+Store Vectors in ChromaDB
+      ↓
+Provide Search APIs
+
+This is the foundation of:
+
+Banking RAG Systems
+Insurance Document Assistants
+Enterprise Knowledge Bases
+Internal AI Search Engines
+Architecture
+                FastAPI
+
+                    │
+
+     ┌──────────────┴──────────────┐
+
+     │                             │
+
+PostgreSQL                    ChromaDB
+
+(Document Metadata)       (Document Chunks)
+
+     │                             │
+
+     └──────────────┬──────────────┘
+
+                    │
+
+              Retrieval API
+
+                    │
+
+                   LLM
+Project Structure
+document-storage-service/
+
+│
+├── app/
+│
+├── database/
+│   ├── database.py
+│
+├── models/
+│   └── document.py
+│
+├── schemas/
+│   └── document_schema.py
+│
+├── services/
+│   ├── pdf_service.py
+│   ├── embedding_service.py
+│   ├── chroma_service.py
+│
+├── routers/
+│   ├── document_router.py
+│
+├── uploads/
+│
+├── main.py
+│
+├── requirements.txt
+Session 1 (6 AM – 8 AM)
+Install Dependencies
+pip install fastapi
+pip install uvicorn
+pip install sqlalchemy
+pip install psycopg2-binary
+pip install chromadb
+pip install sentence-transformers
+pip install pypdf
+pip install python-multipart
+pip install langchain
+Database Model
+document.py
+from sqlalchemy import Column
+from sqlalchemy import Integer
+from sqlalchemy import String
+
+from database.database import Base
+
+
+class Document(Base):
+
+    __tablename__ = "documents"
+
+    id = Column(
+        Integer,
+        primary_key=True
+    )
+
+    file_name = Column(
+        String,
+        nullable=False
+    )
+
+    file_path = Column(
+        String,
+        nullable=False
+    )
+
+    status = Column(
+        String,
+        default="UPLOADED"
+    )
+Pydantic Response
+from pydantic import BaseModel
+
+
+class DocumentResponse(
+    BaseModel
+):
+
+    id: int
+    file_name: str
+    status: str
+
+    class Config:
+        from_attributes = True
+Session 2 (11 AM – 1 PM)
+Upload PDF API
+Router
+from fastapi import APIRouter
+from fastapi import UploadFile
+from fastapi import File
+
+router = APIRouter()
+
+
+@router.post("/upload")
+async def upload_pdf(
+        file: UploadFile = File(...)
+):
+
+    file_location = (
+        f"uploads/{file.filename}"
+    )
+
+    with open(
+        file_location,
+        "wb"
+    ) as buffer:
+
+        content = await file.read()
+
+        buffer.write(content)
+
+    return {
+        "message":
+        "Uploaded Successfully"
+    }
+Test API
+POST /upload
+
+Swagger:
+
+Choose PDF
+Upload
+Extract PDF Text
+pdf_service.py
+from pypdf import PdfReader
+
+
+def extract_text(
+        file_path: str
+):
+
+    reader = PdfReader(
+        file_path
+    )
+
+    text = ""
+
+    for page in reader.pages:
+
+        text += (
+            page.extract_text()
+        )
+
+    return text
+Session 3 (4 PM – 6 PM)
+Chunking
+from langchain.text_splitter import (
+    RecursiveCharacterTextSplitter
+)
+
+
+def chunk_text(text):
+
+    splitter = (
+        RecursiveCharacterTextSplitter(
+            chunk_size=500,
+            chunk_overlap=50
+        )
+    )
+
+    return splitter.split_text(
+        text
+    )
+Generate Embeddings
+embedding_service.py
+from sentence_transformers import (
+    SentenceTransformer
+)
+
+model = SentenceTransformer(
+    "all-MiniLM-L6-v2"
+)
+
+
+def generate_embeddings(
+        chunks
+):
+
+    return model.encode(
+        chunks
+    )
+Store in ChromaDB
+chroma_service.py
+import chromadb
+
+client = chromadb.PersistentClient(
+    path="./chroma_db"
+)
+
+collection = (
+    client.get_or_create_collection(
+        "bank_docs"
+    )
+)
+def save_chunks(
+        document_id,
+        chunks
+):
+
+    ids = []
+
+    for index, _ in enumerate(chunks):
+
+        ids.append(
+            f"{document_id}_{index}"
+        )
+
+    collection.add(
+        ids=ids,
+        documents=chunks
+    )
+Complete Upload Flow
+@router.post("/upload")
+async def upload_pdf(
+        file: UploadFile = File(...)
+):
+
+    # Save PDF
+
+    # Store Metadata
+
+    # Extract Text
+
+    # Chunk Text
+
+    # Generate Embeddings
+
+    # Store Chunks
+
+    return {
+        "message":
+        "Processed"
+    }
+Search API
+@router.get("/search")
+def search_documents(
+        query: str
+):
+
+    result = (
+        collection.query(
+            query_texts=[query],
+            n_results=5
+        )
+    )
+
+    return result
+Banking Example
+
+Documents:
+
+Home Loan Policy.pdf
+Car Loan Policy.pdf
+Credit Card Policy.pdf
+
+User asks:
+
+What is mortgage interest rate?
+
+Search:
+
+ChromaDB
+     ↓
+Home Loan Policy
+Production Enhancements
+Background Processing
+
+Instead of:
+
+Upload
+ ↓
+Wait 30 Seconds
+
+Use:
+
+Upload
+ ↓
+Background Task
+ ↓
+Process PDF
+Metadata Storage
+
+Store:
+
+{
+   "document_id":1,
+   "type":"loan",
+   "uploaded_by":"admin"
+}
+Duplicate Document Check
+existing_doc = (
+    db.query(Document)
+      .filter(
+          Document.file_name
+          == file.filename
+      )
+      .first()
+)
+Error Handling
+raise HTTPException(
+    status_code=400,
+    detail="Invalid PDF"
+)
+Interview Questions
+What is a Document Storage Service?
+
+Stores documents and makes them searchable.
+
+Why PostgreSQL and ChromaDB together?
+
+PostgreSQL:
+
+Metadata
+
+ChromaDB:
+
+Vectors
+Why Chunk Documents?
+
+Large PDFs cannot be efficiently retrieved as a single document.
+
+Why Embeddings?
+
+Enable semantic search.
+
+Why ChromaDB?
+
+Fast similarity search.
+
+Why Store Metadata Separately?
+
+Filtering and document management.
+
+What Happens During Upload?
+PDF
+ ↓
+Extract Text
+ ↓
+Chunk
+ ↓
+Embed
+ ↓
+Store
+How Would You Scale This?
+Async Processing
+Background Tasks
+Kafka
+Multiple Workers
+Distributed Vector DB
+Goldman Sachs Style Questions
+Explain end-to-end document ingestion.
+Upload
+ ↓
+Validation
+ ↓
+Storage
+ ↓
+Text Extraction
+ ↓
+Chunking
+ ↓
+Embeddings
+ ↓
+Vector Storage
+Why use chunk overlap?
+
+Preserves context.
+
+What if a PDF has 10,000 pages?
+
+Process asynchronously and in batches.
+
+How would you support document versioning?
+document_id
+version
+status
+How would you handle duplicate uploads?
+
+Hash the file and compare.
+
+How would you secure uploaded documents?
+JWT Authentication
+Encryption
+Role-Based Access Control
+Coding Tasks
+Task 1
+
+Create upload API.
+
+Task 2
+
+Store metadata in PostgreSQL.
+
+Task 3
+
+Extract PDF text.
+
+Task 4
+
+Chunk document.
+
+Task 5
+
+Generate embeddings.
+
+Task 6
+
+Store chunks in ChromaDB.
+
+Task 7
+
+Create search API.
+
+Task 8
+
+Add duplicate file validation.
+
+Banking Project Integration
+
+After Day 25 your banking project becomes:
+
+Customer APIs
+Account APIs
+Transaction APIs
+Authentication
+PostgreSQL
+Alembic
+ChromaDB
+Embeddings
+Similarity Search
+
+NEW:
+
+Document Storage Service
+DSA (90 Minutes)
+
+Solve:
+
+Word Break
+Binary Tree Right Side View
+Product of Array Except Self
+Network Delay Time
+Alien Dictionary
+End-of-Day Deliverable
+PDF Upload Service
+PostgreSQL Metadata Storage
+PDF Text Extraction
+Chunking Strategy
+Embeddings Generation
+ChromaDB Integration
+Similarity Search API
+Document Search Service
