@@ -1,0 +1,591 @@
+Day 37 – Agents & Agent Executors (Real Agentic AI)
+
+Today is one of the most important days in your GenAI roadmap.
+
+Until now:
+
+User Question
+      ↓
+Retriever
+      ↓
+LLM
+      ↓
+Answer
+
+Now we move to:
+
+User Question
+      ↓
+Agent
+      ↓
+Think
+      ↓
+Choose Tool
+      ↓
+Execute Tool
+      ↓
+Observe Result
+      ↓
+Final Answer
+
+This is called Agentic AI.
+
+Day 37 Goals
+
+✅ What is an Agent
+
+✅ Agent vs Chain
+
+✅ Agent Executor
+
+✅ ReAct Pattern
+
+✅ Thought → Action → Observation
+
+✅ Multi-Step Reasoning
+
+✅ Banking Agent
+
+✅ LangChain Agent Implementation
+
+✅ Interview Questions
+
+What is an Agent?
+
+An Agent is an LLM that can:
+
+Think
+Decide
+Choose tools
+Execute actions
+Use results
+Continue reasoning
+
+Example:
+
+User asks:
+
+What is the EMI for a 50 lakh home loan at 8% and also tell me the required documents?
+
+Agent decides:
+
+Step 1:
+Use EMI Tool
+
+Step 2:
+Use Policy Retriever
+
+Step 3:
+Combine Results
+
+Step 4:
+Respond
+Agent vs Chain
+Chain	Agent
+Fixed workflow	Dynamic workflow
+Predictable	Decides next step
+One path	Multiple paths
+No reasoning	Reasoning
+Traditional Chain
+Question
+   ↓
+Prompt
+   ↓
+LLM
+   ↓
+Answer
+Agent Flow
+Question
+    ↓
+Agent
+    ↓
+Choose Tool
+    ↓
+Execute
+    ↓
+Observe
+    ↓
+Next Decision
+    ↓
+Answer
+Session 1 (6 AM – 8 AM)
+ReAct Pattern
+
+Most important interview topic.
+
+ReAct =
+
+Reason
++
+Act
+
+Flow:
+
+Thought
+
+Action
+
+Observation
+
+Thought
+
+Action
+
+Observation
+
+Final Answer
+
+Example
+
+Question:
+
+What is account balance of 1001?
+
+Agent:
+
+Thought:
+Need balance
+
+Action:
+Call Balance Tool
+
+Observation:
+50000
+
+Final Answer:
+Balance is 50000
+Agent Internal Reasoning
+Question:
+Loan documents?
+
+Thought:
+Need policy information
+
+Action:
+Retriever Tool
+
+Observation:
+PAN
+Aadhaar
+Salary Slip
+
+Answer:
+Required documents are...
+Agent Executor
+
+Agent alone cannot execute tools.
+
+Agent Executor manages:
+
+Agent
+
++
+Tools
+
++
+Execution Loop
+
+Architecture
+
+User
+
+ ↓
+
+Agent Executor
+
+ ↓
+
+Agent
+
+ ↓
+
+Tools
+
+ ↓
+
+Result
+
+ ↓
+
+Response
+Session 2 (11 AM – 1 PM)
+Creating Tools
+from langchain.tools import tool
+
+@tool
+def get_balance(
+    account_id: str
+):
+    """
+    Fetch account balance
+    """
+
+    balances = {
+        "1001":50000,
+        "1002":70000
+    }
+
+    return balances.get(
+        account_id,
+        "Not Found"
+    )
+Create Agent
+from langchain.agents import (
+    create_tool_calling_agent
+)
+
+Initialize Agent
+
+agent = create_tool_calling_agent(
+    llm,
+    tools,
+    prompt
+)
+Create Executor
+from langchain.agents import (
+    AgentExecutor
+)
+
+executor = AgentExecutor(
+    agent=agent,
+    tools=tools,
+    verbose=True
+)
+
+Run Agent
+
+executor.invoke(
+    {
+        "input":
+        "What is balance of account 1001?"
+    }
+)
+
+Expected Flow
+
+Thought:
+Need account balance
+
+Action:
+get_balance
+
+Observation:
+50000
+
+Answer:
+Balance is 50000
+Session 3 (4 PM – 6 PM)
+Multi-Step Agent
+
+Question:
+
+Calculate EMI for 50 lakh loan and tell eligibility criteria.
+
+Agent:
+
+Step 1
+Call EMI Tool
+
+Step 2
+Call Retriever Tool
+
+Step 3
+Merge Results
+
+Step 4
+Respond
+Banking Agent Architecture
+User
+
+ ↓
+
+Agent
+
+ ↓
+
+Tool Selection
+
+ ├── Balance Tool
+ ├── EMI Tool
+ ├── Loan Tool
+ ├── Transaction Tool
+ ├── Customer Tool
+ └── Policy Retriever
+
+ ↓
+
+Answer
+Example Banking Conversation
+
+Question:
+
+Show last 5 transactions
+
+Agent:
+
+Thought:
+Need transaction history
+
+Action:
+Transaction Tool
+
+Observation:
+Transaction list
+
+Answer:
+Displays transactions
+Multi-Agent Systems
+
+Advanced Topic.
+
+Instead of one agent:
+
+Supervisor Agent
+
+      ↓
+
+ ┌─────────────┐
+ │ Loan Agent  │
+ ├─────────────┤
+ │ Account Agent │
+ ├─────────────┤
+ │ RAG Agent │
+ └─────────────┘
+
+Example
+
+Loan Questions:
+
+Loan Agent
+
+Account Questions:
+
+Account Agent
+
+Policy Questions:
+
+RAG Agent
+Agent Memory Integration
+User
+
+ ↓
+
+Memory
+
+ ↓
+
+Agent
+
+ ↓
+
+Tools
+
+ ↓
+
+Answer
+
+Example
+
+User:
+I want home loan details
+
+Later:
+
+What documents are needed?
+
+Memory remembers:
+
+Home Loan
+
+Agent retrieves relevant information.
+
+Complete Production Architecture
+FastAPI
+
+   ↓
+
+JWT
+
+   ↓
+
+Memory
+
+   ↓
+
+Agent Executor
+
+   ↓
+
+Tool Selection
+
+ ├── PostgreSQL Tool
+ ├── Chroma Retriever
+ ├── EMI Tool
+ ├── Loan Tool
+ └── API Tool
+
+   ↓
+
+GPT-4o
+
+   ↓
+
+Response
+Interview Questions
+What is an Agent?
+
+An AI system that can reason and use tools to complete tasks.
+
+Difference between Agent and Chain?
+
+Chain is fixed.
+
+Agent dynamically decides actions.
+
+What is Agent Executor?
+
+Component that manages tool execution and reasoning loops.
+
+What is ReAct?
+
+Reason + Act.
+
+Agent thinks, performs actions, observes results, and continues reasoning.
+
+What is Tool Calling?
+
+Allowing an LLM to invoke external functions.
+
+Can an Agent use multiple tools?
+
+Yes.
+
+Agents can execute several tools before producing an answer.
+
+What is a Multi-Agent System?
+
+A system with specialized agents collaborating on tasks.
+
+Why are Agents important?
+
+They enable automation, decision-making, and interaction with external systems.
+
+What is Agent Memory?
+
+Memory used by agents to retain conversation context.
+
+What is an Observation?
+
+The output returned by a tool.
+
+Goldman Sachs Style Questions
+Explain Agent Architecture.
+Question
+
+ ↓
+
+Agent
+
+ ↓
+
+Reason
+
+ ↓
+
+Tool
+
+ ↓
+
+Observation
+
+ ↓
+
+Answer
+Explain ReAct Pattern.
+Thought
+
+Action
+
+Observation
+
+Repeat
+
+Final Answer
+How would you build a Banking Agent?
+Agent
+
+ ├── Balance Tool
+ ├── Transaction Tool
+ ├── Loan Tool
+ ├── EMI Tool
+ └── Policy Retriever
+Difference between RAG and Agent?
+RAG	Agent
+Retrieves knowledge	Takes actions
+Static workflow	Dynamic workflow
+Context provider	Decision maker
+What challenges exist in Agents?
+Tool failures
+Infinite loops
+Hallucinated tool calls
+Permission issues
+Latency
+How do you secure Banking Agents?
+JWT Authentication
+Role Based Access Control
+Audit Logs
+Tool Permissions
+Input Validation
+Coding Tasks
+Task 1
+
+Create Balance Tool.
+
+Task 2
+
+Create EMI Tool.
+
+Task 3
+
+Create Loan Eligibility Tool.
+
+Task 4
+
+Create Retriever Tool.
+
+Task 5
+
+Create Tool Calling Agent.
+
+Task 6
+
+Create Agent Executor.
+
+Task 7
+
+Implement ReAct Workflow.
+
+Task 8
+
+Build Banking AI Agent.
+
+DSA (90 Minutes)
+
+Solve:
+
+Median of Two Sorted Arrays
+Longest Increasing Subsequence
+Word Ladder
+Meeting Rooms II
+Binary Tree Maximum Path Sum
+End-of-Day Deliverable
+What is an Agent?
+Agent Executor
+ReAct Pattern
+Tool Calling
+Observations
+Multi-Step Reasoning
+Multi-Agent Systems
+Agent + Memory
+Agent + RAG
+Banking AI Agent

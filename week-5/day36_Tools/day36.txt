@@ -1,0 +1,547 @@
+ay 36 – Tools (Agentic AI Foundation)
+
+Today you move from RAG Engineer toward Agentic AI Engineer.
+
+Until now:
+
+User Question
+      ↓
+Retriever
+      ↓
+LLM
+      ↓
+Answer
+
+Now the LLM can decide:
+
+Should I?
+✓ Search Documents
+✓ Query Database
+✓ Call REST API
+✓ Calculate EMI
+✓ Send Email
+✓ Check Account Balance
+
+These are called Tools.
+
+Day 36 Goals
+
+✅ What are Tools
+
+✅ Why Tools are Needed
+
+✅ Tool Calling
+
+✅ Custom Tools
+
+✅ LangChain Tools
+
+✅ FastAPI Tools
+
+✅ Database Tools
+
+✅ Banking Agent Tools
+
+✅ Interview Questions
+
+What is a Tool?
+
+A Tool is a function that an LLM can call to perform an action.
+
+Example:
+
+User:
+What is 50000 * 12?
+
+Without Tool:
+
+LLM guesses answer
+
+With Tool:
+
+LLM
+ ↓
+Calculator Tool
+ ↓
+600000
+Why Do We Need Tools?
+
+LLMs are good at:
+
+Reasoning
+Summarization
+Text Generation
+
+LLMs are NOT good at:
+
+Real-time Data
+Database Queries
+Arithmetic
+API Calls
+
+Tools solve this problem.
+
+Types of Tools
+Tools
+
+├── Calculator
+├── Database
+├── API
+├── Search
+├── File Reader
+├── Email Sender
+├── Retriever
+├── Vector Search
+└── Custom Tools
+Session 1 (6 AM – 8 AM)
+Simple Tool Example
+def calculator(a, b):
+    return a + b
+
+Tool:
+
+from langchain.tools import tool
+
+@tool
+def calculator(a: int, b: int):
+    """Add two numbers"""
+    return a + b
+
+Usage:
+
+calculator.invoke({
+    "a":10,
+    "b":20
+})
+
+Output:
+
+30
+Custom Banking Tool
+
+Example:
+
+accounts = {
+    "1001":50000,
+    "1002":70000
+}
+
+Tool:
+
+from langchain.tools import tool
+
+@tool
+def get_balance(
+    account_id: str
+):
+    """
+    Returns account balance
+    """
+
+    return accounts.get(
+        account_id,
+        "Account not found"
+    )
+
+Question:
+
+What is balance of account 1001?
+
+Tool returns:
+
+50000
+Session 2 (11 AM – 1 PM)
+API Tool
+
+Real-world use case.
+
+FastAPI Service:
+
+@app.get("/loan-rate")
+def loan_rate():
+    return {
+        "rate":8.5
+    }
+
+Tool:
+
+import requests
+
+from langchain.tools import tool
+
+@tool
+def get_loan_rate():
+    """
+    Get current loan rate
+    """
+
+    response = requests.get(
+        "http://localhost:8000/loan-rate"
+    )
+
+    return response.json()
+
+Question:
+
+Current home loan rate?
+
+↓
+
+Tool
+
+↓
+
+API
+
+↓
+
+Response
+
+Database Tool
+@tool
+def get_customer(
+    customer_id: int
+):
+    """
+    Fetch customer
+    """
+
+    query = """
+    SELECT *
+    FROM customers
+    WHERE id = :id
+    """
+
+    result = db.execute(
+        query,
+        {"id": customer_id}
+    )
+
+    return result.fetchone()
+
+Used in Banking:
+
+Customer Details
+Account Balance
+Transactions
+Loan Status
+Session 3 (4 PM – 6 PM)
+Retriever as Tool
+
+Most important GenAI pattern.
+
+retriever_tool = create_retriever_tool(
+    retriever,
+    "bank_policy_search",
+    "Search bank policies"
+)
+
+Question:
+
+What documents are needed
+for a home loan?
+
+↓
+
+Retriever Tool
+
+↓
+
+Vector DB
+
+↓
+
+Policy Chunks
+
+↓
+
+LLM
+
+↓
+
+Answer
+
+Multiple Tools
+
+Agent can choose:
+
+Question
+   ↓
+
+Agent
+
+   ↓
+
+Which Tool?
+
+├── Calculator
+├── Retriever
+├── Database
+├── API
+└── Email
+Banking Agent Architecture
+User
+
+ ↓
+
+Agent
+
+ ↓
+
+Tool Selection
+
+ ├── Balance Tool
+ ├── Loan Tool
+ ├── Policy Search Tool
+ ├── Transaction Tool
+ └── Calculator Tool
+
+ ↓
+
+Response
+Example Workflow
+
+Question:
+
+What is EMI for
+50 lakh loan
+at 8% for 20 years?
+
+Agent:
+
+Use EMI Calculator Tool
+
+↓
+
+Tool computes EMI
+
+↓
+
+Returns result
+
+↓
+
+Agent explains result
+
+Tool Calling Flow
+Question
+
+ ↓
+
+LLM
+
+ ↓
+
+Tool Decision
+
+ ↓
+
+Execute Tool
+
+ ↓
+
+Tool Output
+
+ ↓
+
+Final Answer
+LangChain Tool Example
+from langchain.tools import tool
+
+@tool
+def multiply(
+    a: int,
+    b: int
+):
+    """
+    Multiply numbers
+    """
+
+    return a * b
+
+Tool Metadata
+
+multiply.name
+
+multiply.description
+
+Agent uses descriptions to choose tools.
+
+Production Banking Agent
+User:
+Show account balance
+
+       ↓
+
+Agent
+
+       ↓
+
+Balance Tool
+
+       ↓
+
+PostgreSQL
+
+       ↓
+
+Balance
+
+       ↓
+
+Agent Response
+Tool vs Retriever
+Tool	Retriever
+Performs action	Retrieves documents
+API call	Vector search
+DB query	Similarity search
+Dynamic data	Knowledge data
+Tool vs Chain
+Chain	Tool
+Fixed flow	Dynamic execution
+Predictable	Agent decides
+Workflow	Action
+Interview Questions
+What is a Tool?
+
+A callable function an LLM can use to perform actions.
+
+Why do we need Tools?
+
+To access external systems and real-time information.
+
+What are common Tool types?
+API Tools
+Database Tools
+Calculator Tools
+Search Tools
+Retriever Tools
+Can Retrievers be Tools?
+
+Yes.
+
+Retriever Tools are widely used in RAG applications.
+
+How does an Agent choose a Tool?
+
+Using tool name, description, and user query.
+
+Difference between Tool and Function?
+
+A Tool is a function exposed to the LLM.
+
+What is Tool Calling?
+
+The process where an LLM invokes a tool to perform a task.
+
+Why are Tools important?
+
+They extend LLM capabilities beyond text generation.
+
+What are Tool descriptions used for?
+
+Helping the model decide which tool to call.
+
+What is a Database Tool?
+
+A tool that queries a database and returns results.
+
+Goldman Sachs Style Questions
+Explain Tool Calling architecture.
+User Query
+
+     ↓
+
+Agent
+
+     ↓
+
+Tool Selection
+
+     ↓
+
+Execute Tool
+
+     ↓
+
+Result
+
+     ↓
+
+Response
+How would you build a banking assistant using Tools?
+Agent
+
+├── Balance Tool
+├── Loan Tool
+├── Policy Search Tool
+├── Transaction Tool
+└── EMI Calculator Tool
+Difference between RAG and Tool Calling?
+RAG	Tool Calling
+Retrieves knowledge	Performs actions
+Vector DB	APIs/DBs
+Static documents	Dynamic systems
+What security concerns exist with Tools?
+Unauthorized DB access
+SQL Injection
+Sensitive data exposure
+Improper API permissions
+How would you secure banking tools?
+JWT Authentication
+RBAC
+Input Validation
+Audit Logging
+Rate Limiting
+Coding Tasks
+Task 1
+
+Create Calculator Tool.
+
+Task 2
+
+Create Balance Tool.
+
+Task 3
+
+Create Loan Status Tool.
+
+Task 4
+
+Create FastAPI Tool.
+
+Task 5
+
+Create PostgreSQL Tool.
+
+Task 6
+
+Create Retriever Tool.
+
+Task 7
+
+Create Multi-Tool Agent.
+
+Task 8
+
+Build Banking Assistant with Tools.
+
+DSA (90 Minutes)
+
+Solve:
+
+LRU Cache
+Merge k Sorted Lists
+Word Break
+Network Delay Time
+Top K Frequent Elements
+End-of-Day Deliverable
+Tools
+Tool Calling
+Custom Tools
+API Tools
+Database Tools
+Retriever Tools
+Multi-Tool Agents
+
+Question → Agent → Tool → Result → Response

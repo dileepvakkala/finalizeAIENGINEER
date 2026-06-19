@@ -1,0 +1,566 @@
+Day 33 – Text Splitters (Chunking for RAG)
+
+Today you'll learn one of the most important topics in RAG systems:
+
+Text Splitters = Chunking
+
+A large PDF cannot be sent directly to an LLM because of context window limitations and retrieval inefficiency.
+
+So we split documents into smaller chunks.
+
+Day 33 Goals
+
+✅ What is Chunking
+
+✅ Why Chunking is Needed
+
+✅ Chunk Size
+
+✅ Chunk Overlap
+
+✅ RecursiveCharacterTextSplitter
+
+✅ Character Splitter
+
+✅ Token Splitter
+
+✅ Semantic Chunking
+
+✅ Banking RAG Implementation
+
+Where Text Splitters Fit
+PDF
+ ↓
+Document Loader
+ ↓
+Document
+ ↓
+Text Splitter
+ ↓
+Chunks
+ ↓
+Embeddings
+ ↓
+Vector DB
+ ↓
+Retriever
+ ↓
+LLM
+Why Do We Need Chunking?
+
+Suppose a banking policy PDF contains:
+
+500 Pages
+
+LLMs cannot efficiently process everything for every question.
+
+Without Chunking:
+
+Entire PDF
+      ↓
+Embedding
+      ↓
+Poor Retrieval
+
+With Chunking:
+
+Page 1
+Page 2
+Page 3
+...
+      ↓
+Small Chunks
+      ↓
+Better Retrieval
+Example
+
+Document:
+
+Home loan interest rate is 8%.
+
+Eligibility:
+Salary > 50,000
+
+Maximum tenure:
+20 years.
+
+Chunked as:
+
+Chunk 1:
+Home loan interest rate is 8%.
+
+Chunk 2:
+Eligibility:
+Salary > 50,000
+
+Chunk 3:
+Maximum tenure:
+20 years
+Session 1 (6 AM – 8 AM)
+CharacterTextSplitter
+
+Basic splitter.
+
+from langchain_text_splitters import (
+    CharacterTextSplitter
+)
+
+Example:
+
+splitter = CharacterTextSplitter(
+    separator="\n",
+    chunk_size=100,
+    chunk_overlap=0
+)
+
+Split:
+
+chunks = splitter.split_text(text)
+
+Output:
+
+Chunk 1
+Chunk 2
+Chunk 3
+Understanding Chunk Size
+chunk_size=500
+
+Means:
+
+Maximum 500 characters per chunk
+
+Example:
+
+chunk_size=1000
+
+Produces larger chunks.
+
+Understanding Chunk Overlap
+chunk_overlap=100
+
+Example
+
+Original Text:
+
+A B C D E F G H I J
+
+Chunk 1:
+
+A B C D E
+
+Chunk 2:
+
+D E F G H
+
+Notice:
+
+D E
+
+appears in both chunks.
+
+Why?
+
+To avoid losing context at chunk boundaries.
+
+Session 2 (11 AM – 1 PM)
+RecursiveCharacterTextSplitter
+
+Most commonly used splitter.
+
+Used in:
+
+Enterprise RAG
+Banking Chatbots
+Insurance Assistants
+Knowledge Bases
+
+Import:
+
+from langchain_text_splitters import (
+    RecursiveCharacterTextSplitter
+)
+
+Example:
+
+splitter = (
+    RecursiveCharacterTextSplitter(
+        chunk_size=500,
+        chunk_overlap=50
+    )
+)
+
+Split Documents:
+
+chunks = (
+    splitter.split_documents(
+        documents
+    )
+)
+
+Why Recursive?
+
+It tries multiple separators.
+
+Example:
+
+Paragraph
+ ↓
+
+Sentence
+ ↓
+
+Word
+ ↓
+
+Character
+
+This preserves meaning better.
+
+Recommended Settings
+
+Small Documents:
+
+chunk_size=300
+chunk_overlap=30
+
+Medium Documents:
+
+chunk_size=500
+chunk_overlap=50
+
+Large Banking PDFs:
+
+chunk_size=1000
+chunk_overlap=100
+Session 3 (4 PM – 6 PM)
+Token-Based Splitters
+
+LLMs think in tokens, not characters.
+
+Example:
+
+Hello World
+
+Tokens:
+
+Hello
+World
+
+Token Splitter:
+
+from langchain_text_splitters import (
+    TokenTextSplitter
+)
+
+Example:
+
+splitter = TokenTextSplitter(
+    chunk_size=200,
+    chunk_overlap=20
+)
+
+Used when:
+
+Token Control Required
+Semantic Chunking
+
+Advanced Production Technique.
+
+Instead of fixed size:
+
+500 chars
+500 chars
+500 chars
+
+Split based on meaning.
+
+Example:
+
+Loan Section
+
+becomes:
+
+One Chunk
+Eligibility Section
+
+becomes:
+
+Another Chunk
+
+Benefits:
+
+Better Retrieval
+Better Accuracy
+Banking Example
+
+Document:
+
+Home Loan
+
+Interest Rate: 8%
+
+Eligibility:
+Salary > 50,000
+
+Documents:
+PAN
+Aadhaar
+Salary Slips
+
+Chunking:
+
+Chunk 1:
+Home Loan
+Interest Rate: 8%
+
+Chunk 2:
+Eligibility:
+Salary > 50,000
+
+Chunk 3:
+Documents:
+PAN
+Aadhaar
+Salary Slips
+
+User asks:
+
+What documents are required?
+
+Retriever fetches:
+
+Chunk 3
+
+Only relevant information.
+
+Complete Flow
+PDF
+
+ ↓
+
+Loader
+
+ ↓
+
+Documents
+
+ ↓
+
+Text Splitter
+
+ ↓
+
+Chunks
+
+ ↓
+
+Embeddings
+
+ ↓
+
+ChromaDB
+
+ ↓
+
+Retriever
+
+ ↓
+
+Prompt
+
+ ↓
+
+LLM
+Full Example
+from langchain_community.document_loaders import (
+    PyPDFLoader
+)
+
+from langchain_text_splitters import (
+    RecursiveCharacterTextSplitter
+)
+
+loader = PyPDFLoader(
+    "loan_policy.pdf"
+)
+
+documents = loader.load()
+
+splitter = (
+    RecursiveCharacterTextSplitter(
+        chunk_size=500,
+        chunk_overlap=50
+    )
+)
+
+chunks = (
+    splitter.split_documents(
+        documents
+    )
+)
+
+print(len(chunks))
+Chunking Best Practices
+Use overlap
+
+Good:
+
+chunk_overlap=50
+Avoid huge chunks
+
+Bad:
+
+chunk_size=10000
+Avoid tiny chunks
+
+Bad:
+
+chunk_size=20
+Preserve meaning
+
+Prefer:
+
+RecursiveCharacterTextSplitter
+Interview Questions
+What is chunking?
+
+Splitting large documents into smaller pieces for retrieval and embeddings.
+
+Why is chunking required?
+
+Improves retrieval quality and handles context limitations.
+
+What is chunk size?
+
+Maximum content allowed in one chunk.
+
+What is chunk overlap?
+
+Shared content between adjacent chunks.
+
+Why is overlap important?
+
+Preserves context across chunk boundaries.
+
+What is RecursiveCharacterTextSplitter?
+
+A splitter that recursively splits using paragraphs, sentences, words, and characters.
+
+Why is it preferred?
+
+Maintains semantic meaning better than simple splitting.
+
+What happens if chunk size is too large?
+
+Poor retrieval and unnecessary context.
+
+What happens if chunk size is too small?
+
+Loss of context and fragmented information.
+
+What is semantic chunking?
+
+Chunking based on meaning instead of fixed size.
+
+Goldman Sachs Style Questions
+Explain chunking in RAG.
+Document
+   ↓
+Chunking
+   ↓
+Embeddings
+   ↓
+Vector DB
+
+Chunking improves retrieval accuracy.
+
+Why use chunk overlap?
+
+To prevent information loss between chunks.
+
+What chunk size would you use for banking documents?
+
+Typically:
+
+chunk_size=500-1000
+chunk_overlap=50-100
+
+depending on document structure.
+
+Difference between Character Splitter and Recursive Splitter?
+Character Splitter	Recursive Splitter
+Fixed separator	Multiple separators
+Simpler	Smarter
+Less context preservation	Better context preservation
+What is semantic chunking?
+
+Grouping content based on meaning rather than fixed length.
+
+How does chunking affect retrieval quality?
+
+Better chunking leads to better embeddings and more relevant retrieval results.
+
+How would you optimize chunking?
+Tune chunk size
+Tune overlap
+Use semantic chunking
+Add metadata
+Evaluate retrieval performance
+Coding Tasks
+Task 1
+
+Load a PDF using PyPDFLoader.
+
+Task 2
+
+Split using CharacterTextSplitter.
+
+Task 3
+
+Split using RecursiveCharacterTextSplitter.
+
+Task 4
+
+Experiment with:
+
+chunk_size=300
+500
+1000
+Task 5
+
+Experiment with:
+
+chunk_overlap=20
+50
+100
+Task 6
+
+Print number of chunks.
+
+Task 7
+
+Store chunks in ChromaDB.
+
+Task 8
+
+Build a mini retrieval test.
+
+DSA (90 Minutes)
+
+Solve:
+
+Number of Islands
+Kth Largest Element in an Array
+Course Schedule
+Longest Substring Without Repeating Characters
+Clone Graph
+End-of-Day Deliverable
+Chunking Fundamentals
+Chunk Size
+Chunk Overlap
+CharacterTextSplitter
+RecursiveCharacterTextSplitter
+Token Splitter
+Semantic Chunking
+
+Loader → Splitter → Embeddings → ChromaDB → Retriever

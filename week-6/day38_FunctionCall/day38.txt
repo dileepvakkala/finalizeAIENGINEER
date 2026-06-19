@@ -1,0 +1,570 @@
+Day 38 – OpenAI Function Calling & Structured Outputs
+
+Today you'll learn one of the most important enterprise GenAI topics.
+
+Most production AI systems do NOT want free-text responses.
+
+Instead they need:
+
+{
+  "customer_id": 101,
+  "loan_status": "APPROVED",
+  "emi": 42356
+}
+
+This is called:
+
+Structured Output
+
+and is implemented using:
+
+Function Calling
+JSON Schema
+Pydantic Models
+Tool Schemas
+Why Structured Outputs?
+
+Without Structured Output:
+
+Loan approved.
+EMI is around 42000.
+
+Problems:
+
+Hard to parse
+Unpredictable
+Difficult for APIs
+
+With Structured Output:
+
+{
+  "loan_status": "APPROVED",
+  "emi": 42000
+}
+
+Easy to:
+
+Store in DB
+Send to UI
+Call APIs
+Build workflows
+Day 38 Goals
+
+✅ Function Calling
+
+✅ Structured Output
+
+✅ JSON Schema
+
+✅ Pydantic Output Models
+
+✅ OpenAI Tools
+
+✅ LangChain Structured Output
+
+✅ Banking Use Cases
+
+✅ Interview Questions
+
+Session 1 (6 AM – 8 AM)
+What is Function Calling?
+
+Function Calling allows an LLM to:
+
+Understand User Intent
+
+↓
+
+Extract Parameters
+
+↓
+
+Call Function
+
+↓
+
+Return Structured Data
+
+Example
+
+User:
+
+Calculate EMI for 50 lakh loan
+at 8% for 20 years
+
+LLM generates:
+
+{
+  "loan_amount": 5000000,
+  "interest_rate": 8,
+  "tenure": 20
+}
+
+Then calls:
+
+calculate_emi()
+Pydantic Models
+
+Most common interview topic.
+
+Install:
+
+pip install pydantic
+
+Example:
+
+from pydantic import BaseModel
+
+class LoanRequest(BaseModel):
+    loan_amount: float
+    interest_rate: float
+    tenure: int
+
+Usage
+
+request = LoanRequest(
+    loan_amount=5000000,
+    interest_rate=8,
+    tenure=20
+)
+
+Benefits
+
+Validation
+Type Safety
+Structured Data
+Banking Example
+from pydantic import BaseModel
+
+class CustomerDetails(
+    BaseModel
+):
+    customer_id: int
+    name: str
+    account_type: str
+Session 2 (11 AM – 1 PM)
+Structured Output Example
+
+Question:
+
+Customer Ravi has savings account.
+
+Output:
+
+{
+  "name":"Ravi",
+  "account_type":"Savings"
+}
+JSON Schema
+
+Schema:
+
+{
+  "name":"string",
+  "account_type":"string"
+}
+
+Purpose:
+
+Ensure Consistency
+OpenAI Structured Output
+
+Example Model:
+
+from pydantic import (
+    BaseModel
+)
+
+class LoanResponse(
+    BaseModel
+):
+    loan_type: str
+    interest_rate: float
+
+LLM Output:
+
+{
+  "loan_type":"Home Loan",
+  "interest_rate":8.5
+}
+Validation
+
+Valid:
+
+{
+ "interest_rate":8.5
+}
+
+Invalid:
+
+{
+ "interest_rate":"Eight Percent"
+}
+
+Pydantic catches errors.
+
+Session 3 (4 PM – 6 PM)
+LangChain Structured Output
+
+Example:
+
+from pydantic import (
+    BaseModel
+)
+
+class LoanInfo(
+    BaseModel
+):
+    loan_type: str
+    interest_rate: float
+
+Create Parser
+
+from langchain_core.output_parsers import (
+    PydanticOutputParser
+)
+
+parser = (
+    PydanticOutputParser(
+        pydantic_object=
+        LoanInfo
+    )
+)
+
+Prompt
+
+prompt = f"""
+Provide response in format:
+
+{parser.get_format_instructions()}
+"""
+
+Output
+
+{
+  "loan_type":"Home Loan",
+  "interest_rate":8.5
+}
+Function Calling Architecture
+User Query
+
+      ↓
+
+LLM
+
+      ↓
+
+Function Decision
+
+      ↓
+
+Arguments
+
+      ↓
+
+Function Execution
+
+      ↓
+
+Result
+
+      ↓
+
+Final Response
+Banking Function Calling Example
+
+Question:
+
+Check balance of account 1001
+
+LLM decides:
+
+{
+ "account_id":"1001"
+}
+
+Calls:
+
+get_balance()
+
+Returns:
+
+{
+ "balance":50000
+}
+Multiple Functions
+
+Agent has:
+
+Balance Tool
+Loan Tool
+EMI Tool
+Customer Tool
+
+Question:
+
+Calculate EMI and check eligibility
+
+Agent may call:
+
+EMI Function
+
++
+
+Eligibility Function
+FastAPI Integration
+
+Response Model:
+
+from pydantic import (
+    BaseModel
+)
+
+class CustomerResponse(
+    BaseModel
+):
+    customer_id: int
+    balance: float
+
+Endpoint:
+
+@app.get(
+    "/customer/{id}",
+    response_model=
+    CustomerResponse
+)
+
+Benefits
+
+Validation
+Swagger Documentation
+Consistency
+Production Banking Architecture
+FastAPI
+
+    ↓
+
+JWT
+
+    ↓
+
+Agent
+
+    ↓
+
+Function Calling
+
+    ↓
+
+Database Tool
+
+    ↓
+
+Structured Output
+
+    ↓
+
+API Response
+Output Parsers
+
+Types:
+
+String Parser
+JSON Parser
+Pydantic Parser
+Custom Parser
+Complete Example
+from pydantic import BaseModel
+
+class LoanResult(
+    BaseModel
+):
+    loan_amount: float
+    emi: float
+
+result = LoanResult(
+    loan_amount=5000000,
+    emi=42000
+)
+
+print(
+    result.model_dump_json()
+)
+
+Output:
+
+{
+ "loan_amount":5000000,
+ "emi":42000
+}
+Interview Questions
+What is Function Calling?
+
+A mechanism allowing LLMs to invoke external functions using structured arguments.
+
+Why use Function Calling?
+
+To interact with APIs, databases, and tools reliably.
+
+What is Structured Output?
+
+A predictable JSON or object response format.
+
+Why use Pydantic?
+
+Validation, serialization, and type safety.
+
+What is JSON Schema?
+
+A definition of expected JSON structure.
+
+What is Output Parsing?
+
+Converting model output into structured data.
+
+Difference between Free Text and Structured Output?
+Free Text	Structured
+Flexible	Predictable
+Hard to Parse	Easy to Parse
+Human Friendly	Machine Friendly
+What is PydanticOutputParser?
+
+Parses LLM responses into Pydantic objects.
+
+Why are structured outputs important?
+
+They enable automation and integration with backend systems.
+
+Can Agents use Function Calling?
+
+Yes. Modern agents heavily depend on function/tool calling.
+
+Goldman Sachs Style Questions
+Explain Function Calling Architecture.
+Question
+
+ ↓
+
+LLM
+
+ ↓
+
+Function Selection
+
+ ↓
+
+Arguments
+
+ ↓
+
+Execution
+
+ ↓
+
+Result
+Why is structured output important in banking?
+
+Because APIs, databases, and downstream systems require predictable data formats.
+
+How would you validate AI outputs?
+
+Using:
+
+Pydantic Models
+JSON Schema
+Output Parsers
+What happens if the model returns invalid JSON?
+
+Use:
+
+Retry
+Validation
+Error Handling
+Output Parsers
+How would you build a loan-processing AI?
+Agent
+
+ ↓
+
+Function Calling
+
+ ↓
+
+Eligibility API
+
+ ↓
+
+EMI API
+
+ ↓
+
+Structured JSON
+
+ ↓
+
+FastAPI Response
+Coding Tasks
+Task 1
+
+Create LoanRequest Pydantic model.
+
+Task 2
+
+Create CustomerResponse model.
+
+Task 3
+
+Validate JSON input.
+
+Task 4
+
+Create PydanticOutputParser.
+
+Task 5
+
+Build EMI Function.
+
+Task 6
+
+Build Balance Function.
+
+Task 7
+
+Create Structured Loan API.
+
+Task 8
+
+Build Banking Agent with Function Calling.
+
+DSA (90 Minutes)
+
+Solve:
+
+LFU Cache
+Edit Distance
+Minimum Cost to Connect Sticks
+Find All Anagrams in a String
+Lowest Common Ancestor of a Binary Tree
+End-of-Day Deliverable
+Function Calling
+Structured Outputs
+Pydantic Models
+JSON Schema
+Output Parsers
+Validation
+FastAPI Response Models
+Banking AI APIs
+Day 39 (Next)
+
+OpenAI SDK + Chat Models + Streaming
+
+You will learn:
+
+OpenAI Client Setup
+Chat Completions
+GPT Models
+Streaming Responses
+Token Usage
+Temperature
+System Prompts
+Production Chat APIs

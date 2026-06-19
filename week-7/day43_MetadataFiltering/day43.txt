@@ -1,0 +1,545 @@
+Day 43 – Metadata Filtering (Production RAG)
+
+Today you'll learn a feature that almost every enterprise RAG system uses.
+
+Without metadata filtering:
+
+User Query
+    ↓
+Vector Search
+    ↓
+Search Entire Database
+    ↓
+Results
+
+With metadata filtering:
+
+User Query
+    ↓
+Metadata Filter
+    ↓
+Relevant Documents Only
+    ↓
+Vector Search
+    ↓
+Results
+
+This improves:
+
+Accuracy
+Speed
+Security
+Relevance
+Why Metadata Filtering?
+
+Imagine a Banking RAG system containing:
+
+Home Loan Policies
+Vehicle Loan Policies
+Credit Card Policies
+Insurance Policies
+HR Policies
+Compliance Documents
+
+User asks:
+
+What documents are needed for a home loan?
+
+Without filtering:
+
+Retriever may return:
+
+Vehicle Loan
+Insurance
+Credit Card
+
+With filtering:
+
+document_type = home_loan
+
+Only relevant documents are searched.
+
+What is Metadata?
+
+Metadata is data about data.
+
+Document:
+
+Home Loan Policy 2025
+
+Content:
+
+Interest Rate: 8%
+
+Eligibility:
+Salary > 50000
+
+Metadata:
+
+{
+  "document_type": "home_loan",
+  "year": 2025,
+  "department": "retail_banking",
+  "region": "india"
+}
+Session 1 (6 AM – 8 AM)
+Adding Metadata
+
+LangChain Document:
+
+from langchain_core.documents import Document
+
+doc = Document(
+    page_content="""
+    Home Loan Interest Rate: 8%
+    """,
+    metadata={
+        "loan_type":"home_loan",
+        "year":2025
+    }
+)
+Multiple Documents
+documents = [
+    Document(
+        page_content="Home Loan Policy",
+        metadata={
+            "type":"home_loan"
+        }
+    ),
+
+    Document(
+        page_content="Vehicle Loan Policy",
+        metadata={
+            "type":"vehicle_loan"
+        }
+    )
+]
+Store in Chroma
+vectorstore.add_documents(
+    documents
+)
+Searching Without Filter
+results = vectorstore.similarity_search(
+    "interest rate"
+)
+
+Searches everything.
+
+Searching With Filter
+results = vectorstore.similarity_search(
+    "interest rate",
+    filter={
+        "type":"home_loan"
+    }
+)
+
+Only home-loan documents searched.
+
+Session 2 (11 AM – 1 PM)
+Common Metadata Fields
+Banking
+{
+  "loan_type":"home_loan",
+  "branch":"hyderabad",
+  "year":2025
+}
+Insurance
+{
+  "policy_type":"health",
+  "region":"india"
+}
+HR
+{
+  "department":"engineering",
+  "country":"india"
+}
+Multi-Filter Example
+filter = {
+    "loan_type":"home_loan",
+    "year":2025
+}
+
+Only returns:
+
+Home Loan Documents
+AND
+Year 2025
+Region-Based Filtering
+
+Example:
+
+{
+  "country":"india"
+}
+
+User asks:
+
+Home loan policy
+
+Only Indian policies returned.
+
+Role-Based Filtering
+
+Enterprise security use case.
+
+Metadata:
+
+{
+  "access":"manager"
+}
+
+User:
+
+employee
+
+Cannot access:
+
+manager documents
+Banking Security Example
+
+Metadata:
+
+{
+ "department":"credit"
+}
+
+User belongs to:
+
+Retail Banking
+
+Only retail documents returned.
+
+Session 3 (4 PM – 6 PM)
+Metadata Filtering + RAG
+
+Architecture:
+
+User Query
+
+ ↓
+
+Metadata Filter
+
+ ↓
+
+Vector Search
+
+ ↓
+
+Top K Chunks
+
+ ↓
+
+LLM
+Example
+
+User:
+
+Show home loan eligibility.
+
+Generated Filter:
+
+{
+ "loan_type":"home_loan"
+}
+
+Retriever:
+
+Search only home loan chunks
+
+Results:
+
+Eligibility
+Documents
+Interest Rate
+Dynamic Metadata Filtering
+
+Agent determines filter automatically.
+
+User:
+
+What is vehicle loan interest rate?
+
+Agent extracts:
+
+{
+ "loan_type":"vehicle_loan"
+}
+
+Applies filter.
+
+LangChain Example
+retriever = vectorstore.as_retriever(
+    search_kwargs={
+        "k":5,
+        "filter":{
+            "loan_type":"home_loan"
+        }
+    }
+)
+ChromaDB Example
+results = collection.query(
+    query_texts=[
+        "loan eligibility"
+    ],
+    where={
+        "loan_type":
+        "home_loan"
+    }
+)
+Metadata Filtering + Parent Child Retrieval
+
+Enterprise architecture:
+
+Query
+
+ ↓
+
+Metadata Filter
+
+ ↓
+
+Child Search
+
+ ↓
+
+Parent Retrieval
+
+ ↓
+
+LLM
+Banking RAG Architecture
+Loan Policies
+
+ ↓
+
+Chunking
+
+ ↓
+
+Metadata
+
+ ↓
+
+Embeddings
+
+ ↓
+
+ChromaDB
+
+ ↓
+
+Filter
+
+ ↓
+
+Retriever
+
+ ↓
+
+GPT
+Common Metadata Design
+
+For your Banking Project:
+
+metadata = {
+    "document_type":"loan_policy",
+    "loan_type":"home_loan",
+    "country":"india",
+    "year":2025,
+    "department":"retail_banking"
+}
+Benefits
+Better Accuracy
+
+Search only relevant documents.
+
+Faster Retrieval
+
+Smaller search space.
+
+Better Security
+
+Access control.
+
+Less Hallucination
+
+Higher quality context.
+
+Common Mistakes
+Missing Metadata
+metadata={}
+
+Cannot filter.
+
+Too Many Fields
+50 metadata fields
+
+Hard to maintain.
+
+Inconsistent Values
+
+Bad:
+
+homeLoan
+home_loan
+HOMELOAN
+
+Use:
+
+home_loan
+
+everywhere.
+
+Interview Questions
+What is Metadata?
+
+Information describing a document.
+
+Why is Metadata Filtering important?
+
+It narrows search to relevant documents before retrieval.
+
+What are common metadata fields?
+Document Type
+Department
+Country
+Region
+Year
+Access Level
+Does Metadata Filtering improve performance?
+
+Yes.
+
+Search is performed on fewer documents.
+
+Does Metadata Filtering improve accuracy?
+
+Yes.
+
+Irrelevant chunks are excluded.
+
+How is Metadata stored?
+
+Alongside document chunks in the vector database.
+
+What is Dynamic Metadata Filtering?
+
+Filters generated automatically from user queries.
+
+Can Metadata be used for security?
+
+Yes.
+
+Role-based access control is a common enterprise use case.
+
+How does Metadata Filtering work with Parent-Child Retrieval?
+
+Filter first, then search child chunks, then fetch parent chunks.
+
+Which vector databases support metadata filtering?
+ChromaDB
+Pinecone
+Weaviate
+Qdrant
+Goldman Sachs Style Questions
+Explain Metadata Filtering in RAG.
+Query
+ ↓
+Metadata Filter
+ ↓
+Vector Search
+ ↓
+Relevant Chunks
+ ↓
+LLM
+Why is Metadata Filtering critical in Banking?
+
+Because banking systems contain multiple document categories and sensitive information.
+
+How would you design metadata for a loan-policy RAG system?
+{
+  "document_type":"loan_policy",
+  "loan_type":"home_loan",
+  "country":"india",
+  "year":2025
+}
+What security benefits does Metadata Filtering provide?
+Department isolation
+Role-based access
+Regional restrictions
+Compliance enforcement
+How would you improve retrieval quality besides embeddings?
+Better chunking
+Parent-child retrieval
+Metadata filtering
+Re-ranking
+Hybrid search
+Coding Tasks
+Task 1
+
+Create documents with metadata.
+
+Task 2
+
+Store metadata in ChromaDB.
+
+Task 3
+
+Perform filtered search.
+
+Task 4
+
+Create multi-condition filters.
+
+Task 5
+
+Implement region-based filtering.
+
+Task 6
+
+Implement role-based filtering.
+
+Task 7
+
+Combine ParentDocumentRetriever + metadata filters.
+
+Task 8
+
+Integrate metadata filtering into your Banking RAG project.
+
+End-of-Day Deliverable
+Metadata
+Metadata Filtering
+Dynamic Filters
+Role-Based Retrieval
+Region Filtering
+Department Filtering
+Secure RAG
+Filtered Vector Search
+
+Query
+ ↓
+Filter
+ ↓
+Search
+ ↓
+Retrieve
+ ↓
+LLM
+Day 44 (Next)
+
+Hybrid Search (BM25 + Vector Search)
+
+You'll learn:
+
+Keyword Search
+BM25
+Dense Retrieval
+Sparse Retrieval
+Hybrid Retrieval
+Re-ranking
+Retrieval Evaluation
+Enterprise Banking Search
+
+This is a very common production RAG optimization topic.

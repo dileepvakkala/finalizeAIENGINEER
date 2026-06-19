@@ -1,0 +1,536 @@
+Day 42 – Parent-Child Retrieval Chunking (Advanced RAG)
+
+This is an advanced RAG technique frequently discussed in senior AI Engineer interviews.
+
+The problem with normal chunking:
+
+Document
+   ↓
+Chunk
+   ↓
+Embedding
+   ↓
+Retrieve
+
+If chunks are small:
+
+High Precision
+Low Context
+
+If chunks are large:
+
+High Context
+Low Precision
+
+Parent-Child Retrieval solves both problems.
+
+Why Parent-Child Retrieval?
+
+Suppose a banking document contains:
+
+Home Loan Policy
+
+Interest Rate: 8%
+
+Eligibility:
+Salary > 50,000
+
+Documents:
+PAN
+Aadhaar
+Salary Slips
+
+Processing Fee:
+0.5%
+Small Chunk Approach
+
+Chunks:
+
+Chunk 1:
+Interest Rate 8%
+
+Chunk 2:
+Eligibility Salary > 50000
+
+Chunk 3:
+PAN Aadhaar Salary Slips
+
+User asks:
+
+What documents are required for home loan?
+
+Retriever returns:
+
+PAN Aadhaar Salary Slips
+
+Problem:
+
+Missing Home Loan Context
+Large Chunk Approach
+
+Chunk:
+
+Entire Home Loan Policy
+
+Problem:
+
+Too much information
+Less precise retrieval
+Parent-Child Retrieval Solution
+
+Store:
+
+Parent Chunk
+
+Large context.
+
+Retrieve:
+
+Child Chunk
+
+Small precise chunk.
+
+Return:
+
+Parent Chunk
+
+to the LLM.
+
+Architecture
+Document
+
+ ↓
+
+Parent Chunks
+(2000 chars)
+
+ ↓
+
+Child Chunks
+(300 chars)
+
+ ↓
+
+Embeddings
+
+ ↓
+
+Vector DB
+
+ ↓
+
+Retrieve Child
+
+ ↓
+
+Map To Parent
+
+ ↓
+
+Send Parent To LLM
+Example
+Parent Chunk
+Home Loan Policy
+
+Interest Rate: 8%
+
+Eligibility:
+Salary > 50000
+
+Documents:
+PAN
+Aadhaar
+Salary Slips
+
+Processing Fee:
+0.5%
+Child Chunks
+Child 1:
+Interest Rate 8%
+Child 2:
+Eligibility Salary > 50000
+Child 3:
+Documents PAN Aadhaar Salary Slips
+
+User Query:
+
+Required documents for home loan?
+
+Retriever finds:
+
+Child 3
+
+Then returns:
+
+Entire Parent Chunk
+
+to LLM.
+
+Result:
+
+High Precision
++
+High Context
+LangChain ParentDocumentRetriever
+
+Most commonly used implementation.
+
+Install:
+
+pip install langchain
+Session 1 (6 AM – 8 AM)
+Step 1: Load Document
+from langchain_community.document_loaders import TextLoader
+
+loader = TextLoader("loan_policy.txt")
+
+documents = loader.load()
+Step 2: Create Parent Splitter
+from langchain.text_splitter import RecursiveCharacterTextSplitter
+
+parent_splitter = (
+    RecursiveCharacterTextSplitter(
+        chunk_size=2000,
+        chunk_overlap=200
+    )
+)
+Step 3: Create Child Splitter
+child_splitter = (
+    RecursiveCharacterTextSplitter(
+        chunk_size=300,
+        chunk_overlap=50
+    )
+)
+Session 2 (11 AM – 1 PM)
+Create Vector Store
+
+Example using ChromaDB:
+
+from langchain_chroma import Chroma
+
+vectorstore = Chroma(
+    collection_name="banking_docs",
+    embedding_function=embeddings
+)
+Create Doc Store
+from langchain.storage import InMemoryStore
+
+store = InMemoryStore()
+Create Parent Retriever
+from langchain.retrievers import (
+    ParentDocumentRetriever
+)
+
+retriever = ParentDocumentRetriever(
+    vectorstore=vectorstore,
+    docstore=store,
+    child_splitter=child_splitter,
+    parent_splitter=parent_splitter
+)
+Add Documents
+retriever.add_documents(
+    documents
+)
+Retrieval Flow
+results = retriever.invoke(
+    "Required documents for home loan"
+)
+
+Behind the scenes:
+
+Query
+
+ ↓
+
+Child Embeddings
+
+ ↓
+
+Child Match
+
+ ↓
+
+Parent Lookup
+
+ ↓
+
+Parent Document
+
+ ↓
+
+LLM
+Session 3 (4 PM – 6 PM)
+Banking Example
+
+Suppose policy PDF contains:
+
+Home Loan
+Vehicle Loan
+Personal Loan
+Credit Card
+Insurance
+
+Parent Chunk:
+
+Home Loan Section
+
+Children:
+
+Interest Rate
+
+Eligibility
+
+Documents
+
+Processing Fee
+
+User asks:
+
+What is home loan processing fee?
+
+Retriever finds:
+
+Processing Fee Child
+
+Returns:
+
+Entire Home Loan Section
+
+LLM gets:
+
+Interest Rate
+Eligibility
+Documents
+Processing Fee
+
+More accurate answer.
+
+Parent vs Child Size
+
+Recommended Settings
+
+Document	Parent	Child
+FAQ	1000	200
+Banking Policies	2000	300
+Insurance	2500	400
+Legal Contracts	4000	500
+Advantages
+Better Context
+Entire section available
+Better Retrieval
+Small child chunks
+Lower Hallucination
+More relevant context
+Production Ready
+
+Used in enterprise RAG systems.
+
+Disadvantages
+More Storage
+
+Need to store:
+
+Parents
++
+Children
+More Complexity
+
+Need mapping:
+
+Child → Parent
+Slower Indexing
+
+More preprocessing.
+
+Parent-Child vs Normal Chunking
+Feature	Normal	Parent-Child
+Precision	Medium	High
+Context	Medium	High
+Complexity	Low	Medium
+Storage	Low	Higher
+Enterprise Usage	Medium	High
+Interview Questions
+What is Parent-Child Retrieval?
+
+A retrieval strategy where small child chunks are embedded and searched, while larger parent chunks are returned to the LLM.
+
+Why use Parent-Child Retrieval?
+
+To achieve both precise retrieval and rich context.
+
+What is stored in the Vector DB?
+
+Child chunks.
+
+What is stored in the Doc Store?
+
+Parent chunks.
+
+What happens during retrieval?
+Query
+ ↓
+Find Child
+ ↓
+Get Parent
+ ↓
+Return Parent
+Why not embed only large chunks?
+
+Large chunks reduce retrieval precision.
+
+Why not embed only small chunks?
+
+Small chunks lose context.
+
+What are Parent and Child chunk sizes?
+
+Common values:
+
+Parent: 2000
+
+Child: 300
+Which LangChain component implements this?
+
+ParentDocumentRetriever
+
+When should Parent-Child Retrieval be used?
+Banking Policies
+Insurance Documents
+Legal Contracts
+Compliance Documents
+Large PDFs
+Goldman Sachs Style Questions
+Explain Parent-Child Retrieval Architecture.
+Document
+
+ ↓
+
+Parent Chunks
+
+ ↓
+
+Child Chunks
+
+ ↓
+
+Embeddings
+
+ ↓
+
+Vector Search
+
+ ↓
+
+Child Match
+
+ ↓
+
+Parent Lookup
+
+ ↓
+
+LLM
+Why is Parent-Child Retrieval better than normal chunking?
+
+It provides:
+
+High Precision
++
+High Context
+
+simultaneously.
+
+What is the biggest challenge?
+
+Maintaining the relationship:
+
+Child → Parent
+
+efficiently.
+
+How would you implement this in a Banking RAG project?
+Loan Policies PDF
+
+ ↓
+
+Parent Splitter (2000)
+
+ ↓
+
+Child Splitter (300)
+
+ ↓
+
+ChromaDB
+
+ ↓
+
+ParentDocumentRetriever
+
+ ↓
+
+GPT Response
+Coding Tasks
+Task 1
+
+Create parent splitter.
+
+Task 2
+
+Create child splitter.
+
+Task 3
+
+Build ParentDocumentRetriever.
+
+Task 4
+
+Store banking policy documents.
+
+Task 5
+
+Compare normal retrieval vs parent-child retrieval.
+
+Task 6
+
+Measure retrieval quality.
+
+Task 7
+
+Implement ChromaDB parent-child search.
+
+Task 8
+
+Integrate with your Banking RAG project.
+
+End-of-Day Deliverable
+Parent Chunks
+Child Chunks
+ParentDocumentRetriever
+Child Embeddings
+Parent Context
+Context Preservation
+Enterprise RAG Retrieval
+
+Query
+ ↓
+Child Search
+ ↓
+Parent Fetch
+ ↓
+LLM
+Day 43 (Next)
+
+FAISS Deep Dive
+
+You will learn:
+
+What is FAISS
+IndexFlatL2
+IndexIVF
+HNSW
+Approximate Nearest Neighbor Search
+Similarity Metrics
+FAISS vs ChromaDB vs Pinecone
+Production Retrieval Optimization
+Banking RAG Performance Tuning

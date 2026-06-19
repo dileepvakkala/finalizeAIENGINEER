@@ -1,0 +1,606 @@
+Day 34 – Embeddings & Vector Mathematics
+
+Today is one of the most important GenAI topics.
+
+Almost every RAG interview asks:
+
+What are embeddings?
+How does vector search work?
+What is cosine similarity?
+How does ChromaDB retrieve documents?
+How are embeddings generated?
+
+Your Graph RAG and Banking RAG projects heavily depend on embeddings.
+
+Day 34 Goals
+
+✅ What are Embeddings
+
+✅ Why Embeddings are Needed
+
+✅ Vector Representation
+
+✅ Cosine Similarity
+
+✅ Sentence Transformers
+
+✅ OpenAI Embeddings
+
+✅ ChromaDB Search
+
+✅ Banking RAG Embeddings
+
+✅ Interview Questions
+
+Big Picture
+
+Traditional Search:
+
+Keyword Match
+
+"Home Loan"
+
+matches
+
+"Home Loan"
+
+Problem:
+
+Housing Loan
+Mortgage
+House Finance
+
+may not match.
+
+Embeddings solve this.
+
+Home Loan
+Housing Loan
+Mortgage
+
+become similar vectors.
+
+What is an Embedding?
+
+An embedding is a numerical representation of text.
+
+Example:
+
+Home Loan
+
+becomes
+
+[0.23, 0.71, 0.14, ...]
+
+Instead of words:
+
+Text
+
+LLM sees:
+
+Vector
+Why Embeddings?
+
+Without Embeddings
+
+Question:
+Housing Loan
+
+Document:
+Home Loan
+
+Keyword Search:
+
+No Match
+
+With Embeddings
+
+Housing Loan
+
+and
+
+Home Loan
+
+are close in vector space.
+
+Session 1 (6 AM – 8 AM)
+Understanding Vectors
+
+Example:
+
+Cat
+
+Vector:
+
+[0.5, 0.3, 0.9]
+
+Dog:
+
+[0.52, 0.31, 0.88]
+
+Car:
+
+[0.01, 0.95, 0.2]
+
+Observation:
+
+Cat ≈ Dog
+
+close vectors.
+
+Cat ≠ Car
+
+far vectors.
+
+Semantic Meaning
+
+Embeddings capture meaning.
+
+Example:
+
+Home Loan
+Mortgage
+Housing Loan
+
+will be near each other.
+
+While:
+
+Credit Card
+
+will be farther away.
+
+Generating Embeddings
+
+Install:
+
+pip install sentence-transformers
+
+Code:
+
+from sentence_transformers import (
+    SentenceTransformer
+)
+
+model = SentenceTransformer(
+    "all-MiniLM-L6-v2"
+)
+
+embedding = model.encode(
+    "What is home loan?"
+)
+
+print(len(embedding))
+
+Output:
+
+384
+
+dimensions.
+
+Understanding Dimensions
+
+Embedding:
+
+[0.21,
+ 0.89,
+ 0.34,
+ ...
+]
+
+contains hundreds of values.
+
+Common Sizes:
+
+Model	Dimensions
+MiniLM	384
+MPNet	768
+OpenAI Embeddings	1536+
+Session 2 (11 AM – 1 PM)
+Cosine Similarity
+
+Most important interview topic.
+
+Used by:
+
+ChromaDB
+Pinecone
+Weaviate
+
+to find similar documents.
+
+Formula
+
+cos(θ)=
+∣∣A∣∣∣∣B∣∣
+A⋅B
+	​
+
+
+You do NOT need to memorize the math.
+
+Understand:
+
+Higher Score
+=
+More Similar
+
+Example
+
+Home Loan
+
+vs
+
+Mortgage
+
+Similarity:
+
+0.92
+
+Home Loan vs Car Insurance
+
+0.23
+Example Code
+from sklearn.metrics.pairwise import (
+    cosine_similarity
+)
+
+score = cosine_similarity(
+    [emb1],
+    [emb2]
+)
+
+print(score)
+Banking Example
+
+Question:
+
+What is housing loan rate?
+
+Document:
+
+Home loan interest rate is 8%
+
+Embeddings:
+
+Question Vector
+
+↓
+
+Document Vector
+
+↓
+
+Cosine Similarity
+
+↓
+
+0.95
+
+Match Found.
+
+Session 3 (4 PM – 6 PM)
+Embeddings in ChromaDB
+
+Flow:
+
+Document
+
+    ↓
+
+Embedding Model
+
+    ↓
+
+Vector
+
+    ↓
+
+ChromaDB
+
+Store:
+
+collection.add(
+    documents=["Home Loan"],
+    embeddings=[vector]
+)
+Retrieval
+
+Question:
+
+Housing Loan Interest
+
+↓
+
+Generate Embedding
+
+↓
+
+Search Similar Vectors
+
+↓
+
+Return Top Chunks
+
+OpenAI Embeddings
+
+Install:
+
+pip install langchain-openai
+
+Code:
+
+from langchain_openai import (
+    OpenAIEmbeddings
+)
+
+embeddings = OpenAIEmbeddings(
+    model="text-embedding-3-small"
+)
+
+Generate:
+
+vector = embeddings.embed_query(
+    "What is home loan?"
+)
+Sentence Transformers vs OpenAI
+Sentence Transformer	OpenAI
+Free	Paid
+Local	Cloud
+Fast	Accurate
+Offline	Online
+Banking RAG Flow
+PDF
+
+ ↓
+
+Chunking
+
+ ↓
+
+Embeddings
+
+ ↓
+
+ChromaDB
+
+ ↓
+
+Question
+
+ ↓
+
+Embedding
+
+ ↓
+
+Similarity Search
+
+ ↓
+
+Relevant Chunks
+
+ ↓
+
+Prompt
+
+ ↓
+
+LLM
+Complete Example
+from sentence_transformers import (
+    SentenceTransformer
+)
+
+model = SentenceTransformer(
+    "all-MiniLM-L6-v2"
+)
+
+documents = [
+    "Home Loan Rate 8%",
+    "Car Loan Rate 10%"
+]
+
+vectors = model.encode(
+    documents
+)
+
+question = (
+    "Housing Loan Interest"
+)
+
+question_vector = (
+    model.encode(question)
+)
+Why Embeddings Matter
+
+Without Embeddings:
+
+Keyword Search
+
+Problems:
+
+Synonyms
+Different Phrasing
+Typos
+
+With Embeddings:
+
+Semantic Search
+
+Benefits:
+
+Meaning-Based Retrieval
+Production Architecture
+User Question
+
+       ↓
+
+Embedding Model
+
+       ↓
+
+Vector
+
+       ↓
+
+ChromaDB
+
+       ↓
+
+Cosine Similarity
+
+       ↓
+
+Top Chunks
+
+       ↓
+
+LLM
+Interview Questions
+What is an Embedding?
+
+A dense numerical vector representing text meaning.
+
+Why are embeddings used?
+
+To perform semantic search and similarity matching.
+
+What is vector search?
+
+Finding vectors closest to a query vector.
+
+What is cosine similarity?
+
+A measure of similarity between vectors.
+
+Why is cosine similarity used?
+
+It efficiently measures semantic closeness.
+
+What is dimensionality?
+
+The number of values inside an embedding vector.
+
+Difference between keyword search and vector search?
+Keyword Search	Vector Search
+Exact words	Semantic meaning
+Limited	Intelligent
+Synonym issues	Handles synonyms
+What are Sentence Transformers?
+
+Models used to generate embeddings locally.
+
+What role do embeddings play in RAG?
+
+They enable retrieval of relevant document chunks.
+
+Why store embeddings in ChromaDB?
+
+To perform fast similarity search.
+
+Goldman Sachs Style Questions
+Explain how RAG retrieval works.
+Question
+
+ ↓
+
+Embedding
+
+ ↓
+
+Vector Search
+
+ ↓
+
+Relevant Chunks
+
+ ↓
+
+Prompt
+
+ ↓
+
+LLM
+Why not use SQL LIKE queries?
+
+They only perform keyword matching.
+
+Embeddings support semantic retrieval.
+
+How do you improve retrieval quality?
+Better chunking
+Better embeddings
+Metadata filtering
+Re-ranking
+What embedding model have you used?
+
+Examples:
+
+all-MiniLM-L6-v2
+text-embedding-3-small
+text-embedding-3-large
+What happens when embeddings are poor?
+
+Poor retrieval quality and irrelevant answers.
+
+Why are embeddings important in Banking RAG?
+
+They help retrieve policy information even when customers use different wording.
+
+Coding Tasks
+Task 1
+
+Generate embeddings using Sentence Transformers.
+
+Task 2
+
+Print vector dimensions.
+
+Task 3
+
+Compute cosine similarity.
+
+Task 4
+
+Compare:
+
+Home Loan
+Mortgage
+Car Insurance
+Task 5
+
+Store embeddings in ChromaDB.
+
+Task 6
+
+Search using query embeddings.
+
+Task 7
+
+Retrieve Top-K results.
+
+Task 8
+
+Build a mini semantic search engine.
+
+DSA (90 Minutes)
+
+Solve:
+
+Find Median from Data Stream
+Pacific Atlantic Water Flow
+Word Search
+Task Scheduler
+Minimum Window Substring
+End-of-Day Deliverable
+Embeddings
+Vector Representation
+Cosine Similarity
+Sentence Transformers
+OpenAI Embeddings
+Semantic Search
+ChromaDB Retrieval
+Vector Mathematics
+
+Document → Embedding → Vector DB → Similarity Search

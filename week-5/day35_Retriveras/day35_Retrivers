@@ -1,0 +1,598 @@
+Day 35 – Retrievers (The Brain of RAG Search)
+
+After learning:
+
+Day 32 → Document Loaders
+Day 33 → Text Splitters
+Day 34 → Embeddings
+
+Today you'll learn the component that actually finds relevant information:
+
+Retriever
+
+A Retriever is one of the most important components in every RAG system.
+
+Day 35 Goals
+
+✅ What is a Retriever
+
+✅ Why Retrievers are Needed
+
+✅ Vector Store Retriever
+
+✅ Similarity Search
+
+✅ Top-K Retrieval
+
+✅ Metadata Filtering
+
+✅ MMR Retrieval
+
+✅ Multi-Query Retrieval
+
+✅ Banking RAG Retriever
+
+Complete RAG Flow
+PDF
+
+ ↓
+
+Loader
+
+ ↓
+
+Chunks
+
+ ↓
+
+Embeddings
+
+ ↓
+
+ChromaDB
+
+ ↓
+
+Retriever
+
+ ↓
+
+Relevant Chunks
+
+ ↓
+
+Prompt
+
+ ↓
+
+LLM
+What is a Retriever?
+
+A Retriever searches a Vector Database and returns the most relevant documents.
+
+Example:
+
+User asks:
+
+What is home loan interest rate?
+
+Retriever finds:
+
+Home Loan Policy
+Interest Rate = 8%
+
+and sends it to the LLM.
+
+Without Retriever
+Question
+
+     ↓
+
+LLM
+
+     ↓
+
+Guess / Hallucination
+With Retriever
+Question
+
+     ↓
+
+Retriever
+
+     ↓
+
+Relevant Context
+
+     ↓
+
+LLM
+
+     ↓
+
+Accurate Answer
+Session 1 (6 AM – 8 AM)
+Creating a Retriever
+
+Suppose ChromaDB contains:
+
+Home Loan Policy
+Car Loan Policy
+Insurance Policy
+
+Convert vector store into retriever:
+
+retriever = vector_store.as_retriever()
+Search
+docs = retriever.invoke(
+    "What is home loan rate?"
+)
+
+Result:
+
+Home loan interest rate is 8%.
+Top-K Retrieval
+
+Retrieve top matching chunks.
+
+retriever = (
+    vector_store.as_retriever(
+        search_kwargs={
+            "k":5
+        }
+    )
+)
+
+Meaning:
+
+Return Top 5 Results
+
+Example
+
+Question:
+
+Housing Loan
+
+Returns:
+
+Chunk 1
+Chunk 2
+Chunk 3
+Chunk 4
+Chunk 5
+Similarity Search
+
+Most common retrieval strategy.
+
+Flow:
+
+Question
+
+      ↓
+
+Embedding
+
+      ↓
+
+Cosine Similarity
+
+      ↓
+
+Nearest Chunks
+Session 2 (11 AM – 1 PM)
+Metadata Filtering
+
+Suppose Vector DB stores:
+
+{
+ "type":"loan"
+}
+
+and
+
+{
+ "type":"insurance"
+}
+
+Retrieve only loans:
+
+retriever = (
+    vector_store.as_retriever(
+        search_kwargs={
+            "filter":{
+                "type":"loan"
+            }
+        }
+    )
+)
+
+Benefits:
+
+More Accurate Retrieval
+Banking Example
+
+Question:
+
+Home Loan Documents
+
+Only search:
+
+Loan Policies
+
+Ignore:
+
+Insurance Policies
+Credit Card Policies
+Score Threshold Retrieval
+
+Sometimes retrieved chunks are poor.
+
+Use threshold.
+
+Example:
+
+retriever = (
+    vector_store.as_retriever(
+        search_type=
+        "similarity_score_threshold",
+
+        search_kwargs={
+            "score_threshold":
+            0.8
+        }
+    )
+)
+
+Only highly relevant chunks returned.
+
+Session 3 (4 PM – 6 PM)
+MMR Retriever
+
+MMR = Maximum Marginal Relevance.
+
+Interview Favorite.
+
+Problem:
+
+Top 5 results may be duplicates.
+
+Example:
+
+Home Loan
+Home Loan
+Home Loan
+Home Loan
+
+Not useful.
+
+MMR returns diversity.
+
+Home Loan Rate
+Home Loan Eligibility
+Home Loan Documents
+Loan Processing Time
+
+Implementation:
+
+retriever = (
+    vector_store.as_retriever(
+        search_type="mmr"
+    )
+)
+Multi-Query Retriever
+
+Advanced Production Technique.
+
+User:
+
+Housing Loan
+
+Generate:
+
+Home Loan
+Mortgage
+Property Loan
+
+Search all.
+
+Benefits:
+
+Better Recall
+
+Flow:
+
+Question
+
+ ↓
+
+LLM
+
+ ↓
+
+Multiple Queries
+
+ ↓
+
+Retriever
+
+ ↓
+
+Combined Results
+Context Retrieval Architecture
+Question
+
+      ↓
+
+Embedding
+
+      ↓
+
+Retriever
+
+      ↓
+
+Top Chunks
+
+      ↓
+
+Prompt
+
+      ↓
+
+GPT
+Banking Example
+
+Question:
+
+What documents are required?
+
+Retriever returns:
+
+PAN Card
+Aadhaar
+Salary Slips
+
+Prompt becomes:
+
+Context:
+PAN Card
+Aadhaar
+Salary Slips
+
+Question:
+What documents are required?
+Complete Retriever Example
+retriever = (
+    vector_store.as_retriever(
+        search_type="similarity",
+
+        search_kwargs={
+            "k":3
+        }
+    )
+)
+
+docs = retriever.invoke(
+    "Housing Loan"
+)
+
+for doc in docs:
+    print(
+        doc.page_content
+    )
+Production Banking Flow
+User Question
+
+       ↓
+
+Embedding
+
+       ↓
+
+Retriever
+
+       ↓
+
+Top Chunks
+
+       ↓
+
+Prompt
+
+       ↓
+
+LLM
+
+       ↓
+
+Output Parser
+
+       ↓
+
+JSON Response
+Retriever Types
+Retriever	Purpose
+Similarity	Closest chunks
+Threshold	Minimum relevance
+MMR	Diverse results
+Multi-Query	Multiple search phrases
+Hybrid	Keyword + Vector
+Hybrid Retrieval
+
+Enterprise Favorite.
+
+Combines:
+
+BM25
++
+Vector Search
+
+Benefits:
+
+Exact Match
++
+Semantic Match
+Interview Questions
+What is a Retriever?
+
+Component that fetches relevant documents from a vector store.
+
+Why do we need Retrievers?
+
+To provide context before sending queries to the LLM.
+
+How does a Retriever work?
+Question
+ ↓
+Embedding
+ ↓
+Similarity Search
+ ↓
+Top Chunks
+What is Top-K Retrieval?
+
+Returning the K most relevant chunks.
+
+What is Metadata Filtering?
+
+Restricting search using metadata.
+
+What is MMR Retrieval?
+
+Returns relevant and diverse results.
+
+What is Multi-Query Retrieval?
+
+Generates multiple search queries to improve recall.
+
+What is Score Threshold Retrieval?
+
+Returns chunks only above a similarity score.
+
+Difference between Retriever and Vector DB?
+Retriever	Vector DB
+Search Logic	Storage
+Fetches Chunks	Stores Embeddings
+Why is retrieval quality important?
+
+Bad retrieval leads to bad answers.
+
+Goldman Sachs Style Questions
+Explain the Retriever layer in RAG.
+Vector DB
+
+     ↓
+
+Retriever
+
+     ↓
+
+Relevant Chunks
+
+     ↓
+
+Prompt
+
+     ↓
+
+LLM
+What retrieval strategy have you used?
+
+Typical answer:
+
+Similarity Search
+Top-K Retrieval
+Metadata Filtering
+How would you improve retrieval accuracy?
+Better chunking
+Better embeddings
+Metadata filters
+MMR
+Hybrid retrieval
+Re-ranking
+Why use MMR?
+
+Avoid duplicate chunks and increase information diversity.
+
+What is Hybrid Search?
+
+Combination of keyword and vector search.
+
+What happens if retrieval fails?
+
+The LLM may hallucinate or provide incomplete answers.
+
+How would you design retrieval for a banking assistant?
+ChromaDB
+
+ ↓
+
+Similarity Search
+
+ ↓
+
+Metadata Filter
+
+ ↓
+
+Top Chunks
+
+ ↓
+
+Prompt
+
+ ↓
+
+GPT
+Coding Tasks
+Task 1
+
+Create a ChromaDB Retriever.
+
+Task 2
+
+Implement Top-K Retrieval.
+
+Task 3
+
+Add Metadata Filtering.
+
+Task 4
+
+Implement Similarity Search.
+
+Task 5
+
+Implement Score Threshold Retrieval.
+
+Task 6
+
+Implement MMR Retrieval.
+
+Task 7
+
+Implement Multi-Query Retrieval.
+
+Task 8
+
+Build Banking Policy Search API.
+
+DSA (90 Minutes)
+
+Solve:
+
+Alien Dictionary
+Design Add and Search Words Data Structure
+Serialize and Deserialize Binary Tree
+Trapping Rain Water
+Sliding Window Maximum
+End-of-Day Deliverable
+Retrievers
+Similarity Search
+Top-K Retrieval
+Metadata Filtering
+MMR Retrieval
+Multi-Query Retrieval
+Hybrid Retrieval
+
+Question → Retriever → Context → LLM

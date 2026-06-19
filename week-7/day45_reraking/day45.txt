@@ -1,0 +1,647 @@
+Day 45 – Re-ranking & Context Compression (Production RAG)
+
+Today you'll learn how top AI companies improve RAG accuracy from 70–80% to 90%+.
+
+Most RAG systems fail because:
+
+Retriever finds 20 chunks
+
+↓
+
+Send all 20 chunks to LLM
+
+↓
+
+Noise
+
+↓
+
+Wrong Answer
+
+Solution:
+
+Retriever
+
+↓
+
+Re-ranker
+
+↓
+
+Context Compression
+
+↓
+
+LLM
+Day 45 Goals
+
+✅ Re-ranking
+
+✅ Cross Encoder
+
+✅ Bi-Encoder vs Cross Encoder
+
+✅ Context Compression
+
+✅ Lost in the Middle Problem
+
+✅ Context Window Optimization
+
+✅ Production RAG Pipeline
+
+✅ Banking RAG Optimization
+
+Problem Without Re-ranking
+
+Suppose Retriever returns:
+
+1. Home Loan Eligibility
+2. Home Loan Interest Rate
+3. Vehicle Loan Eligibility
+4. Insurance Policy
+5. Credit Card Benefits
+
+User asks:
+
+What is the home loan interest rate?
+
+LLM receives:
+
+5 documents
+
+Problem:
+
+Noise
+Solution
+Retriever
+
+↓
+
+Top 20 Chunks
+
+↓
+
+Re-ranker
+
+↓
+
+Top 3 Chunks
+
+↓
+
+LLM
+Session 1 (6 AM – 8 AM)
+What is Re-ranking?
+
+Second-stage ranking.
+
+Stage 1:
+
+Retriever
+
+Fast but less accurate.
+
+Stage 2:
+
+Re-ranker
+
+Slow but highly accurate.
+
+Architecture
+Query
+
+↓
+
+Retriever
+
+↓
+
+Top 20 Chunks
+
+↓
+
+Cross Encoder
+
+↓
+
+Top 5 Chunks
+
+↓
+
+LLM
+Bi-Encoder
+
+Used in embeddings.
+
+Example:
+
+Query → Embedding
+
+Document → Embedding
+
+Similarity Score
+
+Fast.
+
+Cross Encoder
+
+Query and document processed together.
+
+Example:
+
+Query + Document
+
+↓
+
+Transformer
+
+↓
+
+Relevance Score
+
+Much more accurate.
+
+Difference
+Feature	Bi-Encoder	Cross Encoder
+Speed	Fast	Slower
+Accuracy	Good	Excellent
+Retrieval	First Stage	Second Stage
+Embeddings	Yes	No
+Example
+
+Query:
+
+home loan interest rate
+
+Document A:
+
+home loan interest rate 8%
+
+Score:
+
+0.99
+
+Document B:
+
+vehicle loan policy
+
+Score:
+
+0.10
+
+Cross Encoder ranks:
+
+A > B
+Session 2 (11 AM – 1 PM)
+Context Compression
+
+Important production optimization.
+
+Without Compression
+
+20 chunks
+
+↓
+
+15000 tokens
+
+↓
+
+Expensive
+
+With Compression
+
+20 chunks
+
+↓
+
+Important Sentences Only
+
+↓
+
+3000 tokens
+Contextual Compression Retriever
+
+LangChain Component.
+
+from langchain.retrievers import (
+    ContextualCompressionRetriever
+)
+
+Architecture
+
+Retriever
+
+↓
+
+Compressor
+
+↓
+
+Relevant Sentences
+
+↓
+
+LLM
+Example
+
+Original Chunk
+
+Home Loan Policy
+
+Interest Rate: 8%
+
+Eligibility:
+Salary > 50000
+
+Documents:
+PAN
+Aadhaar
+
+Branch Information
+
+History
+
+Marketing Text
+
+Compressed Chunk
+
+Interest Rate: 8%
+
+Eligibility:
+Salary > 50000
+
+Benefits
+
+Less Tokens
+
+Lower Cost
+
+Better Accuracy
+Lost in the Middle Problem
+
+Very Important Interview Question.
+
+LLMs pay more attention to:
+
+Beginning
+
+and
+
+End
+
+Less attention to:
+
+Middle
+
+Example
+
+Chunk 1
+
+Chunk 2
+
+Chunk 3
+
+Chunk 4
+
+Chunk 5
+
+Important answer in:
+
+Chunk 3
+
+May be ignored.
+
+Solution
+
+Re-rank most relevant chunks first.
+
+Bad
+
+1
+2
+3
+4
+5
+
+Good
+
+3
+1
+5
+2
+4
+Session 3 (4 PM – 6 PM)
+Banking RAG Optimization
+
+Production Pipeline
+
+PDF
+
+↓
+
+Chunking
+
+↓
+
+Metadata
+
+↓
+
+Embeddings
+
+↓
+
+ChromaDB
+
+↓
+
+Hybrid Search
+
+↓
+
+Top 20 Chunks
+
+↓
+
+Re-ranker
+
+↓
+
+Top 5 Chunks
+
+↓
+
+Compression
+
+↓
+
+GPT-4o
+
+↓
+
+Answer
+LangChain Re-ranking Example
+
+Using a Cross Encoder.
+
+from sentence_transformers import (
+    CrossEncoder
+)
+
+model = CrossEncoder(
+    "cross-encoder/ms-marco-MiniLM-L-6-v2"
+)
+
+Score Documents
+
+scores = model.predict([
+    (
+        query,
+        document
+    )
+])
+
+Sort By Score
+
+ranked_docs = sorted(
+    docs,
+    key=lambda x:x.score,
+    reverse=True
+)
+Context Compression Example
+from langchain.retrievers import (
+    ContextualCompressionRetriever
+)
+
+Create Retriever
+
+compression_retriever = (
+    ContextualCompressionRetriever(
+        base_retriever=retriever,
+        base_compressor=compressor
+    )
+)
+
+Retrieve
+
+docs = (
+    compression_retriever.invoke(
+        query
+    )
+)
+Production Numbers
+
+Normal RAG
+
+Recall: 75%
+
+Cost: High
+
+Latency: Medium
+
+Re-ranked RAG
+
+Recall: 90%
+
+Cost: Lower
+
+Accuracy: Higher
+Common Mistakes
+No Re-ranking
+Top 20 chunks sent directly
+
+Bad quality.
+
+Too Many Chunks
+k=50
+
+Too much noise.
+
+No Compression
+Huge context
+
+Higher cost.
+
+Wrong Chunk Order
+
+Lost-in-the-middle issue.
+
+Interview Questions
+What is Re-ranking?
+
+A second-stage ranking process that improves retrieval quality.
+
+Why use a Cross Encoder?
+
+To obtain more accurate relevance scores between query and documents.
+
+Difference between Bi-Encoder and Cross Encoder?
+
+Bi-Encoder generates embeddings independently.
+
+Cross Encoder evaluates query and document together.
+
+What is Context Compression?
+
+Removing irrelevant information before sending context to the LLM.
+
+Why is Context Compression important?
+Lower token cost
+Better accuracy
+Reduced noise
+What is Lost in the Middle?
+
+LLMs may ignore important information located in the middle of long contexts.
+
+How do you solve Lost in the Middle?
+Re-ranking
+Context compression
+Better chunk ordering
+Where should Re-ranking happen?
+
+After retrieval and before LLM generation.
+
+Why not directly send all retrieved chunks?
+
+Because irrelevant chunks reduce answer quality and increase cost.
+
+Goldman Sachs Style Questions
+Explain a production RAG pipeline.
+Documents
+
+↓
+
+Chunking
+
+↓
+
+Embeddings
+
+↓
+
+Vector DB
+
+↓
+
+Hybrid Search
+
+↓
+
+Top 20 Chunks
+
+↓
+
+Re-ranker
+
+↓
+
+Top 5 Chunks
+
+↓
+
+Compression
+
+↓
+
+LLM
+How would you improve retrieval quality?
+Better chunking
+Metadata filtering
+Hybrid search
+Re-ranking
+Parent-child retrieval
+Why use Cross Encoder after retrieval?
+
+Because it provides more accurate relevance scoring than embedding similarity alone.
+
+How do you reduce token cost?
+Compression
+Smaller chunk count
+Summarization
+Metadata filtering
+What is the biggest challenge with large contexts?
+Lost in the Middle
+Coding Tasks
+Task 1
+
+Implement Hybrid Search.
+
+Task 2
+
+Retrieve Top 20 Chunks.
+
+Task 3
+
+Apply Cross Encoder Re-ranking.
+
+Task 4
+
+Keep Top 5 Chunks.
+
+Task 5
+
+Implement Context Compression Retriever.
+
+Task 6
+
+Measure token reduction.
+
+Task 7
+
+Compare:
+
+Without Re-ranking
+With Re-ranking
+Task 8
+
+Integrate into Banking RAG Project.
+
+DSA (90 Minutes)
+
+Solve:
+
+Word Ladder
+Network Delay Time
+LRU Cache
+Find Median from Data Stream
+Design Search Autocomplete System
+End-of-Day Deliverable
+Re-ranking
+Cross Encoder
+Bi-Encoder vs Cross Encoder
+Context Compression
+Lost in the Middle
+Production RAG Optimization
+Token Optimization
+Banking RAG Pipeline
+
+Retriever
+ ↓
+Top 20
+ ↓
+Re-rank
+ ↓
+Top 5
+ ↓
+Compress
+ ↓
+LLM
+Day 46 (Next)
+
+RAG Evaluation & Metrics
+
+Topics:
+
+Precision@K
+Recall@K
+MRR (Mean Reciprocal Rank)
+NDCG
+Ground Truth Creation
+Hallucination Detection
+Faithfulness
+Answer Relevancy
+RAGAS Framework
+Banking RAG Evaluation Dashboard
+
+This is a critical senior-level AI Engineer interview topic and often separates beginners from experienced RAG engineers.

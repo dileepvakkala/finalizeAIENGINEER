@@ -1,0 +1,554 @@
+Day 48 – Multi Query Retrieval (Advanced RAG)
+
+Multi Query Retrieval is one of the most effective ways to improve retrieval quality in RAG systems.
+
+A single user query may not contain all the keywords or semantic variations needed to find the best documents.
+
+Instead of searching once:
+
+User Query
+    ↓
+Retriever
+    ↓
+Results
+
+Search multiple variations:
+
+User Query
+    ↓
+LLM Generates Multiple Queries
+    ↓
+Query 1
+Query 2
+Query 3
+Query 4
+    ↓
+Retriever
+    ↓
+Merge Results
+    ↓
+LLM
+Why Multi Query Retrieval?
+
+Suppose the user asks:
+
+Home loan eligibility
+
+Relevant documents may contain:
+
+Home loan requirements
+Loan qualification criteria
+Minimum salary requirements
+Home loan approval conditions
+
+A single query may miss some documents.
+
+Multiple queries improve recall.
+
+Problem with Single Query Retrieval
+
+User Query:
+
+Home loan eligibility
+
+Retriever finds:
+
+Eligibility Criteria
+
+But misses:
+
+Qualification Rules
+Approval Conditions
+Income Requirements
+Multi Query Retrieval Solution
+
+Generate:
+
+What are home loan eligibility criteria?
+
+What are home loan qualification requirements?
+
+What salary is needed for a home loan?
+
+What conditions are required for home loan approval?
+
+Search all of them.
+
+Session 1 (6 AM – 8 AM)
+How Multi Query Retrieval Works
+Step 1
+
+User query:
+
+Home loan eligibility
+Step 2
+
+LLM generates variations:
+
+Home loan eligibility criteria
+
+Home loan requirements
+
+Minimum salary for home loan
+
+Conditions for loan approval
+Step 3
+
+Each query is searched independently.
+
+Step 4
+
+Results merged and deduplicated.
+
+Step 5
+
+Best documents returned.
+
+Architecture
+User Query
+      ↓
+Query Generator (LLM)
+      ↓
+Multiple Queries
+      ↓
+Retriever
+      ↓
+Merged Results
+      ↓
+Re-ranker
+      ↓
+LLM
+Benefits
+Higher Recall
+
+Finds more relevant documents.
+
+Better Coverage
+
+Different wording retrieves different chunks.
+
+Better Answers
+
+More context for the LLM.
+
+Example
+
+Query:
+
+EMI
+
+Generated:
+
+Equated Monthly Installment
+
+Loan repayment schedule
+
+Monthly loan payment
+
+EMI calculation
+
+More relevant results are retrieved.
+
+Session 2 (11 AM – 1 PM)
+LangChain MultiQueryRetriever
+
+Install:
+
+pip install langchain
+
+Basic Example:
+
+from langchain.retrievers.multi_query import MultiQueryRetriever
+
+multi_query_retriever = (
+    MultiQueryRetriever.from_llm(
+        retriever=vectorstore.as_retriever(),
+        llm=llm
+    )
+)
+
+Search:
+
+docs = multi_query_retriever.invoke(
+    "home loan eligibility"
+)
+
+Internal Process
+
+Query
+
+↓
+
+Generate Variations
+
+↓
+
+Search Each Variation
+
+↓
+
+Merge Documents
+
+↓
+
+Return Results
+Example Output
+
+Original Query:
+
+home loan eligibility
+
+Generated Queries:
+
+What are home loan eligibility criteria?
+
+What are the requirements for a home loan?
+
+Minimum income required for a home loan?
+
+Home loan approval conditions?
+Custom Query Prompt
+from langchain.prompts import PromptTemplate
+
+QUERY_PROMPT = PromptTemplate(
+    input_variables=["question"],
+    template="""
+Generate 5 different search queries
+for the following question:
+
+{question}
+"""
+)
+
+Use Custom Prompt:
+
+multi_query_retriever = (
+    MultiQueryRetriever.from_llm(
+        retriever=retriever,
+        llm=llm,
+        prompt=QUERY_PROMPT
+    )
+)
+Session 3 (4 PM – 6 PM)
+Banking RAG Example
+
+Documents:
+
+Home Loan Policy
+
+Vehicle Loan Policy
+
+Credit Card Policy
+
+Insurance Policy
+
+User Query:
+
+What documents are required for home loan approval?
+
+Generated Queries:
+
+Required documents for home loan
+
+Home loan application documents
+
+KYC documents for home loan
+
+Documents needed for loan approval
+
+Results:
+
+PAN Card
+
+Aadhaar Card
+
+Salary Slips
+
+Bank Statements
+Multi Query + Metadata Filtering
+Query
+
+↓
+
+Generate Queries
+
+↓
+
+Metadata Filter
+
+↓
+
+Vector Search
+
+↓
+
+Merge Results
+
+↓
+
+LLM
+
+Example:
+
+{
+  "loan_type": "home_loan"
+}
+Multi Query + Hybrid Search
+
+Production Architecture:
+
+User Query
+
+↓
+
+Multi Query Generation
+
+↓
+
+BM25 Search
+
++
+
+Vector Search
+
+↓
+
+Merge
+
+↓
+
+Re-rank
+
+↓
+
+Compression
+
+↓
+
+LLM
+Multi Query + Parent Child Retrieval
+User Query
+
+↓
+
+Generate Queries
+
+↓
+
+Child Search
+
+↓
+
+Parent Retrieval
+
+↓
+
+LLM
+Duplicate Removal
+
+Important step.
+
+Query 1 and Query 2 may return same document.
+
+Before:
+
+Doc A
+Doc B
+Doc A
+Doc C
+Doc B
+
+After Deduplication:
+
+Doc A
+Doc B
+Doc C
+Challenges
+Increased Latency
+
+Multiple searches instead of one.
+
+Higher Cost
+
+More retrieval operations.
+
+Duplicate Documents
+
+Need deduplication.
+
+Query Drift
+
+Generated query may change original meaning.
+
+Best Practices
+Generate 3–5 Queries
+
+Avoid generating too many.
+
+Use Re-ranking
+
+Filter noisy results.
+
+Apply Metadata Filters
+
+Improve precision.
+
+Deduplicate Results
+
+Prevent repeated context.
+
+Interview Questions
+What is Multi Query Retrieval?
+
+A retrieval technique where multiple search queries are generated from a single user query.
+
+Why use Multi Query Retrieval?
+
+To improve recall and retrieve documents that use different wording.
+
+How does it improve retrieval?
+
+Different query formulations discover different relevant documents.
+
+What are the disadvantages?
+Higher latency
+Higher retrieval cost
+Potential query drift
+How many queries should typically be generated?
+
+Usually 3–5.
+
+What is query drift?
+
+When generated queries change the meaning of the original question.
+
+Why deduplicate results?
+
+Multiple queries may return the same documents.
+
+How does Multi Query Retrieval differ from Query Expansion?
+Query Expansion	Multi Query Retrieval
+Adds keywords	Creates separate queries
+Single search	Multiple searches
+Lower cost	Higher recall
+Where is Multi Query Retrieval used?
+Banking RAG
+Legal Search
+Insurance Systems
+Enterprise Knowledge Bases
+Compliance Search
+Goldman Sachs Style Questions
+Explain Multi Query Retrieval.
+User Query
+      ↓
+LLM
+      ↓
+Generate Multiple Queries
+      ↓
+Search
+      ↓
+Merge
+      ↓
+Re-rank
+      ↓
+LLM
+Why not use only one query?
+
+A single query may not capture all terminology used in documents.
+
+What is the biggest challenge?
+
+Query drift and increased latency.
+
+How would you optimize Multi Query Retrieval?
+Generate 3–5 queries
+Apply metadata filtering
+Use hybrid search
+Re-rank results
+Compress context
+When should Multi Query Retrieval be avoided?
+
+When:
+
+Dataset is very small
+Latency requirements are extremely strict
+Query is already highly specific
+Coding Tasks
+Task 1
+
+Build a Vector Retriever.
+
+Task 2
+
+Implement MultiQueryRetriever.
+
+Task 3
+
+Generate custom query prompts.
+
+Task 4
+
+Deduplicate retrieved documents.
+
+Task 5
+
+Combine with Metadata Filtering.
+
+Task 6
+
+Combine with Hybrid Search.
+
+Task 7
+
+Measure recall improvement.
+
+Task 8
+
+Integrate into your Banking RAG Project.
+
+DSA (90 Minutes)
+
+Solve:
+
+Word Break
+Number of Islands
+Kth Largest Element in an Array
+Graph Valid Tree
+Course Schedule II
+End-of-Day Deliverable
+Multi Query Retrieval
+Query Generation
+Deduplication
+Recall Optimization
+Metadata Filtering
+Hybrid Search
+Re-ranking
+Enterprise RAG Search
+
+User Query
+ ↓
+Generate Queries
+ ↓
+Search
+ ↓
+Merge
+ ↓
+Re-rank
+ ↓
+LLM
+Day 49 (Next)
+
+Self Query Retriever
+
+Topics:
+
+Metadata-Aware Retrieval
+Automatic Filter Generation
+Structured Query Construction
+LangChain SelfQueryRetriever
+ChromaDB Filters
+Query Parsing
+Enterprise Banking Search
+Access-Controlled Retrieval
+
+This is a very common senior AI Engineer interview topic because it combines LLM reasoning with vector database filtering.

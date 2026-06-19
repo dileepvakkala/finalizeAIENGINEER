@@ -1,0 +1,547 @@
+Day 39 – OpenAI SDK + Chat Models + Streaming
+
+Today you'll learn how to build real-world GenAI applications using OpenAI APIs.
+
+This is one of the most frequently asked topics in AI Engineer, GenAI Engineer, and Agentic AI interviews.
+
+Day 39 Goals
+
+✅ OpenAI SDK
+
+✅ Chat Models
+
+✅ Messages Architecture
+
+✅ System Prompts
+
+✅ Temperature
+
+✅ Token Usage
+
+✅ Streaming Responses
+
+✅ FastAPI Integration
+
+✅ Banking AI Assistant
+
+Big Picture
+
+Until now:
+
+User
+ ↓
+Prompt
+ ↓
+LLM
+ ↓
+Response
+
+Now:
+
+User
+ ↓
+FastAPI
+ ↓
+OpenAI SDK
+ ↓
+GPT Model
+ ↓
+Streaming
+ ↓
+Response
+Session 1 (6 AM – 8 AM)
+OpenAI SDK Installation
+pip install openai
+API Key Setup
+import os
+
+os.environ["OPENAI_API_KEY"] = "your_key"
+Create Client
+from openai import OpenAI
+
+client = OpenAI()
+First Chat Request
+response = client.chat.completions.create(
+    model="gpt-4o-mini",
+    messages=[
+        {
+            "role":"user",
+            "content":"What is AI?"
+        }
+    ]
+)
+
+print(
+    response.choices[0].message.content
+)
+Messages Architecture
+
+Very Important Interview Topic.
+
+messages = [
+    {
+        "role":"system",
+        "content":"You are a banking assistant"
+    },
+    {
+        "role":"user",
+        "content":"What is home loan?"
+    }
+]
+Roles
+Role	Purpose
+System	Rules
+User	Question
+Assistant	Previous response
+Tool	Tool result
+Example
+messages = [
+    {
+        "role":"system",
+        "content":"You are a helpful AI"
+    },
+    {
+        "role":"user",
+        "content":"Explain RAG"
+    }
+]
+System Prompt
+
+Most important GenAI concept.
+
+{
+ "role":"system",
+ "content":"You are a banking expert"
+}
+
+Controls:
+
+Behavior
+Tone
+Output Style
+Restrictions
+
+Example
+
+{
+ "role":"system",
+ "content":"Answer in JSON"
+}
+Session 2 (11 AM – 1 PM)
+Temperature
+
+Controls randomness.
+
+temperature=0
+
+Output:
+
+Consistent
+Deterministic
+
+Used for:
+
+Banking
+Finance
+Healthcare
+
+Higher Temperature
+
+temperature=1
+
+Output:
+
+Creative
+Varied
+
+Used for:
+
+Content Generation
+Story Writing
+Recommended Values
+Use Case	Temperature
+Banking AI	0.0–0.2
+RAG	0.0
+Customer Support	0.3
+Creative Writing	0.8–1.2
+Max Tokens
+
+Controls output length.
+
+max_tokens=500
+
+Example
+
+response = client.chat.completions.create(
+    model="gpt-4o-mini",
+    messages=messages,
+    temperature=0.1,
+    max_tokens=200
+)
+Token Usage
+
+Response contains:
+
+response.usage
+
+Output:
+
+{
+ "prompt_tokens":100,
+ "completion_tokens":50,
+ "total_tokens":150
+}
+Cost Calculation
+Input Tokens
++
+Output Tokens
+=
+Cost
+Context Window
+
+Model remembers only limited tokens.
+
+Example:
+
+128K Tokens
+
+After limit:
+
+Older Messages Dropped
+Session 3 (4 PM – 6 PM)
+Streaming Responses
+
+Without Streaming:
+
+Wait 5 Seconds
+
+↓
+
+Entire Response
+
+With Streaming:
+
+Token
+
+↓
+
+Token
+
+↓
+
+Token
+
+↓
+
+Response
+Streaming Code
+stream = client.chat.completions.create(
+    model="gpt-4o-mini",
+    messages=[
+        {
+            "role":"user",
+            "content":"Explain RAG"
+        }
+    ],
+    stream=True
+)
+
+for chunk in stream:
+    print(
+        chunk.choices[0].delta.content,
+        end=""
+    )
+Why Streaming?
+
+Benefits:
+
+Better UX
+Faster Perception
+ChatGPT-like Experience
+FastAPI Integration
+from fastapi import FastAPI
+from openai import OpenAI
+
+app = FastAPI()
+
+client = OpenAI()
+
+Endpoint
+
+@app.post("/chat")
+def chat(query: str):
+
+    response = (
+        client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {
+                    "role":"user",
+                    "content":query
+                }
+            ]
+        )
+    )
+
+    return {
+        "answer":
+        response.choices[0]
+        .message.content
+    }
+Banking Assistant Example
+SYSTEM_PROMPT = """
+You are a banking assistant.
+
+Answer only banking questions.
+
+If unknown say:
+I don't know.
+"""
+
+User:
+
+What is home loan interest rate?
+
+↓
+
+GPT
+
+↓
+
+Answer
+
+Chat Memory Pattern
+messages = [
+    {
+        "role":"system",
+        "content":"Banking Assistant"
+    }
+]
+
+Append Conversation
+
+messages.append(
+    {
+        "role":"user",
+        "content":question
+    }
+)
+
+Store Response
+
+messages.append(
+    {
+        "role":"assistant",
+        "content":answer
+    }
+)
+Production Architecture
+Frontend
+
+ ↓
+
+FastAPI
+
+ ↓
+
+JWT
+
+ ↓
+
+OpenAI SDK
+
+ ↓
+
+GPT-4o
+
+ ↓
+
+Response
+RAG + OpenAI Flow
+Question
+
+ ↓
+
+Retriever
+
+ ↓
+
+Context
+
+ ↓
+
+Prompt
+
+ ↓
+
+GPT-4o
+
+ ↓
+
+Answer
+Agent + OpenAI Flow
+Question
+
+ ↓
+
+Agent
+
+ ↓
+
+Tool Calling
+
+ ↓
+
+GPT-4o
+
+ ↓
+
+Answer
+Interview Questions
+What is the OpenAI SDK?
+
+Python library used to interact with OpenAI models.
+
+What is a Chat Model?
+
+A model that processes message-based conversations.
+
+Explain Message Roles.
+
+System: Instructions
+
+User: Input
+
+Assistant: Previous responses
+
+Tool: Tool output
+
+What is Temperature?
+
+Controls randomness and creativity.
+
+Why use low temperature in banking?
+
+For consistent and reliable responses.
+
+What is Streaming?
+
+Returning tokens incrementally rather than waiting for the full response.
+
+What is a Context Window?
+
+Maximum number of tokens a model can process.
+
+What causes high token usage?
+Long prompts
+Long chat history
+Large retrieved context
+How do you reduce token cost?
+Prompt optimization
+Context compression
+Retrieval filtering
+Summarization
+What is a System Prompt?
+
+Instructions that define model behavior.
+
+Goldman Sachs Style Questions
+Explain Chat Completion Architecture.
+User
+
+ ↓
+
+Messages
+
+ ↓
+
+GPT
+
+ ↓
+
+Response
+Why is temperature set to 0 for RAG?
+
+To reduce hallucinations and produce deterministic answers.
+
+How would you implement a banking chatbot?
+FastAPI
+
+ ↓
+
+JWT
+
+ ↓
+
+Retriever
+
+ ↓
+
+OpenAI
+
+ ↓
+
+Response
+What is streaming and why is it useful?
+
+Streaming improves user experience by displaying responses as they are generated.
+
+How would you optimize OpenAI costs?
+Reduce prompt size
+Retrieve fewer chunks
+Cache responses
+Summarize history
+Use smaller models when possible
+Coding Tasks
+Task 1
+
+Create OpenAI client.
+
+Task 2
+
+Build Chat Completion API.
+
+Task 3
+
+Implement system prompts.
+
+Task 4
+
+Experiment with temperature values.
+
+Task 5
+
+Print token usage.
+
+Task 6
+
+Implement streaming responses.
+
+Task 7
+
+Create FastAPI chatbot.
+
+Task 8
+
+Integrate OpenAI with your Banking RAG project.
+
+DSA (90 Minutes)
+
+Solve:
+
+Regular Expression Matching
+Merge Intervals
+Decode Ways
+Rotting Oranges
+Accounts Merge
+End-of-Day Deliverable
+OpenAI SDK
+Chat Models
+Message Roles
+System Prompts
+Temperature
+Token Usage
+Streaming
+FastAPI Integration
+
+User → Messages → GPT → Response

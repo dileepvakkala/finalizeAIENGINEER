@@ -168,8 +168,8 @@ Day 37
 Agents
 Day 38
 Function Calling
-Day 39
-Streaming Responses
+`Day 39
+Streaming Responses`
 Day 40
 Project
 

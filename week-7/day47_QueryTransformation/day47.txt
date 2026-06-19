@@ -1,0 +1,558 @@
+Today you'll learn one of the most powerful RAG optimization techniques.
+
+Many retrieval failures happen because the user query is not the best query for the retriever.
+
+Query Transformation rewrites the user query into a form that improves retrieval quality.
+
+Why Query Transformation?
+
+User asks:
+
+What documents do I need?
+
+Retriever problem:
+
+Need for what?
+Home Loan?
+Vehicle Loan?
+Credit Card?
+
+Very ambiguous.
+
+Better query:
+
+What documents are required for a Home Loan application?
+
+Retrieval becomes much better.
+
+Day 47 Goals
+
+✅ Query Transformation
+
+✅ Query Rewriting
+
+✅ Query Expansion
+
+✅ Multi Query Retrieval
+
+✅ Step Back Prompting
+
+✅ HyDE (Hypothetical Document Embeddings)
+
+✅ Self Query Retriever
+
+✅ Banking RAG Query Optimization
+
+RAG Without Query Transformation
+User Query
+
+↓
+
+Retriever
+
+↓
+
+Results
+
+↓
+
+LLM
+RAG With Query Transformation
+User Query
+
+↓
+
+Query Transformer
+
+↓
+
+Optimized Query
+
+↓
+
+Retriever
+
+↓
+
+Results
+
+↓
+
+LLM
+Session 1 (6 AM – 8 AM)
+Query Rewriting
+
+Most common transformation.
+
+User Query
+
+home loan docs
+
+Rewritten Query
+
+What documents are required for a home loan application?
+
+Benefits
+
+More Keywords
+
+More Context
+
+Better Retrieval
+Query Expansion
+
+Add related terms.
+
+User Query
+
+EMI
+
+Expanded Query
+
+EMI Equated Monthly Installment loan repayment
+
+Retriever can now find:
+
+EMI
+Monthly Installment
+Loan Repayment
+Banking Example
+
+User Query
+
+ROI
+
+Expanded Query
+
+ROI Rate Of Interest loan interest rate
+
+Retrieval quality improves.
+
+Multi Query Retrieval
+
+Generate multiple search queries.
+
+User Query
+
+Home loan eligibility
+
+Generate:
+
+What are home loan eligibility criteria?
+
+Minimum salary for home loan?
+
+Home loan qualification requirements?
+
+Home loan approval conditions?
+
+Search all.
+
+Merge results.
+
+Architecture
+
+Query
+
+↓
+
+Generate 4 Queries
+
+↓
+
+Search 4 Times
+
+↓
+
+Merge Results
+
+↓
+
+LLM
+Session 2 (11 AM – 1 PM)
+Step Back Prompting
+
+Interview Favorite.
+
+Instead of asking:
+
+What is the home loan interest rate?
+
+Ask broader question:
+
+Explain home loan policies.
+
+Broader retrieval often finds better context.
+
+Example
+
+User Query
+
+What documents are needed for loan approval?
+
+Step Back Query
+
+Explain home loan application requirements.
+HyDE (Hypothetical Document Embeddings)
+
+Advanced production technique.
+
+Problem
+
+User query may be short.
+
+loan interest
+
+Generate hypothetical answer.
+
+Home loan interest rates vary
+between 7% and 10%
+depending on eligibility.
+
+Create embedding from hypothetical answer.
+
+Search using:
+
+Generated Answer Embedding
+
+instead of:
+
+Original Query Embedding
+
+Architecture
+
+Query
+
+↓
+
+LLM
+
+↓
+
+Hypothetical Document
+
+↓
+
+Embedding
+
+↓
+
+Vector Search
+
+Benefits
+
+Better Semantic Retrieval
+Session 3 (4 PM – 6 PM)
+Self Query Retriever
+
+Very common interview topic.
+
+User Query
+
+Show home loan policies from 2025
+
+System extracts:
+
+Query:
+
+home loan policies
+
+Metadata:
+
+{
+ "year":2025
+}
+
+Applies filter automatically.
+
+Architecture
+
+Query
+
+↓
+
+LLM
+
+↓
+
+Metadata Filters
+
+↓
+
+Vector Search
+LangChain Multi Query Example
+from langchain.retrievers.multi_query import (
+    MultiQueryRetriever
+)
+
+retriever = MultiQueryRetriever.from_llm(
+    retriever=vectorstore.as_retriever(),
+    llm=llm
+)
+
+Retrieve
+
+docs = retriever.invoke(
+    "home loan eligibility"
+)
+Self Query Retriever Example
+from langchain.retrievers.self_query.base import (
+    SelfQueryRetriever
+)
+
+Example Metadata
+
+metadata = {
+    "loan_type":"home_loan",
+    "year":2025
+}
+
+User Query
+
+Show 2025 home loan policies
+
+Generated Filter
+
+{
+   "loan_type":"home_loan",
+   "year":2025
+}
+Banking Production Architecture
+User Query
+
+↓
+
+Query Rewrite
+
+↓
+
+Query Expansion
+
+↓
+
+Metadata Extraction
+
+↓
+
+Hybrid Search
+
+↓
+
+Re-ranker
+
+↓
+
+Compression
+
+↓
+
+LLM
+Query Transformation Techniques
+Technique	Purpose
+Rewrite	Improve clarity
+Expansion	Add keywords
+Multi Query	Increase recall
+Step Back	Retrieve broader context
+HyDE	Better semantic search
+Self Query	Metadata extraction
+Banking Example
+
+User Query
+
+ROI
+
+Rewrite
+
+Rate of Interest
+
+Expansion
+
+Rate of Interest Loan Interest Home Loan Interest
+
+Metadata
+
+{
+ "document_type":"loan_policy"
+}
+
+Hybrid Search
+
+↓
+
+Re-rank
+
+↓
+
+LLM
+
+Common Mistakes
+Too Much Expansion
+Query becomes noisy
+Too Many Queries
+Higher latency
+Wrong Rewrite
+Meaning changes
+No Metadata Extraction
+Lower precision
+Interview Questions
+What is Query Transformation?
+
+A process of rewriting or enhancing a query to improve retrieval quality.
+
+Why is Query Transformation important?
+
+User queries are often ambiguous, short, or incomplete.
+
+What is Query Expansion?
+
+Adding related terms to improve recall.
+
+What is Multi Query Retrieval?
+
+Generating multiple search queries from one user query.
+
+What is Step Back Prompting?
+
+Generating a broader query to retrieve more context.
+
+What is HyDE?
+
+Hypothetical Document Embeddings.
+
+Generate a hypothetical answer and use its embedding for retrieval.
+
+What is Self Query Retriever?
+
+A retriever that automatically extracts metadata filters from user queries.
+
+When should Multi Query Retrieval be used?
+
+Complex domains such as banking, insurance, legal, and compliance documents.
+
+How does Query Transformation reduce hallucinations?
+
+It improves retrieval quality, leading to better grounding context.
+
+Which LangChain retrievers support query transformation?
+MultiQueryRetriever
+SelfQueryRetriever
+Goldman Sachs Style Questions
+Explain Query Transformation Architecture.
+User Query
+
+↓
+
+Rewrite
+
+↓
+
+Expansion
+
+↓
+
+Metadata Extraction
+
+↓
+
+Retriever
+
+↓
+
+LLM
+Why do retrieval systems fail?
+
+Because users often ask vague or incomplete questions.
+
+What is HyDE and why is it useful?
+
+HyDE creates a hypothetical answer and uses its embedding for more accurate semantic retrieval.
+
+How would you optimize a Banking RAG system?
+Parent-Child Retrieval
+Metadata Filtering
+Hybrid Search
+Re-ranking
+Compression
+Query Transformation
+Which query transformation technique gives the highest recall?
+Multi Query Retrieval
+
+because multiple retrieval paths are explored.
+
+Coding Tasks
+Task 1
+
+Implement Query Rewriting.
+
+Task 2
+
+Implement Query Expansion.
+
+Task 3
+
+Implement MultiQueryRetriever.
+
+Task 4
+
+Implement SelfQueryRetriever.
+
+Task 5
+
+Implement HyDE Retrieval.
+
+Task 6
+
+Compare retrieval before and after transformation.
+
+Task 7
+
+Measure recall improvements.
+
+Task 8
+
+Integrate Query Transformation into your Banking RAG Project.
+
+DSA (90 Minutes)
+
+Solve:
+
+Longest Increasing Subsequence
+Edit Distance
+Clone Graph
+Minimum Cost to Connect Sticks
+Meeting Rooms II
+End-of-Day Deliverable
+Query Transformation
+Query Rewriting
+Query Expansion
+Multi Query Retrieval
+Step Back Prompting
+HyDE
+Self Query Retriever
+Metadata Extraction
+
+User Query
+ ↓
+Transform
+ ↓
+Retrieve
+ ↓
+LLM
+Day 48 (Next)
+
+RAG Evaluation & Metrics Deep Dive
+
+Topics:
+
+Precision@K
+Recall@K
+MRR
+NDCG
+Faithfulness
+Answer Relevancy
+Hallucination Detection
+RAGAS
+TruLens
+Production Banking RAG Evaluation
+
+This is one of the most important senior AI Engineer interview topics because companies care about measuring RAG quality, not just building RAG systems.

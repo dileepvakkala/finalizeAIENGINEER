@@ -1,0 +1,485 @@
+Day 32 – Document Loaders (LangChain Document Ingestion)
+
+Today you'll learn how documents enter a RAG system.
+
+Before Retrieval, Embeddings, ChromaDB, and LLMs, documents must be loaded into the application.
+
+This step is called:
+
+Document Loading
+
+Most enterprise RAG projects use Document Loaders.
+
+Day 32 Goals
+
+✅ What are Document Loaders
+
+✅ Why Document Loaders are needed
+
+✅ PDF Loader
+
+✅ Text Loader
+
+✅ CSV Loader
+
+✅ Word Loader
+
+✅ Web Loader
+
+✅ Directory Loader
+
+✅ Banking Document Ingestion
+
+✅ Production Pipeline
+
+Where Document Loaders Fit
+Documents
+     ↓
+Document Loader
+     ↓
+Documents Object
+     ↓
+Text Splitter
+     ↓
+Embeddings
+     ↓
+Vector DB
+     ↓
+Retriever
+     ↓
+LLM
+What is a Document Loader?
+
+A Document Loader reads files and converts them into LangChain Document objects.
+
+Without Loader:
+
+with open("policy.txt") as f:
+    text = f.read()
+
+Manual process.
+
+With Loader:
+
+loader = TextLoader(
+    "policy.txt"
+)
+
+documents = loader.load()
+What is a Document Object?
+
+LangChain stores data as:
+
+Document(
+    page_content="Home loan interest rate is 8%",
+    metadata={
+        "source":"policy.pdf"
+    }
+)
+Session 1 (6 AM – 8 AM)
+Text Loader
+
+Install:
+
+pip install langchain-community
+
+Example:
+
+from langchain_community.document_loaders import (
+    TextLoader
+)
+
+loader = TextLoader(
+    "loan_policy.txt"
+)
+
+docs = loader.load()
+
+Output:
+
+[
+ Document(
+   page_content="...",
+   metadata={}
+ )
+]
+PDF Loader
+
+Most common in RAG.
+
+Install:
+
+pip install pypdf
+
+Example:
+
+from langchain_community.document_loaders import (
+    PyPDFLoader
+)
+
+loader = PyPDFLoader(
+    "home_loan_policy.pdf"
+)
+
+docs = loader.load()
+
+Result:
+
+[
+ Document(page1),
+ Document(page2),
+ Document(page3)
+]
+
+Each page becomes a document.
+
+Banking Example
+
+PDF:
+
+Home Loan Policy.pdf
+
+Loader:
+
+loader = PyPDFLoader(
+    "HomeLoanPolicy.pdf"
+)
+
+docs = loader.load()
+Session 2 (11 AM – 1 PM)
+CSV Loader
+
+Suppose:
+
+customer_id,name,loan
+1,Dileep,Home Loan
+2,Ravi,Car Loan
+
+Load:
+
+from langchain_community.document_loaders import (
+    CSVLoader
+)
+
+loader = CSVLoader(
+    file_path="customers.csv"
+)
+
+docs = loader.load()
+
+Useful for:
+
+Customer Data
+Transaction Data
+Reports
+Word Document Loader
+
+Install:
+
+pip install python-docx
+
+Example:
+
+from langchain_community.document_loaders import (
+    Docx2txtLoader
+)
+
+loader = Docx2txtLoader(
+    "loan_policy.docx"
+)
+
+docs = loader.load()
+Directory Loader
+
+Load multiple files.
+
+Example:
+
+policies/
+
+HomeLoan.pdf
+CarLoan.pdf
+CreditCard.pdf
+
+Loader:
+
+from langchain_community.document_loaders import (
+    DirectoryLoader
+)
+
+loader = DirectoryLoader(
+    "policies"
+)
+
+docs = loader.load()
+
+Loads all files automatically.
+
+Session 3 (4 PM – 6 PM)
+Web Loader
+
+Load website content.
+
+Example:
+
+from langchain_community.document_loaders import (
+    WebBaseLoader
+)
+
+loader = WebBaseLoader(
+    "https://example.com"
+)
+
+docs = loader.load()
+
+Use Cases:
+
+FAQs
+Knowledge Bases
+Company Websites
+Documentation
+Metadata
+
+Every document contains metadata.
+
+Example:
+
+Document(
+   page_content="Home Loan Policy",
+
+   metadata={
+      "source":"loan.pdf",
+      "page":1
+   }
+)
+
+Metadata helps:
+
+Filtering
+Search
+Tracing Sources
+Full RAG Ingestion Pipeline
+PDF
+ ↓
+Loader
+ ↓
+Document Objects
+ ↓
+Text Splitter
+ ↓
+Chunks
+ ↓
+Embeddings
+ ↓
+ChromaDB
+ ↓
+Retriever
+Banking Document Ingestion
+
+Upload:
+
+HomeLoanPolicy.pdf
+
+↓
+
+Loader
+
+↓
+
+Documents
+
+↓
+
+Chunking
+
+↓
+
+Embeddings
+
+↓
+
+ChromaDB
+
+↓
+
+Ready For Search
+
+Production Flow
+Admin Upload PDF
+
+      ↓
+
+Document Loader
+
+      ↓
+
+Chunking
+
+      ↓
+
+Embeddings
+
+      ↓
+
+Vector DB
+
+      ↓
+
+Retriever
+
+      ↓
+
+Chat API
+Complete Example
+from langchain_community.document_loaders import (
+    PyPDFLoader
+)
+
+loader = PyPDFLoader(
+    "loan_policy.pdf"
+)
+
+documents = loader.load()
+
+print(
+    documents[0].page_content
+)
+
+print(
+    documents[0].metadata
+)
+Interview Questions
+What is a Document Loader?
+
+Component that loads external data into LangChain Document objects.
+
+Why use Document Loaders?
+
+Standardized ingestion of documents.
+
+What is the output of a loader?
+
+List of Document objects.
+
+What is stored in a Document object?
+page_content
+metadata
+Which loader is commonly used for PDFs?
+
+PyPDFLoader.
+
+What is DirectoryLoader?
+
+Loads all files from a directory.
+
+What is WebBaseLoader?
+
+Loads web page content.
+
+Why is metadata important?
+
+Source tracking and filtering.
+
+What happens after document loading?
+
+Chunking.
+
+Where do Document Loaders fit in RAG?
+
+Before chunking and embeddings.
+
+Goldman Sachs Style Questions
+Explain the document ingestion process.
+Upload
+ ↓
+Loader
+ ↓
+Document
+ ↓
+Chunking
+ ↓
+Embedding
+ ↓
+Vector DB
+Why not directly store PDFs in ChromaDB?
+
+Vector DB stores embeddings, not raw PDF files.
+
+How would you process thousands of PDFs?
+Directory Loader
+Background Processing
+Batch Embeddings
+What metadata would you store?
+{
+  "document_id":1,
+  "file_name":"loan.pdf",
+  "page":5,
+  "document_type":"loan"
+}
+Difference between Document Loader and Text Splitter?
+Loader	Splitter
+Reads file	Splits content
+Creates Documents	Creates Chunks
+How would you ingest banking policies?
+PDF Loader
+ ↓
+Chunking
+ ↓
+Embeddings
+ ↓
+ChromaDB
+Coding Tasks
+Task 1
+
+Load TXT file.
+
+Task 2
+
+Load PDF file.
+
+Task 3
+
+Load CSV file.
+
+Task 4
+
+Load DOCX file.
+
+Task 5
+
+Load all files using DirectoryLoader.
+
+Task 6
+
+Print metadata.
+
+Task 7
+
+Connect loader with chunking.
+
+Task 8
+
+Store chunks in ChromaDB.
+
+DSA (90 Minutes)
+
+Solve:
+
+Merge Intervals
+Search in Rotated Sorted Array
+Validate Binary Search Tree
+Combination Sum
+Daily Temperatures
+End-of-Day Deliverable
+TextLoader
+PyPDFLoader
+CSVLoader
+DocxLoader
+DirectoryLoader
+WebBaseLoader
+
+Document Objects
+Metadata
+Document Ingestion Pipeline
+
+Loader → Splitter → Embeddings → ChromaDB

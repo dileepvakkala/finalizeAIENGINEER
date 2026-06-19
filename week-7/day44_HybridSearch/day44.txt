@@ -1,0 +1,696 @@
+Day 44 – Hybrid Search (BM25 + Vector Search)
+
+Today you'll learn one of the most important production RAG optimization techniques.
+
+Many RAG systems fail because they rely only on vector search.
+
+Problem with Pure Vector Search
+
+User asks:
+
+What is ROI for home loan?
+
+Document contains:
+
+ROI = Rate Of Interest
+
+Vector search may miss the exact acronym.
+
+User asks:
+
+What is section 80C deduction?
+
+Document contains:
+
+Income Tax Act Section 80C
+
+Keyword matching is important.
+
+Problem with Pure Keyword Search
+
+User asks:
+
+Can I get tax benefits on my house loan?
+
+Document contains:
+
+Home loan interest deduction available under section 24.
+
+Keyword search may miss semantic meaning.
+
+Solution: Hybrid Search
+
+Combine:
+
+BM25 (Keyword Search)
+
++
+
+Vector Search (Semantic Search)
+Day 44 Goals
+
+✅ Sparse Retrieval
+
+✅ Dense Retrieval
+
+✅ BM25
+
+✅ Hybrid Search
+
+✅ Re-ranking
+
+✅ Score Fusion
+
+✅ Banking Search Optimization
+
+✅ Interview Questions
+
+Search Evolution
+Traditional Search
+Query
+
+ ↓
+
+Keyword Matching
+
+ ↓
+
+Results
+Vector Search
+Query
+
+ ↓
+
+Embedding
+
+ ↓
+
+Similarity Search
+
+ ↓
+
+Results
+Hybrid Search
+Query
+
+      ↓
+
+ ┌─────────────┐
+ │ BM25 Search │
+ └─────────────┘
+
+      +
+
+ ┌───────────────┐
+ │ Vector Search │
+ └───────────────┘
+
+      ↓
+
+ Merge
+
+      ↓
+
+ Re-rank
+
+      ↓
+
+ Results
+Session 1 (6 AM – 8 AM)
+Sparse Retrieval
+
+Traditional keyword retrieval.
+
+Example:
+
+home loan interest rate
+
+Searches exact words.
+
+BM25
+
+Most popular keyword ranking algorithm.
+
+Used by:
+
+Search Engines
+Enterprise Search
+Document Retrieval
+
+BM25 considers:
+
+Keyword Frequency
+
+Document Length
+
+Term Importance
+
+Example
+
+Document A:
+
+home loan home loan
+home loan interest
+
+Document B:
+
+loan
+
+BM25 ranks:
+
+Document A > Document B
+BM25 Advantages
+Fast
+
+Exact Match
+
+Acronyms
+
+Codes
+
+IDs
+BM25 Disadvantages
+No Semantic Understanding
+
+Example:
+
+Query:
+
+vehicle financing
+
+Document:
+
+car loan
+
+BM25 may fail.
+
+Session 2 (11 AM – 1 PM)
+Dense Retrieval
+
+Modern semantic search.
+
+Process
+
+Text
+
+ ↓
+
+Embedding Model
+
+ ↓
+
+Vector
+
+ ↓
+
+Similarity Search
+
+Example
+
+Query:
+
+vehicle financing
+
+Document:
+
+car loan
+
+Dense retrieval understands:
+
+vehicle financing ≈ car loan
+Dense Retrieval Advantages
+Semantic Search
+
+Natural Language Queries
+
+Meaning-Based Retrieval
+Dense Retrieval Disadvantages
+May miss exact keywords
+
+Higher Cost
+Hybrid Search Architecture
+Query
+
+ ↓
+
+BM25 Results
+
++
+
+Vector Results
+
+ ↓
+
+Merge
+
+ ↓
+
+Rank
+
+ ↓
+
+Top K
+Score Fusion
+
+Suppose:
+
+BM25 returns:
+
+Doc A = 0.9
+
+Doc B = 0.7
+
+Vector Search returns:
+
+Doc A = 0.8
+
+Doc C = 0.9
+
+Combined:
+
+Doc A = 1.7
+
+Doc C = 0.9
+
+Doc B = 0.7
+
+Final Ranking:
+
+Doc A
+
+Doc C
+
+Doc B
+Session 3 (4 PM – 6 PM)
+Re-ranking
+
+Most important production topic.
+
+Without Re-ranking
+
+Top 10 Results
+
+May contain noise.
+
+With Re-ranking
+
+Top 10 Results
+
+ ↓
+
+Cross Encoder
+
+ ↓
+
+Best 3 Results
+
+Architecture
+
+Query
+
+ ↓
+
+Hybrid Search
+
+ ↓
+
+Top 20 Chunks
+
+ ↓
+
+Re-ranker
+
+ ↓
+
+Top 5 Chunks
+
+ ↓
+
+LLM
+Banking Example
+
+Documents:
+
+Home Loan Policy
+
+Vehicle Loan Policy
+
+Credit Card Policy
+
+Insurance Policy
+
+Query:
+
+What documents are required for a home loan?
+
+BM25 finds:
+
+Home Loan Documents
+
+because exact keywords match.
+
+Vector Search finds:
+
+Eligibility Criteria
+
+because semantics are related.
+
+Hybrid Search combines both.
+
+LangChain BM25 Example
+from langchain_community.retrievers import BM25Retriever
+
+retriever = BM25Retriever.from_documents(
+    documents
+)
+
+retriever.k = 5
+
+Search
+
+results = retriever.invoke(
+    "home loan interest"
+)
+Vector Retriever
+vector_retriever = (
+    vectorstore.as_retriever()
+)
+Ensemble Retriever
+
+LangChain Hybrid Search.
+
+from langchain.retrievers import (
+    EnsembleRetriever
+)
+
+ensemble_retriever = (
+    EnsembleRetriever(
+        retrievers=[
+            bm25_retriever,
+            vector_retriever
+        ],
+        weights=[0.5, 0.5]
+    )
+)
+
+Retrieve
+
+results = (
+    ensemble_retriever.invoke(
+        "home loan documents"
+    )
+)
+Banking Production Architecture
+PDFs
+
+ ↓
+
+Chunking
+
+ ↓
+
+Metadata
+
+ ↓
+
+Embeddings
+
+ ↓
+
+ChromaDB
+
+ ↓
+
+Hybrid Search
+
+ ├── BM25
+ └── Vector
+
+ ↓
+
+Re-ranker
+
+ ↓
+
+GPT-4o
+
+ ↓
+
+Answer
+Hybrid Search + Metadata Filtering
+
+Enterprise Flow:
+
+Query
+
+ ↓
+
+Metadata Filter
+
+ ↓
+
+BM25
+
+ +
+
+Vector Search
+
+ ↓
+
+Merge
+
+ ↓
+
+Re-rank
+
+ ↓
+
+LLM
+Hybrid Search + Parent Child Retrieval
+
+Advanced Flow:
+
+Query
+
+ ↓
+
+Hybrid Search
+
+ ↓
+
+Child Chunks
+
+ ↓
+
+Parent Retrieval
+
+ ↓
+
+LLM
+Advantages
+Better Recall
+
+Finds more relevant documents.
+
+Better Precision
+
+Reduces irrelevant results.
+
+Handles Acronyms
+ROI
+EMI
+APR
+KYC
+Handles Semantics
+vehicle financing
+=
+car loan
+Common Mistakes
+Only Vector Search
+
+Misses keywords.
+
+Only BM25
+
+Misses semantics.
+
+No Re-ranking
+
+Poor context quality.
+
+Large K Values
+
+Too much context.
+
+Interview Questions
+What is BM25?
+
+A keyword-based ranking algorithm used in information retrieval.
+
+What is Dense Retrieval?
+
+Embedding-based semantic search.
+
+Difference Between Sparse and Dense Retrieval?
+Sparse	Dense
+Keywords	Semantics
+BM25	Embeddings
+Exact Match	Meaning Match
+What is Hybrid Search?
+
+Combining sparse and dense retrieval.
+
+Why is Hybrid Search better?
+
+It captures both keyword matches and semantic similarity.
+
+What is Re-ranking?
+
+A second-stage ranking process that improves retrieval quality.
+
+What is Score Fusion?
+
+Combining BM25 and vector scores.
+
+Why is Hybrid Search useful in Banking?
+
+Banking documents contain:
+
+Acronyms
+Codes
+Regulations
+Natural language queries
+
+Hybrid search handles all of them.
+
+How does Hybrid Search improve RAG?
+
+It increases recall and retrieval accuracy.
+
+What is EnsembleRetriever?
+
+A LangChain retriever that combines multiple retrievers.
+
+Goldman Sachs Style Questions
+Explain Hybrid Search Architecture.
+Query
+
+ ↓
+
+BM25
+
+ +
+
+Vector Search
+
+ ↓
+
+Merge
+
+ ↓
+
+Re-rank
+
+ ↓
+
+LLM
+Why not use only vector search?
+
+Vector search may miss exact keywords, acronyms, and identifiers.
+
+Why not use only BM25?
+
+BM25 cannot understand semantic meaning.
+
+How would you improve a Banking RAG system?
+Parent-Child Retrieval
+Metadata Filtering
+Hybrid Search
+Re-ranking
+Query Expansion
+What retrieval strategy would you use for loan-policy documents?
+Metadata Filtering
+
++
+
+Hybrid Search
+
++
+
+Re-ranking
+
++
+
+Parent Retrieval
+Coding Tasks
+Task 1
+
+Implement BM25Retriever.
+
+Task 2
+
+Implement Chroma Vector Retriever.
+
+Task 3
+
+Build EnsembleRetriever.
+
+Task 4
+
+Compare BM25 vs Vector Search.
+
+Task 5
+
+Implement Score Fusion.
+
+Task 6
+
+Add Metadata Filtering.
+
+Task 7
+
+Add ParentDocumentRetriever.
+
+Task 8
+
+Integrate Hybrid Search into your Banking RAG project.
+
+DSA (90 Minutes)
+
+Solve:
+
+Course Schedule
+Pacific Atlantic Water Flow
+Task Scheduler
+Serialize and Deserialize Binary Tree
+Alien Dictionary
+End-of-Day Deliverable
+Sparse Retrieval (BM25)
+Dense Retrieval (Embeddings)
+Hybrid Search
+EnsembleRetriever
+Score Fusion
+Re-ranking
+Metadata Filtering
+Enterprise Retrieval
+
+Query
+ ↓
+BM25 + Vector
+ ↓
+Re-rank
+ ↓
+LLM
+Day 45 (Next)
+
+Re-ranking & Context Compression
+
+Topics:
+
+Cross Encoder Re-ranking
+Contextual Compression Retriever
+Lost-in-the-Middle Problem
+Context Window Optimization
+Retrieval Evaluation Metrics
+Production RAG Tuning
+Banking RAG Optimization

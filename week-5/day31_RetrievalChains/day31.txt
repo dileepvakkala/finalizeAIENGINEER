@@ -1,0 +1,521 @@
+Day 31 – Retrieval Chains (Core of RAG Systems)
+
+Today you'll learn the most important concept in RAG applications:
+
+Retriever + Prompt + LLM = Retrieval Chain
+
+This is the heart of:
+
+Banking Chatbots
+Insurance Assistants
+Internal Knowledge Assistants
+Document Q&A Systems
+Graph RAG Systems
+
+Your Graph-RAG project and Banking-RAG project both use Retrieval Chains.
+
+Day 31 Goals
+
+✅ What is a Retrieval Chain
+
+✅ Retriever Architecture
+
+✅ Context Injection
+
+✅ Retrieval Flow
+
+✅ LangChain Retrieval Chains
+
+✅ ChromaDB Integration
+
+✅ Banking RAG Retrieval Chain
+
+✅ Production Design
+
+Why Retrieval Chains?
+
+Without Retrieval:
+
+User Question
+      ↓
+LLM
+      ↓
+Hallucination Risk
+
+Example:
+
+What is our bank's home loan interest rate?
+
+LLM doesn't know your company's internal policy.
+
+With Retrieval:
+
+User Question
+      ↓
+Retriever
+      ↓
+Relevant Documents
+      ↓
+Prompt
+      ↓
+LLM
+      ↓
+Answer
+
+Now the answer comes from your documents.
+
+Retrieval Chain Architecture
+Question
+
+    ↓
+
+Retriever
+
+    ↓
+
+Relevant Chunks
+
+    ↓
+
+Prompt Template
+
+    ↓
+
+LLM
+
+    ↓
+
+Output Parser
+
+    ↓
+
+Final Response
+Session 1 (6 AM – 8 AM)
+Step 1: Create Retriever
+
+Suppose ChromaDB contains:
+
+Home Loan Policy
+Car Loan Policy
+Credit Card Policy
+
+Create Retriever:
+
+retriever = vector_store.as_retriever(
+    search_kwargs={
+        "k":5
+    }
+)
+What does k mean?
+Top K Results
+
+Example:
+
+k=5
+
+Return:
+
+Top 5 Similar Chunks
+Step 2: Retrieve Documents
+docs = retriever.invoke(
+    "What is home loan interest rate?"
+)
+
+Result:
+
+Home loan interest rate is 8%
+Maximum tenure is 20 years
+Understanding Context Injection
+
+Retriever returns:
+
+Chunk 1
+Chunk 2
+Chunk 3
+
+These chunks are injected into prompt.
+
+Session 2 (11 AM – 1 PM)
+Prompt Template
+from langchain.prompts import (
+    PromptTemplate
+)
+
+prompt = PromptTemplate(
+    input_variables=[
+        "context",
+        "question"
+    ],
+    template="""
+Use only the provided context.
+
+Context:
+{context}
+
+Question:
+{question}
+
+Answer:
+"""
+)
+Example
+
+Retrieved Context:
+
+Home loan interest rate is 8%.
+
+Question:
+
+What is home loan interest rate?
+
+Final Prompt:
+
+Use only the provided context.
+
+Context:
+Home loan interest rate is 8%.
+
+Question:
+What is home loan interest rate?
+
+Answer:
+LLM Generation
+answer = llm.invoke(prompt)
+
+Result:
+
+Home loan interest rate is 8%.
+Session 3 (4 PM – 6 PM)
+Retrieval Chain in LangChain
+
+Modern approach:
+
+from langchain.chains import (
+    create_retrieval_chain
+)
+Combine Components
+retrieval_chain = (
+    create_retrieval_chain(
+        retriever,
+        question_answer_chain
+    )
+)
+
+Flow:
+
+Retriever
+     ↓
+
+Context
+
+     ↓
+
+Prompt
+
+     ↓
+
+LLM
+
+     ↓
+
+Answer
+Banking Retrieval Chain
+
+Question:
+
+What documents are required for home loan?
+
+Retriever finds:
+
+Home Loan Policy PDF
+
+Prompt:
+
+Context:
+Customer must provide:
+
+PAN
+Aadhaar
+Salary Slips
+
+Question:
+What documents are required?
+
+Answer:
+
+PAN, Aadhaar and Salary Slips are required.
+Retrieval Chain vs Normal Chain
+Normal Chain	Retrieval Chain
+Prompt → LLM	Retriever → Prompt → LLM
+No external knowledge	Uses external knowledge
+More hallucinations	More accurate
+Simple chatbot	RAG chatbot
+Retrieval Chain + Memory
+
+Production Architecture:
+
+Question
+
+    ↓
+
+Memory
+
+    ↓
+
+Retriever
+
+    ↓
+
+Context
+
+    ↓
+
+Prompt
+
+    ↓
+
+LLM
+
+    ↓
+
+Answer
+Banking Example
+
+Conversation:
+
+User:
+Tell me about home loan.
+
+AI:
+Home loan rate is 8%.
+
+User:
+What documents are required?
+
+Memory:
+
+Home Loan
+
+Retriever:
+
+Home Loan Policy
+
+Answer:
+
+Required documents...
+Production RAG Architecture
+PDF Upload
+
+     ↓
+
+Chunking
+
+     ↓
+
+Embeddings
+
+     ↓
+
+ChromaDB
+
+     ↓
+
+Retriever
+
+     ↓
+
+Retrieval Chain
+
+     ↓
+
+Prompt
+
+     ↓
+
+GPT-4o
+
+     ↓
+
+Output Parser
+
+     ↓
+
+JSON Response
+Advanced Retrieval Settings
+Top-K Retrieval
+search_kwargs={
+    "k":5
+}
+Similarity Threshold
+
+Example:
+
+score > 0.75
+
+Only relevant chunks returned.
+
+Metadata Filtering
+
+Example:
+
+{
+ "type":"loan"
+}
+
+Retrieve only loan documents.
+
+Interview Questions
+What is a Retrieval Chain?
+
+A workflow that retrieves relevant documents before sending context to the LLM.
+
+Why use Retrieval Chains?
+
+Reduce hallucinations and provide factual answers.
+
+What are the components of a Retrieval Chain?
+Retriever
+Prompt
+LLM
+Output
+What is a Retriever?
+
+Component that fetches relevant documents.
+
+What is context injection?
+
+Adding retrieved chunks into the prompt.
+
+Difference between Chain and Retrieval Chain?
+
+Chain:
+
+Prompt → LLM
+
+Retrieval Chain:
+
+Retriever → Prompt → LLM
+What is Top-K Retrieval?
+
+Returning the most relevant K chunks.
+
+Why use metadata filtering?
+
+Improve retrieval precision.
+
+What happens if retrieval returns irrelevant chunks?
+
+Answer quality decreases.
+
+How do you improve retrieval quality?
+Better chunking
+Better embeddings
+Metadata filters
+Re-ranking
+Hybrid search
+Goldman Sachs Style Questions
+Explain Retrieval Chain architecture.
+Question
+ ↓
+Retriever
+ ↓
+Relevant Chunks
+ ↓
+Prompt
+ ↓
+LLM
+ ↓
+Answer
+How does Retrieval Chain reduce hallucinations?
+
+Answers are grounded in retrieved documents.
+
+What role does ChromaDB play?
+
+Stores document embeddings and performs similarity search.
+
+What is context grounding?
+
+Forcing the model to answer using retrieved context.
+
+What if the answer is not found?
+
+Prompt should return:
+
+Information not found.
+Difference between Retrieval Chain and Agent?
+Retrieval Chain	Agent
+Fetches documents	Chooses tools
+Static workflow	Dynamic workflow
+How would you build a banking assistant?
+FastAPI
+ ↓
+JWT
+ ↓
+Memory
+ ↓
+Retriever
+ ↓
+ChromaDB
+ ↓
+Prompt
+ ↓
+GPT
+ ↓
+Response
+How do you scale Retrieval Chains?
+Redis cache
+Async APIs
+Background indexing
+Distributed vector DB
+Coding Tasks
+Task 1
+
+Create ChromaDB Retriever.
+
+Task 2
+
+Retrieve Top-5 chunks.
+
+Task 3
+
+Create PromptTemplate.
+
+Task 4
+
+Inject retrieved context.
+
+Task 5
+
+Build Retrieval Chain.
+
+Task 6
+
+Add Output Parser.
+
+Task 7
+
+Add Memory.
+
+Task 8
+
+Create Banking Question-Answer API.
+
+DSA (90 Minutes)
+
+Solve:
+
+LRU Cache
+Word Ladder
+Rotting Oranges
+Subarray Sum Equals K
+Binary Tree Zigzag Level Order Traversal
+End-of-Day Deliverable
+Retrievers
+Retrieval Chains
+Context Injection
+ChromaDB Integration
+Prompt Grounding
+Top-K Retrieval
+Memory + Retrieval
+Banking RAG Q&A Flow

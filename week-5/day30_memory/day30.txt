@@ -1,0 +1,507 @@
+Day 30 – Memory Concepts (Interview + Implementation)
+
+Memory is one of the most important topics in GenAI, RAG, Agents, and AI Assistants.
+
+In interviews, especially for 3–8 years experience, you may be asked:
+
+What is memory in LLM applications?
+Difference between short-term and long-term memory?
+How is memory implemented in RAG systems?
+How does ChatGPT remember previous messages?
+How would you design memory for a banking assistant?
+What is Memory?
+
+Memory allows an AI application to remember information from previous interactions.
+
+Without Memory:
+
+User: My name is Dileep
+
+AI: Nice to meet you
+
+User: What is my name?
+
+AI: I don't know
+
+With Memory:
+
+User: My name is Dileep
+
+AI: Nice to meet you
+
+User: What is my name?
+
+AI: Your name is Dileep
+Types of Memory
+Memory
+
+├── Short-Term Memory
+├── Long-Term Memory
+├── Episodic Memory
+├── Semantic Memory
+├── Working Memory
+└── Vector Memory
+1. Short-Term Memory
+
+Stores information only during the current conversation/session.
+
+Example:
+
+User:
+I want a home loan
+
+User:
+What is the interest rate?
+
+The AI understands:
+
+interest rate
+=
+home loan interest rate
+
+because the earlier message is still available.
+
+Characteristics
+
+✅ Fast
+
+✅ Session-based
+
+✅ Temporary
+
+❌ Lost after session ends
+
+Banking Example
+User:
+Show account 123
+
+User:
+What is its balance?
+
+"its" refers to account 123.
+
+2. Long-Term Memory
+
+Stores information across sessions.
+
+Example:
+
+User:
+My preferred language is Telugu
+
+Store in database.
+
+Next week:
+
+User:
+Generate report
+
+AI automatically uses Telugu.
+
+Storage Options
+PostgreSQL
+MySQL
+Redis
+MongoDB
+Vector DB
+Banking Example
+
+Store:
+
+{
+ "customer_id":101,
+ "preferred_language":"Telugu",
+ "loan_type":"Home Loan"
+}
+3. Working Memory
+
+Information currently being processed.
+
+Example:
+
+Question:
+Calculate EMI for
+50 lakh loan
+
+The intermediate calculations are working memory.
+
+Similar To
+
+Computer RAM.
+
+4. Episodic Memory
+
+Stores experiences/events.
+
+Example:
+
+Customer called support
+on July 1
+
+Issue:
+Loan approval delay
+
+Store:
+
+Event
+Time
+Action
+Outcome
+Banking Example
+Customer complained
+about transaction failure
+
+Store as an event.
+
+5. Semantic Memory
+
+Stores facts and knowledge.
+
+Example:
+
+Home Loan Interest Rate = 8%
+
+or
+
+Bank working hours
+Usually Stored In
+Knowledge Base
+Documents
+Vector DB
+6. Vector Memory
+
+Stores memory as embeddings.
+
+Example:
+
+Conversation:
+
+I want information
+about home loans.
+
+Convert to vector.
+
+Store in:
+
+Chroma
+Pinecone
+Weaviate
+
+Later:
+
+Tell me about housing loans
+
+Retrieve semantically similar memories.
+
+Memory Architecture
+User Message
+
+      ↓
+
+Memory Store
+
+      ↓
+
+Retriever
+
+      ↓
+
+Relevant History
+
+      ↓
+
+Prompt
+
+      ↓
+
+LLM
+Memory in LangChain
+
+Older LangChain versions provided memory classes such as:
+
+Conversation Buffer
+Conversation Summary
+Window Memory
+
+Conceptually, memory still works the same way:
+
+Store History
+       ↓
+Retrieve History
+       ↓
+Append To Prompt
+Memory Types Used in Applications
+Conversation Buffer Memory
+
+Stores all messages.
+
+Example:
+
+User: Hello
+
+AI: Hi
+
+User: Loan details
+
+AI: ...
+
+Everything remains.
+
+Problem
+
+Large token usage.
+
+Conversation Window Memory
+
+Stores only recent messages.
+
+Example:
+
+Last 5 Messages
+
+Older messages removed.
+
+Benefits
+Lower Cost
+Faster
+Conversation Summary Memory
+
+Stores summarized history.
+
+Instead of:
+
+100 Messages
+
+Store:
+
+Customer interested
+in home loan
+Benefits
+Very Low Tokens
+Long Conversations
+Memory in RAG
+
+Normal RAG:
+
+Question
+ ↓
+Retriever
+ ↓
+Context
+ ↓
+Answer
+
+Memory-Based RAG:
+
+Question
+ ↓
+
+Conversation History
+ ↓
+
+Retriever
+ ↓
+
+Context
+ ↓
+
+Prompt
+ ↓
+
+Answer
+Banking Assistant Example
+
+Conversation:
+
+User:
+I need home loan details
+
+AI:
+Home loan rate is 8%
+
+Later:
+
+User:
+What documents are required?
+
+Memory helps understand:
+
+documents
+=
+home loan documents
+Memory Storage Options
+In-Memory
+chat_history = []
+
+Pros:
+
+Simple
+Fast
+
+Cons:
+
+Lost after restart
+Redis
+
+Pros:
+
+Fast
+Distributed
+
+Used for:
+
+Session Memory
+Chat Memory
+PostgreSQL
+
+Pros:
+
+Persistent
+Reliable
+
+Store:
+
+chat_history
+conversation_id
+message
+timestamp
+Vector DB
+
+Store memory embeddings.
+
+Used for:
+
+Semantic Recall
+Production Banking Architecture
+Customer
+
+    ↓
+
+FastAPI
+
+    ↓
+
+JWT Validation
+
+    ↓
+
+Load Memory
+
+    ↓
+
+Conversation History
+
+    ↓
+
+Retriever
+
+    ↓
+
+ChromaDB
+
+    ↓
+
+Prompt
+
+    ↓
+
+GPT
+
+    ↓
+
+Response
+
+    ↓
+
+Store New Memory
+Interview Questions
+What is Memory in LLM applications?
+
+Mechanism for retaining and using previous information.
+
+Difference between Short-Term and Long-Term Memory?
+Short-Term	Long-Term
+Session only	Across sessions
+Temporary	Persistent
+Faster	Stored externally
+What is Working Memory?
+
+Temporary information used during reasoning.
+
+What is Episodic Memory?
+
+Memory of events and experiences.
+
+What is Semantic Memory?
+
+Facts and knowledge.
+
+Why is memory important?
+
+Maintains context and improves user experience.
+
+How is memory implemented?
+
+Store conversation history and include relevant history in prompts.
+
+What is Conversation Buffer Memory?
+
+Stores entire conversation.
+
+What is Window Memory?
+
+Stores only recent messages.
+
+What is Summary Memory?
+
+Stores compressed conversation summaries.
+
+What is Vector Memory?
+
+Stores memory as embeddings for semantic retrieval.
+
+Goldman Sachs / Enterprise Interview Questions
+How would you implement memory for a banking chatbot?
+Store chat history in PostgreSQL or Redis
+Retrieve relevant history
+Add history to prompt
+Update memory after each interaction
+Why not store all messages forever?
+High token cost
+Slow responses
+Context window limits
+How would you handle very long conversations?
+
+Use summary memory + recent window memory.
+
+What is the best memory strategy?
+
+Hybrid:
+
+Recent Messages
+       +
+Summary
+       +
+Vector Memory
+Difference between RAG and Memory?
+RAG	Memory
+Retrieves documents	Retrieves conversation history
+External knowledge	User context
+Knowledge base	Chat history
+What You Should Remember for Interviews
+Short-Term Memory
+Long-Term Memory
+Working Memory
+Semantic Memory
+Episodic Memory
+Vector Memory
+
+Conversation Buffer
+Window Memory
+Summary Memory
+
+Redis
+PostgreSQL
+Vector DB
+
+Memory + RAG Integration

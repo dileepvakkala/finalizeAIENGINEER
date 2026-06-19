@@ -1,0 +1,589 @@
+Day 41 – Chunking Strategies (Advanced RAG)
+
+Today you'll learn one of the most important RAG optimization topics.
+
+Many engineers think:
+
+PDF
+ ↓
+Chunk
+ ↓
+Store
+
+is enough.
+
+In production systems, chunking strategy directly impacts retrieval accuracy.
+
+A poor chunking strategy can reduce RAG accuracy by 30–50%.
+
+Day 41 Goals
+
+✅ Why Chunking Matters
+
+✅ Fixed Chunking
+
+✅ Recursive Chunking
+
+✅ Semantic Chunking
+
+✅ Document-Based Chunking
+
+✅ Parent-Child Chunking
+
+✅ Sliding Window Chunking
+
+✅ Chunk Overlap
+
+✅ Banking RAG Chunking
+
+✅ Interview Questions
+
+Complete RAG Flow
+Document
+
+ ↓
+
+Chunking
+
+ ↓
+
+Embeddings
+
+ ↓
+
+Vector DB
+
+ ↓
+
+Retriever
+
+ ↓
+
+LLM
+Why Chunking Matters
+
+Suppose your banking PDF contains:
+
+Home Loan
+
+Interest Rate: 8%
+
+Eligibility:
+Salary > 50,000
+
+Required Documents:
+PAN
+Aadhaar
+Salary Slips
+
+Bad chunking:
+
+Chunk 1:
+Home Loan
+
+Interest Rate
+
+Chunk 2:
+8%
+
+Eligibility
+
+Chunk 3:
+Salary > 50000
+
+Meaning gets lost.
+
+Good chunking:
+
+Chunk 1:
+Home Loan
+Interest Rate: 8%
+
+Chunk 2:
+Eligibility:
+Salary > 50000
+
+Chunk 3:
+Required Documents
+PAN
+Aadhaar
+Salary Slips
+
+Better retrieval.
+
+Session 1 (6 AM – 8 AM)
+Fixed Size Chunking
+
+Most basic method.
+
+Split every N characters.
+
+Example:
+
+chunk_size = 500
+
+Document:
+
+1000 Characters
+
+Produces:
+
+Chunk 1 → 500
+
+Chunk 2 → 500
+
+Advantages
+
+Simple
+Fast
+Easy
+
+Disadvantages
+
+Breaks Context
+Breaks Sentences
+Character Splitter
+from langchain_text_splitters import (
+    CharacterTextSplitter
+)
+
+splitter = CharacterTextSplitter(
+    chunk_size=500,
+    chunk_overlap=50
+)
+Recursive Chunking
+
+Most commonly used.
+
+from langchain_text_splitters import (
+    RecursiveCharacterTextSplitter
+)
+
+Example:
+
+splitter = (
+    RecursiveCharacterTextSplitter(
+        chunk_size=500,
+        chunk_overlap=50
+    )
+)
+
+Hierarchy:
+
+Paragraph
+
+ ↓
+
+Sentence
+
+ ↓
+
+Word
+
+ ↓
+
+Character
+
+Preserves meaning better.
+
+Recommended Settings
+Document Type	Chunk Size	Overlap
+FAQs	300	30
+Banking Policies	500	50
+Insurance Docs	1000	100
+Legal Contracts	1500	150
+Session 2 (11 AM – 1 PM)
+Semantic Chunking
+
+Advanced production technique.
+
+Instead of:
+
+500 chars
+500 chars
+500 chars
+
+Split by meaning.
+
+Example
+
+Loan Section
+
+↓
+
+One Chunk
+
+Eligibility Section
+
+↓
+
+Another Chunk
+
+Required Documents
+
+↓
+
+Another Chunk
+
+Benefits
+
+Higher Accuracy
+Better Retrieval
+Example
+
+Bad:
+
+Chunk 1:
+Home Loan
+
+Chunk 2:
+Interest Rate
+
+Chunk 3:
+8%
+
+Semantic:
+
+Chunk 1:
+Home Loan
+Interest Rate: 8%
+Document-Based Chunking
+
+Common in enterprise systems.
+
+Each logical section becomes a chunk.
+
+Example:
+
+Chapter 1
+
+↓
+
+Chunk 1
+Chapter 2
+
+↓
+
+Chunk 2
+
+Banking Example:
+
+Loan Policy
+
+↓
+
+Chunk 1
+Credit Card Policy
+
+↓
+
+Chunk 2
+Parent-Child Chunking
+
+Very important interview topic.
+
+Store:
+
+Parent Chunk
+
+Large context.
+
+Retrieve:
+
+Child Chunk
+
+Small chunk.
+
+Example:
+
+Parent:
+
+Entire Home Loan Policy
+
+Children:
+
+Interest Rate
+
+Eligibility
+
+Documents
+
+Retrieval:
+
+Find Child
+
+↓
+
+Return Parent
+
+Benefits:
+
+High Precision
+
++
+
+High Context
+Session 3 (4 PM – 6 PM)
+Sliding Window Chunking
+
+Also called Overlapping Chunking.
+
+Example
+
+Original:
+
+A B C D E F G H I J
+
+Chunk 1
+
+A B C D E
+
+Chunk 2
+
+D E F G H
+
+Chunk 3
+
+G H I J
+
+Benefits
+
+Preserves Context
+Chunk Overlap
+
+Most important parameter.
+
+Example:
+
+chunk_overlap=50
+
+Without Overlap
+
+Chunk 1:
+Interest Rate
+
+Chunk 2:
+8%
+
+Meaning lost.
+
+With Overlap
+
+Chunk 1:
+Interest Rate
+
+Chunk 2:
+Interest Rate 8%
+
+Better retrieval.
+
+Chunk Size Tradeoff
+
+Small Chunks
+
+More Precision
+Less Context
+
+Large Chunks
+
+More Context
+Less Precision
+
+Interview Answer:
+
+Use chunk_size=500
+chunk_overlap=50
+
+Then tune based on retrieval results.
+Banking RAG Chunking Strategy
+
+For your Banking Project:
+
+Loan Policies
+chunk_size=800
+chunk_overlap=100
+FAQs
+chunk_size=300
+chunk_overlap=30
+Legal Documents
+chunk_size=1500
+chunk_overlap=150
+Production Chunking Architecture
+PDF
+
+ ↓
+
+Loader
+
+ ↓
+
+Semantic Chunking
+
+ ↓
+
+Recursive Splitter
+
+ ↓
+
+Embeddings
+
+ ↓
+
+ChromaDB
+
+ ↓
+
+Retriever
+
+ ↓
+
+LLM
+Common Chunking Mistakes
+Huge Chunks
+chunk_size=10000
+
+Problem:
+
+Poor Retrieval
+Tiny Chunks
+chunk_size=20
+
+Problem:
+
+Context Lost
+No Overlap
+chunk_overlap=0
+
+Problem:
+
+Boundary Information Lost
+Interview Questions
+What is chunking?
+
+Splitting documents into smaller pieces before embedding.
+
+Why is chunking necessary?
+
+Because LLMs and vector databases work better with smaller semantic units.
+
+What is Recursive Chunking?
+
+A chunking strategy that preserves document structure using multiple separators.
+
+What is Semantic Chunking?
+
+Chunking based on meaning instead of fixed size.
+
+Why use overlap?
+
+To preserve context across chunk boundaries.
+
+What is Parent-Child Retrieval?
+
+Store large parent chunks and retrieve through smaller child chunks.
+
+What happens if chunk size is too large?
+
+Retrieval becomes less precise.
+
+What happens if chunk size is too small?
+
+Important context gets lost.
+
+Which chunking strategy is most common?
+
+RecursiveCharacterTextSplitter.
+
+Which chunking strategy is best?
+
+There is no universal best approach. It depends on document type and retrieval performance.
+
+Goldman Sachs Style Questions
+Explain your chunking strategy in a Banking RAG project.
+
+Answer:
+
+Used RecursiveCharacterTextSplitter
+
+chunk_size = 800
+
+chunk_overlap = 100
+
+to preserve context and improve retrieval quality.
+Why is overlap important?
+
+To avoid losing information at chunk boundaries.
+
+How would you optimize retrieval quality?
+Better chunking
+Better embeddings
+Metadata filtering
+Re-ranking
+Hybrid search
+What is Parent-Child Retrieval?
+
+Retrieve small chunks but provide larger context to the LLM.
+
+What chunking strategy would you use for legal documents?
+Large chunks
+Semantic chunking
+High overlap
+Coding Tasks
+Task 1
+
+Implement CharacterTextSplitter.
+
+Task 2
+
+Implement RecursiveCharacterTextSplitter.
+
+Task 3
+
+Compare:
+
+chunk_size=300
+chunk_size=500
+chunk_size=1000
+Task 4
+
+Compare overlaps:
+
+20
+50
+100
+Task 5
+
+Build Semantic Chunking.
+
+Task 6
+
+Implement Parent-Child Retrieval.
+
+Task 7
+
+Evaluate retrieval quality.
+
+Task 8
+
+Optimize chunking for Banking RAG.
+
+DSA (90 Minutes)
+
+Solve:
+
+Word Search II
+Minimum Genetic Mutation
+Maximum Product Subarray
+Coin Change
+Graph Valid Tree
+End-of-Day Deliverable
+Fixed Chunking
+Recursive Chunking
+Semantic Chunking
+Document-Based Chunking
+Parent-Child Chunking
+Sliding Window Chunking
+Chunk Overlap
+Chunk Size Optimization
+
+Document → Chunk → Embed → Retrieve → LLM

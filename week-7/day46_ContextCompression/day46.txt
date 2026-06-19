@@ -1,0 +1,627 @@
+Day 46 – Context Compression (Advanced RAG Optimization)
+
+Today you'll learn one of the most important production RAG techniques.
+
+Many RAG systems retrieve relevant documents but still fail because they send too much information to the LLM.
+
+Why Context Compression?
+
+Suppose a Banking RAG retrieves:
+
+Chunk 1:
+Home Loan Policy
+
+Interest Rate: 8%
+
+Eligibility:
+Salary > 50000
+
+Documents:
+PAN
+Aadhaar
+
+History of Bank
+
+Marketing Content
+
+Awards
+
+Branch Information
+
+User asks:
+
+What is the home loan interest rate?
+
+LLM only needs:
+
+Interest Rate: 8%
+
+Everything else is noise.
+
+Problem Without Compression
+Retriever
+
+↓
+
+20 Chunks
+
+↓
+
+15000 Tokens
+
+↓
+
+LLM
+
+↓
+
+Higher Cost
+Higher Latency
+More Hallucinations
+Solution
+Retriever
+
+↓
+
+Compression
+
+↓
+
+Important Context Only
+
+↓
+
+LLM
+Day 46 Goals
+
+✅ What is Context Compression
+
+✅ Compression Strategies
+
+✅ Extractive Compression
+
+✅ Abstractive Compression
+
+✅ Contextual Compression Retriever
+
+✅ LLM-Based Compression
+
+✅ Lost in the Middle Solution
+
+✅ Banking RAG Optimization
+
+Session 1 (6 AM – 8 AM)
+What is Context Compression?
+
+Reducing retrieved content while preserving information required to answer the query.
+
+Before Compression
+Home Loan Policy
+
+Interest Rate: 8%
+
+Eligibility:
+Salary > 50000
+
+Documents:
+PAN
+Aadhaar
+
+History of Bank
+
+Awards
+
+Branches
+
+Marketing Information
+After Compression
+Interest Rate: 8%
+Benefits
+Lower Cost
+Fewer Tokens
+Faster Responses
+Smaller Prompt
+Better Accuracy
+Less Noise
+Compression Types
+1. Extractive Compression
+
+Keep relevant sentences.
+
+Original
+
+Home Loan Policy
+
+Interest Rate: 8%
+
+Eligibility Salary > 50000
+
+History of Bank
+
+Awards
+
+Compressed
+
+Interest Rate: 8%
+Advantages
+Fast
+Cheap
+Reliable
+Disadvantages
+May miss context
+2. Abstractive Compression
+
+Generate summary.
+
+Original
+
+Eligibility:
+Salary > 50000
+
+Documents:
+PAN
+Aadhaar
+
+Compressed
+
+Applicant must earn above 50000 and provide identity documents.
+
+Advantages
+
+Very Compact
+
+Disadvantages
+
+Possible Hallucinations
+Session 2 (11 AM – 1 PM)
+Contextual Compression Retriever
+
+LangChain Component.
+
+from langchain.retrievers import (
+    ContextualCompressionRetriever
+)
+
+Architecture
+
+Query
+
+↓
+
+Retriever
+
+↓
+
+Documents
+
+↓
+
+Compressor
+
+↓
+
+Compressed Documents
+
+↓
+
+LLM
+Example
+
+Base Retriever
+
+retriever = vectorstore.as_retriever()
+
+Create Compressor
+
+from langchain_openai import OpenAI
+
+llm = OpenAI()
+
+Compression Retriever
+
+compression_retriever = (
+    ContextualCompressionRetriever(
+        base_retriever=retriever,
+        base_compressor=compressor
+    )
+)
+
+Retrieve
+
+docs = compression_retriever.invoke(
+    "home loan interest rate"
+)
+LLM-Based Compression
+
+Architecture
+
+Retrieved Context
+
+↓
+
+LLM
+
+↓
+
+Relevant Information
+
+↓
+
+Final LLM
+
+Example
+
+Input
+
+10 pages of policy
+
+↓
+
+Compressor LLM
+
+↓
+
+Interest Rate: 8%
+
+Eligibility:
+Salary > 50000
+Filter-Based Compression
+
+Very common.
+
+User asks:
+
+Home Loan Interest Rate
+
+Keep only:
+
+Interest Rate
+
+Remove:
+
+History
+Marketing
+Branches
+Session 3 (4 PM – 6 PM)
+Context Compression + Hybrid Search
+
+Production Flow
+
+Query
+
+↓
+
+Metadata Filter
+
+↓
+
+Hybrid Search
+
+↓
+
+Top 20 Chunks
+
+↓
+
+Cross Encoder
+
+↓
+
+Top 5 Chunks
+
+↓
+
+Compression
+
+↓
+
+LLM
+Lost in the Middle Problem
+
+Interview Favorite.
+
+Suppose:
+
+Chunk 1
+
+Chunk 2
+
+IMPORTANT INFO
+
+Chunk 4
+
+Chunk 5
+
+Important information appears in middle.
+
+LLM may ignore it.
+
+Compression Fix
+IMPORTANT INFO
+
+Chunk 1
+
+Chunk 2
+
+Move relevant content to top.
+
+Banking Example
+
+User:
+
+What is vehicle loan eligibility?
+
+Retrieved Context:
+
+Vehicle Loan Policy
+
+Eligibility:
+Salary > 40000
+
+Documents:
+PAN
+
+History
+
+Branches
+
+Marketing Content
+
+Compressed Context:
+
+Eligibility:
+Salary > 40000
+
+Documents:
+PAN
+Token Optimization
+
+Without Compression
+
+20 Chunks
+
+15000 Tokens
+
+With Compression
+
+5 Chunks
+
+2500 Tokens
+Cost Savings
+
+Example:
+
+Before Compression:
+15000 Tokens
+
+↓
+
+After Compression:
+3000 Tokens
+
+↓
+
+80% Cost Reduction
+Enterprise Banking Architecture
+PDF
+
+↓
+
+Chunking
+
+↓
+
+Metadata
+
+↓
+
+Embeddings
+
+↓
+
+ChromaDB
+
+↓
+
+Hybrid Search
+
+↓
+
+Re-ranker
+
+↓
+
+Context Compression
+
+↓
+
+GPT-4o
+
+↓
+
+Answer
+Common Compression Techniques
+Technique	Usage
+Keyword Filter	Fast
+Metadata Filter	Common
+Extractive Compression	Production
+LLM Compression	Advanced
+Summarization	Large Docs
+Common Mistakes
+Compress Too Much
+Answer Context Lost
+No Compression
+Huge Token Cost
+Compress Before Retrieval
+
+Wrong order.
+
+Correct
+
+Retrieve
+
+↓
+
+Compress
+
+↓
+
+Generate
+Interview Questions
+What is Context Compression?
+
+Reducing retrieved context while preserving information needed to answer a query.
+
+Why is Context Compression important?
+Lower cost
+Lower latency
+Better answer quality
+What is Extractive Compression?
+
+Selecting important sentences from retrieved documents.
+
+What is Abstractive Compression?
+
+Generating a concise summary of retrieved content.
+
+Which is safer?
+Extractive Compression
+
+because it does not generate new information.
+
+What is ContextualCompressionRetriever?
+
+A LangChain retriever that compresses retrieved documents before passing them to the LLM.
+
+How does compression reduce hallucinations?
+
+It removes irrelevant context that can confuse the model.
+
+What is Lost in the Middle?
+
+Important information placed in the middle of long contexts may receive less attention from the LLM.
+
+How do you optimize token usage in RAG?
+Better chunking
+Metadata filtering
+Re-ranking
+Context compression
+When should compression happen?
+After Retrieval
+
+Before Generation
+Goldman Sachs Style Questions
+Explain Context Compression in Production RAG.
+Retriever
+
+↓
+
+Top 20 Chunks
+
+↓
+
+Compression
+
+↓
+
+Top Relevant Information
+
+↓
+
+LLM
+Why not send all retrieved chunks?
+
+Because:
+
+Higher token cost
+More latency
+More noise
+How would you optimize a Banking RAG system?
+Parent-Child Retrieval
+Metadata Filtering
+Hybrid Search
+Re-ranking
+Context Compression
+What is the safest compression strategy?
+Extractive Compression
+
+because it preserves original text.
+
+How does Context Compression help with large PDFs?
+
+It extracts only the information relevant to the user query.
+
+Coding Tasks
+Task 1
+
+Implement a Vector Retriever.
+
+Task 2
+
+Retrieve Top 20 Chunks.
+
+Task 3
+
+Build an Extractive Compressor.
+
+Task 4
+
+Implement ContextualCompressionRetriever.
+
+Task 5
+
+Compare token counts before and after compression.
+
+Task 6
+
+Implement LLM-based compression.
+
+Task 7
+
+Measure retrieval quality improvements.
+
+Task 8
+
+Integrate compression into your Banking RAG Project.
+
+DSA (90 Minutes)
+
+Solve:
+
+Sliding Window Maximum
+Minimum Window Substring
+Binary Tree Maximum Path Sum
+Trapping Rain Water
+Merge k Sorted Lists
+End-of-Day Deliverable
+Context Compression
+Extractive Compression
+Abstractive Compression
+ContextualCompressionRetriever
+LLM Compression
+Lost in the Middle
+Token Optimization
+Production RAG Compression
+
+Retrieve
+ ↓
+Compress
+ ↓
+Generate
+Day 47 (Next)
+
+RAG Evaluation & Metrics
+
+Topics:
+
+Precision@K
+Recall@K
+MRR
+NDCG
+Faithfulness
+Answer Relevancy
+Hallucination Detection
+RAGAS Framework
+Banking RAG Evaluation Dashboard
+
+This is a senior-level AI Engineer interview topic and critical for production RAG systems.
