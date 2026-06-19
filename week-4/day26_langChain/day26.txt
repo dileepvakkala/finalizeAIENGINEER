@@ -1,0 +1,531 @@
+Day 26 – LangChain Architecture (Most Important GenAI Framework)
+
+Today you start learning the framework that connects:
+
+LLM
+ ↓
+Prompt
+ ↓
+Retriever
+ ↓
+Vector DB
+ ↓
+Tools
+ ↓
+Memory
+ ↓
+Agents
+
+Most GenAI interviews for 3–8 years experience will ask LangChain concepts.
+
+Since your goal is to build Banking RAG, Agentic AI, and Graph RAG systems, LangChain is a core skill.
+
+Day 26 Goals
+
+Learn:
+
+✅ What is LangChain
+
+✅ LangChain Architecture
+
+✅ Models
+
+✅ Prompts
+
+✅ Chains
+
+✅ Retrievers
+
+✅ Vector Stores
+
+✅ Memory
+
+✅ Agents
+
+✅ Banking RAG Integration
+
+Session 1 (6 AM – 8 AM)
+LangChain Fundamentals
+What is LangChain?
+
+LangChain is a framework for building LLM applications.
+
+Without LangChain:
+
+User Query
+    ↓
+Manual Prompt
+    ↓
+LLM Call
+    ↓
+Manual Parsing
+
+With LangChain:
+
+Prompt
+   ↓
+LLM
+   ↓
+Parser
+   ↓
+Output
+Install
+pip install langchain
+pip install langchain-community
+pip install langchain-openai
+Core Components
+LangChain
+
+├── Models
+├── Prompts
+├── Chains
+├── Retrievers
+├── Memory
+├── Agents
+└── Tools
+LangChain Architecture
+                User Query
+
+                      ↓
+
+              Prompt Template
+
+                      ↓
+
+                    LLM
+
+                      ↓
+
+              Output Parser
+
+                      ↓
+
+                  Response
+Session 2 (11 AM – 1 PM)
+Prompt Templates
+
+Prompt engineering is central to GenAI.
+
+Without Template
+query = "What is home loan?"
+With Template
+from langchain.prompts import PromptTemplate
+
+prompt = PromptTemplate(
+    input_variables=["question"],
+    template="""
+    You are a banking assistant.
+
+    Question:
+    {question}
+
+    Answer:
+    """
+)
+Format Prompt
+formatted = prompt.format(
+    question="What is home loan?"
+)
+
+print(formatted)
+
+Output:
+
+You are a banking assistant.
+
+Question:
+What is home loan?
+
+Answer:
+Models
+
+Example:
+
+from langchain_openai import ChatOpenAI
+
+llm = ChatOpenAI(
+    model="gpt-4o-mini"
+)
+Invoke Model
+response = llm.invoke(
+    "What is home loan?"
+)
+
+print(response.content)
+Session 3 (4 PM – 6 PM)
+Chains & LCEL
+What is a Chain?
+
+A chain connects components.
+
+Example:
+
+Prompt
+   ↓
+LLM
+   ↓
+Output
+LCEL (LangChain Expression Language)
+
+Modern LangChain style.
+
+chain = prompt | llm
+
+Execute:
+
+result = chain.invoke(
+    {
+        "question":
+        "What is home loan?"
+    }
+)
+
+print(result.content)
+Output Parser
+
+Without parser:
+
+AIMessage(...)
+
+With parser:
+
+from langchain_core.output_parsers import (
+    StrOutputParser
+)
+
+parser = StrOutputParser()
+
+Chain:
+
+chain = (
+    prompt
+    | llm
+    | parser
+)
+
+Result:
+
+answer = chain.invoke(
+    {
+        "question":
+        "What is home loan?"
+    }
+)
+
+Returns:
+
+Plain Text
+LangChain Components Deep Dive
+Retrievers
+
+Purpose:
+
+Find Relevant Documents
+
+Flow:
+
+Question
+    ↓
+Retriever
+    ↓
+Top Chunks
+
+Example:
+
+retriever = (
+    vector_store
+    .as_retriever()
+)
+
+Search:
+
+docs = retriever.invoke(
+    "housing loan"
+)
+Vector Store
+
+Examples:
+
+Chroma
+Pinecone
+Weaviate
+Memory
+
+Purpose:
+
+Remember Previous Conversation
+
+Example:
+
+User:
+My account number is 123
+
+User:
+What did I tell you?
+
+Memory provides context.
+
+Agents
+
+Agents decide:
+
+Which Tool To Use
+
+Example:
+
+Question:
+Customer balance?
+
+Agent:
+Call Database Tool
+Tools
+
+Examples:
+
+Database Tool
+Calculator Tool
+API Tool
+Search Tool
+Banking RAG Architecture
+User Question
+       ↓
+
+Prompt Template
+       ↓
+
+Retriever
+       ↓
+
+ChromaDB
+       ↓
+
+Relevant Chunks
+       ↓
+
+GPT-4o
+       ↓
+
+Answer
+End-to-End LangChain Flow
+PDF
+ ↓
+Chunking
+ ↓
+Embeddings
+ ↓
+ChromaDB
+ ↓
+Retriever
+ ↓
+Prompt
+ ↓
+LLM
+ ↓
+Answer
+Interview Questions
+What is LangChain?
+
+Framework for building LLM-powered applications.
+
+Why use LangChain?
+
+Provides reusable building blocks for LLM systems.
+
+What are the main components?
+Models
+Prompts
+Chains
+Retrievers
+Memory
+Agents
+Tools
+What is a Prompt Template?
+
+Reusable prompt with variables.
+
+What is a Chain?
+
+Sequence of connected LangChain components.
+
+What is LCEL?
+
+LangChain Expression Language.
+
+Example:
+
+prompt | llm | parser
+What is a Retriever?
+
+Component that fetches relevant documents.
+
+Difference between Retriever and Vector DB?
+
+Retriever:
+
+Search abstraction
+
+Vector DB:
+
+Storage layer
+What is Memory?
+
+Stores conversation context.
+
+What is an Agent?
+
+System that decides which tools/actions to execute.
+
+Goldman Sachs Style Questions
+1. Explain LangChain architecture.
+Prompt
+ ↓
+Retriever
+ ↓
+LLM
+ ↓
+Parser
+2. Why use Prompt Templates?
+
+Consistency and reusability.
+
+3. Difference between Chain and Agent?
+
+Chain:
+
+Fixed flow
+
+Agent:
+
+Dynamic decision-making
+4. Explain Retriever in RAG.
+
+Retrieves relevant chunks before the LLM generates an answer.
+
+5. Why separate retrieval from generation?
+
+Improves accuracy and reduces hallucinations.
+
+6. What is LCEL?
+
+Composable syntax for chaining components.
+
+7. How does LangChain integrate with ChromaDB?
+
+Retriever layer uses ChromaDB to fetch similar chunks.
+
+8. What role does memory play?
+
+Maintains conversation context.
+
+9. How would you build a banking chatbot?
+FastAPI
+ ↓
+LangChain
+ ↓
+Retriever
+ ↓
+ChromaDB
+ ↓
+GPT
+ ↓
+Answer
+10. What are limitations of LangChain?
+Extra abstraction
+Learning curve
+Debugging complexity in large chains
+Coding Tasks
+Task 1
+
+Install LangChain packages.
+
+Task 2
+
+Create PromptTemplate.
+
+Task 3
+
+Integrate OpenAI model.
+
+Task 4
+
+Build LCEL chain.
+
+Task 5
+
+Add Output Parser.
+
+Task 6
+
+Create Chroma Retriever.
+
+Task 7
+
+Retrieve banking documents.
+
+Task 8
+
+Build Question → Answer workflow.
+
+Banking Project Integration
+
+Current Architecture:
+
+PDF Upload
+ ↓
+Chunking
+ ↓
+Embeddings
+ ↓
+ChromaDB
+
+After Day 26:
+
+PDF Upload
+ ↓
+Chunking
+ ↓
+Embeddings
+ ↓
+ChromaDB
+ ↓
+Retriever
+ ↓
+LangChain
+ ↓
+GPT
+ ↓
+Answer
+DSA (90 Minutes)
+
+Solve:
+
+Median of Two Sorted Arrays
+Serialize and Deserialize Binary Tree
+Sliding Window Maximum
+Minimum Window Substring
+Find Median from Data Stream
+End-of-Day Deliverable
+LangChain Fundamentals
+Prompt Templates
+LLM Integration
+LCEL Chains
+Output Parsers
+Retrievers
+Memory Concepts
+Agent Concepts
+Banking RAG Architecture
+Day 27 (Next)
+
+Complete RAG Application using FastAPI + LangChain + ChromaDB + OpenAI, where you'll build:
+
+User Question
+     ↓
+Retriever
+     ↓
+Relevant Chunks
+     ↓
+Prompt Template
+     ↓
+GPT-4o
+     ↓
+Final Answer

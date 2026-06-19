@@ -1,0 +1,552 @@
+Day 28 – Chains (LangChain Chains & LCEL)
+
+Today you'll learn how to connect multiple GenAI components into a workflow.
+
+This is one of the most important LangChain concepts because real-world applications are not just:
+
+Question → LLM
+
+Instead they are:
+
+Question
+   ↓
+Retriever
+   ↓
+Prompt
+   ↓
+LLM
+   ↓
+Parser
+   ↓
+Response
+
+This complete flow is called a Chain.
+
+Day 28 Goals
+
+✅ Understand Chains
+
+✅ LCEL (LangChain Expression Language)
+
+✅ Prompt → LLM → Output Parser
+
+✅ Sequential Workflows
+
+✅ RAG Chains
+
+✅ Retrieval Chains
+
+✅ Error Handling
+
+✅ Banking Assistant Chain
+
+Session 1 (6 AM – 8 AM)
+What is a Chain?
+
+A Chain connects multiple LangChain components.
+
+Without Chain:
+
+prompt = prompt_template.format(
+    question="What is home loan?"
+)
+
+response = llm.invoke(prompt)
+
+answer = response.content
+
+With Chain:
+
+chain = prompt | llm | parser
+
+Flow:
+
+Prompt
+  ↓
+LLM
+  ↓
+Parser
+Install
+pip install langchain
+pip install langchain-openai
+Basic Chain
+from langchain.prompts import PromptTemplate
+
+prompt = PromptTemplate(
+    input_variables=["question"],
+    template="""
+    Answer:
+
+    {question}
+    """
+)
+from langchain_openai import ChatOpenAI
+
+llm = ChatOpenAI(
+    model="gpt-4o-mini"
+)
+from langchain_core.output_parsers import (
+    StrOutputParser
+)
+
+parser = StrOutputParser()
+
+Create Chain:
+
+chain = prompt | llm | parser
+
+Run:
+
+result = chain.invoke(
+    {
+        "question":
+        "What is home loan?"
+    }
+)
+
+print(result)
+LCEL
+
+LCEL = LangChain Expression Language.
+
+Modern LangChain uses:
+
+prompt | llm | parser
+
+instead of older chain classes.
+
+Benefits:
+
+Readable
+Reusable
+Composable
+Production Friendly
+Session 2 (11 AM – 1 PM)
+Multi-Step Chains
+
+Real systems require multiple steps.
+
+Example:
+
+Question
+   ↓
+Generate Query
+   ↓
+Retrieve Documents
+   ↓
+Generate Answer
+Example Prompt
+query_prompt = PromptTemplate(
+    input_variables=["question"],
+    template="""
+    Convert question into search query.
+
+    Question:
+    {question}
+    """
+)
+
+Chain:
+
+query_chain = (
+    query_prompt
+    | llm
+    | parser
+)
+
+Input:
+
+query_chain.invoke(
+    {
+      "question":
+      "What is mortgage interest?"
+    }
+)
+
+Output:
+
+home loan interest rate
+RunnableLambda
+
+Custom Python logic inside chain.
+
+from langchain_core.runnables import (
+    RunnableLambda
+)
+
+Example:
+
+def uppercase(text):
+    return text.upper()
+custom_step = RunnableLambda(
+    uppercase
+)
+
+Chain:
+
+chain = (
+    prompt
+    | llm
+    | parser
+    | custom_step
+)
+Session 3 (4 PM – 6 PM)
+Retrieval Chains (RAG)
+
+Most common interview topic.
+
+Flow:
+
+User Question
+      ↓
+Retriever
+      ↓
+Context
+      ↓
+Prompt
+      ↓
+LLM
+      ↓
+Answer
+Retriever
+
+Example:
+
+retriever = (
+    vector_store
+    .as_retriever()
+)
+
+Retrieve Documents:
+
+docs = retriever.invoke(
+    "housing loan"
+)
+Prompt
+template = """
+Answer only using context.
+
+Context:
+{context}
+
+Question:
+{question}
+"""
+prompt = PromptTemplate(
+    input_variables=[
+        "context",
+        "question"
+    ],
+    template=template
+)
+Retrieval Chain
+from langchain.chains import (
+    RetrievalQA
+)
+
+Conceptually:
+
+Retriever
+      ↓
+Prompt
+      ↓
+LLM
+      ↓
+Answer
+Banking Assistant Chain
+
+Prompt:
+
+BANK_PROMPT = """
+You are a banking assistant.
+
+Context:
+{context}
+
+Question:
+{question}
+
+Answer:
+"""
+
+Chain:
+
+bank_chain = (
+    prompt
+    | llm
+    | parser
+)
+
+Input:
+
+{
+ "context":
+ "Home loan interest rate is 8%",
+
+ "question":
+ "What is home loan rate?"
+}
+
+Output:
+
+Home loan interest rate is 8%.
+Error Handling
+
+Suppose retrieval returns nothing.
+
+Bad:
+
+Hallucinated Answer
+
+Good Prompt:
+
+template = """
+Use context only.
+
+If answer is unavailable,
+say:
+
+Information not found.
+
+Context:
+{context}
+
+Question:
+{question}
+"""
+Full Banking RAG Flow
+PDF Upload
+      ↓
+Chunking
+      ↓
+Embeddings
+      ↓
+ChromaDB
+      ↓
+Retriever
+      ↓
+Prompt
+      ↓
+LLM
+      ↓
+Parser
+      ↓
+Response
+Interview Questions
+What is a Chain?
+
+A sequence of LangChain components connected together.
+
+Why use Chains?
+
+To build reusable workflows.
+
+What is LCEL?
+
+LangChain Expression Language.
+
+Example:
+
+prompt | llm | parser
+Benefits of LCEL?
+Simple
+Composable
+Readable
+Flexible
+What is an Output Parser?
+
+Converts model output into a desired format.
+
+What is RunnableLambda?
+
+Allows custom Python functions inside chains.
+
+What is a Retrieval Chain?
+
+Retriever + Prompt + LLM workflow.
+
+Why are Chains important in RAG?
+
+They orchestrate retrieval and answer generation.
+
+Difference between Chain and Agent?
+
+Chain:
+
+Fixed Workflow
+
+Agent:
+
+Dynamic Decisions
+What happens if retrieval fails?
+
+Prompt should instruct the model to return:
+
+Information not found
+Goldman Sachs Style Questions
+1. Explain Chain architecture.
+Input
+ ↓
+Prompt
+ ↓
+LLM
+ ↓
+Parser
+ ↓
+Output
+2. Why use LCEL over older chains?
+
+Cleaner and more composable architecture.
+
+3. What is the role of Output Parsers?
+
+Convert AI responses into plain text, JSON, or structured data.
+
+4. How would you build a banking chatbot chain?
+Retriever
+ ↓
+Prompt
+ ↓
+GPT
+ ↓
+Parser
+5. How do Chains reduce code complexity?
+
+Encapsulate workflow logic into reusable components.
+
+6. Difference between Sequential Chain and Retrieval Chain?
+
+Sequential:
+
+Step1 → Step2 → Step3
+
+Retrieval:
+
+Retriever → LLM
+7. How would you debug a chain?
+
+Inspect:
+
+Inputs
+Prompt
+Retrieved documents
+Model output
+8. What are common chain components?
+Prompt
+LLM
+Retriever
+Parser
+Tools
+Memory
+9. Why is Retrieval Chain important?
+
+Provides factual context before generation.
+
+10. How would you prevent hallucinations?
+Strong prompts
+Retrieval
+Context validation
+Output validation
+Coding Tasks
+Task 1
+
+Build:
+
+prompt | llm | parser
+
+chain.
+
+Task 2
+
+Create reusable PromptTemplate.
+
+Task 3
+
+Add Output Parser.
+
+Task 4
+
+Implement RunnableLambda.
+
+Task 5
+
+Create Banking Assistant Chain.
+
+Task 6
+
+Integrate ChromaDB Retriever.
+
+Task 7
+
+Build Retrieval Chain.
+
+Task 8
+
+Create End-to-End RAG Workflow.
+
+Banking Project Integration
+
+Current Architecture:
+
+PDF
+ ↓
+Chunking
+ ↓
+Embeddings
+ ↓
+ChromaDB
+ ↓
+Retriever
+
+After Day 28:
+
+PDF
+ ↓
+Chunking
+ ↓
+Embeddings
+ ↓
+ChromaDB
+ ↓
+Retriever
+ ↓
+Prompt
+ ↓
+LLM
+ ↓
+Parser
+ ↓
+Response
+DSA (90 Minutes)
+
+Solve:
+
+Top K Frequent Elements
+Longest Consecutive Sequence
+Lowest Common Ancestor of a Binary Tree
+Evaluate Reverse Polish Notation
+Spiral Matrix
+End-of-Day Deliverable
+Understand Chains
+LCEL Syntax
+Prompt + LLM + Parser
+RunnableLambda
+Retrieval Chains
+Banking Assistant Chain
+RAG Workflow
+Production Chain Design
+Day 29 (Next)
+
+Build a Complete RAG API using:
+
+FastAPI
++
+LangChain
++
+ChromaDB
++
+Prompt Templates
++
+Retrieval Chains
++
+OpenAI

@@ -1,0 +1,518 @@
+Day 29 – Output Parsers (Structured AI Responses)
+
+Today you'll learn one of the most important production GenAI concepts.
+
+In real projects, we rarely want:
+
+"What is home loan?"
+
+↓
+
+A paragraph of text
+
+We usually need:
+
+{
+  "loan_type": "Home Loan",
+  "interest_rate": "8%",
+  "eligibility": "Salary > 50K"
+}
+
+Output Parsers convert LLM responses into structured formats that backend systems can process.
+
+This is heavily used in:
+
+Banking AI Assistants
+Insurance Claim Processing
+Document Extraction
+Agentic AI Workflows
+Multi-Agent Systems
+Day 29 Goals
+
+✅ Understand Output Parsers
+
+✅ StrOutputParser
+
+✅ JSON Output Parser
+
+✅ Pydantic Output Parser
+
+✅ Structured Responses
+
+✅ Error Handling
+
+✅ Banking Use Cases
+
+✅ FastAPI Integration
+
+Session 1 (6 AM – 8 AM)
+Why Output Parsers?
+
+Without parser:
+
+response = llm.invoke(
+    "What is home loan?"
+)
+
+Output:
+
+Home loan is a loan provided...
+
+Hard to use programmatically.
+
+With parser:
+
+{
+ "loan_type":"Home Loan",
+ "interest_rate":"8%"
+}
+
+Easy to process.
+
+StrOutputParser
+
+Most basic parser.
+
+from langchain_core.output_parsers import (
+    StrOutputParser
+)
+
+Example:
+
+parser = StrOutputParser()
+
+Chain:
+
+chain = prompt | llm | parser
+
+Output:
+
+answer = chain.invoke(
+    {
+        "question":
+        "What is home loan?"
+    }
+)
+
+print(answer)
+
+Returns:
+
+Plain String
+Session 2 (11 AM – 1 PM)
+JSON Output
+
+Production APIs often require JSON.
+
+Prompt:
+
+template = """
+Return answer as JSON.
+
+Question:
+{question}
+"""
+
+Expected:
+
+{
+ "loan_type":"Home Loan",
+ "interest_rate":"8%"
+}
+Pydantic Model
+from pydantic import BaseModel
+
+
+class LoanResponse(
+    BaseModel
+):
+    loan_type: str
+    interest_rate: str
+    eligibility: str
+PydanticOutputParser
+from langchain.output_parsers import (
+    PydanticOutputParser
+)
+
+Create Parser:
+
+parser = (
+    PydanticOutputParser(
+        pydantic_object=
+        LoanResponse
+    )
+)
+Format Instructions
+parser.get_format_instructions()
+
+Generates instructions for the LLM.
+
+Prompt:
+
+template = """
+Answer the question.
+
+{format_instructions}
+
+Question:
+{question}
+"""
+prompt = PromptTemplate(
+    input_variables=[
+        "question"
+    ],
+    partial_variables={
+        "format_instructions":
+        parser.get_format_instructions()
+    },
+    template=template
+)
+
+Run:
+
+result = chain.invoke(
+    {
+      "question":
+      "Explain home loan"
+    }
+)
+
+Output:
+
+LoanResponse(
+    loan_type="Home Loan",
+    interest_rate="8%",
+    eligibility="Salary > 50K"
+)
+Session 3 (4 PM – 6 PM)
+Structured Banking Responses
+
+Banking Assistant:
+
+Instead of:
+
+Home loan is...
+
+Return:
+
+{
+ "loan_type":"Home Loan",
+ "interest_rate":"8%",
+ "max_amount":"50 Lakhs",
+ "tenure":"20 Years"
+}
+FastAPI Integration
+
+Schema:
+
+from pydantic import BaseModel
+
+class LoanOutput(
+    BaseModel):
+    loan_type:str
+    interest_rate:str
+
+API:
+
+@app.post(
+    "/loan",
+    response_model=
+    LoanOutput
+)
+def get_loan():
+    return chain.invoke(...)
+Retry Parsing Errors
+
+Sometimes LLM returns:
+
+This is a home loan...
+
+Instead of JSON.
+
+Bad:
+
+Parser Failure
+
+Solution:
+
+Better prompts
+Format instructions
+Validation
+Retry mechanisms
+Banking RAG Flow
+Question
+    ↓
+
+Retriever
+    ↓
+
+Context
+    ↓
+
+Prompt
+    ↓
+
+LLM
+    ↓
+
+Output Parser
+    ↓
+
+JSON
+Advanced Parsers
+StrOutputParser
+
+Returns:
+
+String
+JSON Parser
+
+Returns:
+
+{
+ "key":"value"
+}
+Pydantic Parser
+
+Returns:
+
+Python Object
+
+with validation.
+
+Example Banking Prompt
+template = """
+You are a banking assistant.
+
+Answer using JSON.
+
+{
+ "loan_type":"",
+ "interest_rate":"",
+ "eligibility":""
+}
+
+Question:
+{question}
+"""
+Real Banking Use Case
+
+Customer asks:
+
+What is home loan?
+
+Output:
+
+{
+ "loan_type":"Home Loan",
+ "interest_rate":"8%",
+ "eligibility":"Salary > 50K"
+}
+
+Backend can directly use it.
+
+Interview Questions
+What is an Output Parser?
+
+Converts LLM output into a structured format.
+
+Why are Output Parsers important?
+
+Production systems require predictable responses.
+
+What is StrOutputParser?
+
+Returns plain text.
+
+What is PydanticOutputParser?
+
+Returns validated Python objects using Pydantic models.
+
+Why use Pydantic?
+
+Validation and type safety.
+
+Difference between JSON and Pydantic Parser?
+
+JSON:
+
+Dictionary
+
+Pydantic:
+
+Validated Object
+What happens if parsing fails?
+
+Parser raises an exception.
+
+How do you reduce parsing failures?
+Better prompts
+Explicit schema
+Format instructions
+Retries
+Why are parsers useful in RAG?
+
+Convert generated answers into structured outputs.
+
+What is structured output generation?
+
+Generating responses that follow a schema.
+
+Goldman Sachs Style Questions
+1. Why not use plain text responses?
+
+Hard to automate and validate.
+
+2. How would you design an AI response schema?
+
+Use Pydantic models with required fields.
+
+3. Why are Output Parsers important in banking applications?
+
+Structured responses are easier to validate and audit.
+
+4. How do you validate AI responses?
+
+Pydantic schemas.
+
+5. What happens when the LLM violates the schema?
+
+Parser throws validation errors.
+
+6. How would you handle parser exceptions?
+
+Try/Except and fallback responses.
+
+7. Explain PydanticOutputParser.
+
+Uses a Pydantic model to enforce output structure.
+
+8. How would you extract loan information from documents?
+Retriever
+ ↓
+LLM
+ ↓
+Output Parser
+ ↓
+Structured Loan Object
+9. What is schema-driven AI output?
+
+Output constrained by a predefined schema.
+
+10. How would you use Output Parsers in Agentic AI?
+
+Agents exchange structured objects rather than free-form text.
+
+Coding Tasks
+Task 1
+
+Implement StrOutputParser.
+
+Task 2
+
+Create LoanResponse Pydantic model.
+
+Task 3
+
+Implement PydanticOutputParser.
+
+Task 4
+
+Generate JSON responses.
+
+Task 5
+
+Handle parser exceptions.
+
+Task 6
+
+Integrate parser with Retrieval Chain.
+
+Task 7
+
+Create Banking Loan API.
+
+Task 8
+
+Return structured responses from FastAPI.
+
+Banking Project Integration
+
+Current Architecture:
+
+PDF
+ ↓
+Chunking
+ ↓
+Embeddings
+ ↓
+ChromaDB
+ ↓
+Retriever
+ ↓
+Prompt
+ ↓
+LLM
+
+After Day 29:
+
+PDF
+ ↓
+Chunking
+ ↓
+Embeddings
+ ↓
+ChromaDB
+ ↓
+Retriever
+ ↓
+Prompt
+ ↓
+LLM
+ ↓
+Output Parser
+ ↓
+Structured Response
+DSA (90 Minutes)
+
+Solve:
+
+Group Anagrams
+Meeting Rooms II
+Maximum Product Subarray
+Graph Valid Tree
+Reorder List
+End-of-Day Deliverable
+StrOutputParser
+JSON Responses
+PydanticOutputParser
+Structured Outputs
+Schema Validation
+Parser Error Handling
+FastAPI Integration
+Banking AI Response Models
+Day 30 (Final Project Day)
+
+Build a Complete Banking RAG Assistant:
+
+FastAPI
+ ↓
+JWT Authentication
+ ↓
+PDF Upload
+ ↓
+Chunking
+ ↓
+Embeddings
+ ↓
+ChromaDB
+ ↓
+Retriever
+ ↓
+Prompt Template
+ ↓
+GPT-4o
+ ↓
+Output Parser
+ ↓
+Structured JSON Response
