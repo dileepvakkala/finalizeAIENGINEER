@@ -1,0 +1,603 @@
+Day 49 – Self Query Retriever (Metadata-Aware Retrieval)
+
+Today you'll learn one of the most important enterprise RAG techniques.
+
+Self Query Retriever allows an LLM to automatically extract metadata filters from a user's query and apply them to vector search.
+
+This is heavily used in:
+
+Banking Systems
+Insurance Platforms
+Legal Search
+Compliance Applications
+Enterprise Knowledge Bases
+Problem Without Self Query Retriever
+
+Suppose your vector DB contains:
+
+Home Loan Policy 2024
+Home Loan Policy 2025
+Vehicle Loan Policy 2025
+Credit Card Policy 2025
+
+User asks:
+
+Show home loan policies from 2025
+
+Without metadata filtering:
+
+Retriever
+
+↓
+
+Returns:
+Home Loan 2024
+Home Loan 2025
+Vehicle Loan 2025
+
+Not ideal.
+
+Solution
+
+LLM extracts:
+
+{
+  "loan_type": "home_loan",
+  "year": 2025
+}
+
+Then applies filters before retrieval.
+
+Architecture
+User Query
+
+↓
+
+LLM
+
+↓
+
+Extract Metadata Filters
+
+↓
+
+Vector Search
+
+↓
+
+Filtered Results
+
+↓
+
+LLM
+Day 49 Goals
+
+✅ Self Query Retriever
+
+✅ Metadata Extraction
+
+✅ Query Parsing
+
+✅ Automatic Filter Generation
+
+✅ ChromaDB Filtering
+
+✅ LangChain SelfQueryRetriever
+
+✅ Banking Search Optimization
+
+✅ Enterprise Security Filtering
+
+Session 1 (6 AM – 8 AM)
+What is Self Query Retrieval?
+
+Traditional retrieval:
+
+User Query
+
+↓
+
+Vector Search
+
+↓
+
+Results
+
+Self Query Retrieval:
+
+User Query
+
+↓
+
+LLM
+
+↓
+
+Query + Metadata Filters
+
+↓
+
+Vector Search
+
+↓
+
+Results
+Example
+
+User Query:
+
+Show 2025 home loan policies
+
+LLM extracts:
+
+{
+  "loan_type": "home_loan",
+  "year": 2025
+}
+
+Search becomes:
+
+Search Query:
+home loan policies
+
+Filter:
+year = 2025
+Metadata Schema Design
+
+For Banking Project:
+
+metadata = {
+    "document_type": "loan_policy",
+    "loan_type": "home_loan",
+    "year": 2025,
+    "country": "india",
+    "department": "retail_banking"
+}
+Example Documents
+from langchain_core.documents import Document
+
+docs = [
+    Document(
+        page_content="Home Loan Policy 2025",
+        metadata={
+            "loan_type":"home_loan",
+            "year":2025
+        }
+    ),
+
+    Document(
+        page_content="Vehicle Loan Policy 2025",
+        metadata={
+            "loan_type":"vehicle_loan",
+            "year":2025
+        }
+    )
+]
+Session 2 (11 AM – 1 PM)
+LangChain SelfQueryRetriever
+
+Install:
+
+pip install langchain
+
+Import
+
+from langchain.retrievers.self_query.base import (
+    SelfQueryRetriever
+)
+
+Define Metadata Fields
+
+from langchain.chains.query_constructor.schema import AttributeInfo
+
+metadata_field_info = [
+    AttributeInfo(
+        name="loan_type",
+        description="Type of loan",
+        type="string"
+    ),
+
+    AttributeInfo(
+        name="year",
+        description="Policy year",
+        type="integer"
+    )
+]
+
+Create Retriever
+
+retriever = SelfQueryRetriever.from_llm(
+    llm=llm,
+    vectorstore=vectorstore,
+    document_contents="Banking Policies",
+    metadata_field_info=metadata_field_info
+)
+
+Search
+
+docs = retriever.invoke(
+    "Show home loan policies from 2025"
+)
+
+Internally Generated
+
+{
+  "query": "home loan policies",
+  "filter": {
+      "loan_type":"home_loan",
+      "year":2025
+  }
+}
+ChromaDB Filter Example
+results = collection.query(
+    query_texts=["loan policy"],
+    where={
+        "loan_type":"home_loan",
+        "year":2025
+    }
+)
+Session 3 (4 PM – 6 PM)
+Banking Use Cases
+Example 1
+
+User Query
+
+Show vehicle loan policies from 2025
+
+Generated Filter
+
+{
+  "loan_type":"vehicle_loan",
+  "year":2025
+}
+Example 2
+
+User Query
+
+Show Indian home loan policies
+
+Generated Filter
+
+{
+  "country":"india",
+  "loan_type":"home_loan"
+}
+Example 3
+
+User Query
+
+Retail banking documents
+
+Generated Filter
+
+{
+  "department":"retail_banking"
+}
+Enterprise Security Example
+
+Metadata:
+
+{
+  "access_level":"manager"
+}
+
+User:
+
+Show manager reports
+
+Generated Filter:
+
+{
+  "access_level":"manager"
+}
+Self Query + Hybrid Search
+User Query
+
+↓
+
+Self Query
+
+↓
+
+Metadata Filters
+
+↓
+
+BM25
+
++
+
+Vector Search
+
+↓
+
+Merge
+
+↓
+
+Re-rank
+
+↓
+
+LLM
+Self Query + Parent Child Retrieval
+User Query
+
+↓
+
+Metadata Extraction
+
+↓
+
+Child Search
+
+↓
+
+Parent Retrieval
+
+↓
+
+LLM
+Self Query + Multi Query
+
+Advanced Production Architecture
+
+User Query
+
+↓
+
+Self Query
+
+↓
+
+Generate Filters
+
+↓
+
+Multi Query
+
+↓
+
+Hybrid Search
+
+↓
+
+Re-rank
+
+↓
+
+Compression
+
+↓
+
+LLM
+Advantages
+Better Precision
+
+Only relevant documents searched.
+
+Faster Retrieval
+
+Smaller search space.
+
+Better Security
+
+Supports access controls.
+
+Lower Hallucination
+
+More accurate context.
+
+Challenges
+Incorrect Metadata Extraction
+
+LLM may generate wrong filters.
+
+Ambiguous Queries
+
+Example:
+
+latest policy
+
+Latest based on what?
+
+Complex Filters
+
+Example:
+
+Home loans after 2023 but before 2025
+
+Need range filtering.
+
+Interview Questions
+What is Self Query Retrieval?
+
+A retrieval technique where an LLM automatically extracts metadata filters from user queries.
+
+Why use Self Query Retriever?
+
+To combine semantic search with structured filtering.
+
+What does Self Query Retriever generate?
+Search Query
+Metadata Filters
+What is metadata-aware retrieval?
+
+Retrieval that uses document metadata in addition to embeddings.
+
+What are common metadata fields?
+Loan Type
+Policy Year
+Country
+Department
+Access Level
+How does Self Query Retriever improve retrieval quality?
+
+It narrows search to relevant documents before retrieval.
+
+Can Self Query Retriever work with vector databases?
+
+Yes:
+
+ChromaDB
+Pinecone
+Qdrant
+Weaviate
+What is the biggest challenge?
+
+Correctly extracting metadata from natural language.
+
+How is Self Query Retriever different from Multi Query Retrieval?
+Self Query	Multi Query
+Extracts filters	Generates queries
+Improves precision	Improves recall
+Metadata focused	Search focused
+Goldman Sachs Style Questions
+Explain Self Query Retrieval Architecture.
+User Query
+
+↓
+
+LLM
+
+↓
+
+Query + Filters
+
+↓
+
+Vector Search
+
+↓
+
+Results
+How would you build a Banking RAG system?
+PDFs
+
+↓
+
+Chunking
+
+↓
+
+Metadata
+
+↓
+
+Embeddings
+
+↓
+
+ChromaDB
+
+↓
+
+Self Query Retriever
+
+↓
+
+Hybrid Search
+
+↓
+
+Re-ranker
+
+↓
+
+Compression
+
+↓
+
+LLM
+Why is Self Query Retriever important?
+
+It combines semantic search with structured filtering, improving accuracy significantly.
+
+How would you implement access-controlled retrieval?
+
+Store user permissions in metadata and let Self Query Retriever generate access-level filters.
+
+How do you reduce hallucinations in RAG?
+Parent-Child Retrieval
+Metadata Filtering
+Hybrid Search
+Re-ranking
+Context Compression
+Self Query Retrieval
+Coding Tasks
+Task 1
+
+Create banking documents with metadata.
+
+Task 2
+
+Store documents in ChromaDB.
+
+Task 3
+
+Define metadata schema.
+
+Task 4
+
+Implement SelfQueryRetriever.
+
+Task 5
+
+Generate metadata filters automatically.
+
+Task 6
+
+Support range filters (year > 2023).
+
+Task 7
+
+Combine with Hybrid Search.
+
+Task 8
+
+Integrate into Banking RAG Project.
+
+DSA (90 Minutes)
+
+Solve:
+
+Lowest Common Ancestor of a Binary Tree
+Accounts Merge
+Longest Consecutive Sequence
+Rotting Oranges
+Merge Intervals
+End-of-Day Deliverable
+Self Query Retriever
+Metadata Extraction
+Automatic Filters
+Metadata-Aware Search
+ChromaDB Filtering
+Enterprise Retrieval
+Access Control
+Banking Search Optimization
+
+User Query
+ ↓
+LLM
+ ↓
+Generate Filters
+ ↓
+Retrieve
+ ↓
+LLM
+Day 50 (Next)
+
+HyDE (Hypothetical Document Embeddings)
+
+Topics:
+
+What is HyDE
+Why Retrieval Fails
+Hypothetical Answer Generation
+Embedding Generated Documents
+Semantic Search Optimization
+HyDE vs Query Expansion
+LangChain HyDE Implementation
+Banking RAG Optimization
+
+HyDE is a frequently asked advanced RAG topic in senior AI Engineer interviews and can significantly improve retrieval for short or ambiguous queries.

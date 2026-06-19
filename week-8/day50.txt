@@ -1,0 +1,615 @@
+Day 50 – Corrective RAG (CRAG)
+
+Today you'll learn a very advanced RAG architecture used when retrieval quality is unreliable.
+
+Traditional RAG assumes:
+
+Retriever
+   ↓
+Relevant Documents
+   ↓
+LLM
+
+But in real-world systems, retrievers often return:
+
+Irrelevant Documents
+Outdated Documents
+Partial Information
+Wrong Context
+
+This causes hallucinations.
+
+What is Corrective RAG (CRAG)?
+
+CRAG = Corrective Retrieval-Augmented Generation
+
+The system evaluates retrieved documents before generating an answer.
+
+If retrieval quality is poor:
+
+Query
+
+↓
+
+Retrieve
+
+↓
+
+Evaluate Retrieval Quality
+
+↓
+
+Good?
+   ├─ Yes → LLM
+   └─ No  → Correct Retrieval
+            ↓
+           LLM
+Why CRAG?
+
+Imagine your Banking RAG contains:
+
+Home Loan Policies
+Vehicle Loan Policies
+Insurance Policies
+Credit Card Policies
+
+User asks:
+
+What documents are required for a home loan?
+
+Retriever returns:
+
+Vehicle Loan Documents
+Insurance Eligibility
+
+Traditional RAG:
+
+Wrong Context
+↓
+Wrong Answer
+
+CRAG:
+
+Wrong Context
+↓
+Detect Low Quality
+↓
+Re-retrieve
+↓
+Correct Context
+↓
+Answer
+Day 50 Goals
+
+✅ Retrieval Evaluation
+
+✅ Corrective Retrieval
+
+✅ Confidence Scoring
+
+✅ Re-retrieval
+
+✅ Web Search Fallback
+
+✅ Knowledge Refinement
+
+✅ Production RAG Reliability
+
+✅ Banking RAG Optimization
+
+Session 1 (6 AM – 8 AM)
+Traditional RAG
+Query
+
+↓
+
+Retriever
+
+↓
+
+Top Chunks
+
+↓
+
+LLM
+
+Problem:
+
+Retriever may be wrong.
+
+Corrective RAG
+Query
+
+↓
+
+Retriever
+
+↓
+
+Evaluate Chunks
+
+↓
+
+Good?
+  ├─ Yes
+  │    ↓
+  │   LLM
+  │
+  └─ No
+       ↓
+   Corrective Step
+       ↓
+      LLM
+Retrieval Evaluator
+
+The evaluator checks:
+
+Relevance
+
+Completeness
+
+Confidence
+
+Coverage
+
+Example
+
+Query:
+
+home loan interest rate
+
+Retrieved:
+
+vehicle insurance premium
+
+Evaluator:
+
+Relevance = Low
+
+Trigger correction.
+
+Confidence Score
+
+Example:
+
+Chunk A = 0.95
+
+Chunk B = 0.90
+
+Chunk C = 0.88
+
+High confidence.
+
+Low Quality Retrieval
+
+Chunk A = 0.35
+
+Chunk B = 0.29
+
+Chunk C = 0.21
+
+Correction required.
+
+Session 2 (11 AM – 1 PM)
+Correction Strategies
+Strategy 1: Re-query
+
+Original Query
+
+home loan docs
+
+Rewrite
+
+documents required for home loan application
+
+Search again.
+
+Strategy 2: Multi Query Retrieval
+
+Generate:
+
+home loan documents
+
+loan application documents
+
+KYC requirements
+
+home loan approval documents
+
+Search again.
+
+Strategy 3: Hybrid Search
+BM25
+
++
+
+Vector Search
+
+Improve recall.
+
+Strategy 4: Web Search Fallback
+
+Enterprise architecture:
+
+Vector Search
+
+↓
+
+Poor Results
+
+↓
+
+Web Search
+
+↓
+
+Additional Context
+
+↓
+
+LLM
+
+Useful for:
+
+Latest regulations
+Policy updates
+News
+Compliance changes
+Knowledge Refinement
+
+Retrieved:
+
+20 Chunks
+
+Filter:
+
+5 Relevant Chunks
+
+Pass only:
+
+Refined Context
+
+to LLM.
+
+Session 3 (4 PM – 6 PM)
+CRAG Architecture
+User Query
+
+↓
+
+Query Transformation
+
+↓
+
+Retriever
+
+↓
+
+Retrieval Evaluator
+
+↓
+
+Good?
+ ├─ Yes
+ │
+ │   ↓
+ │  Re-ranker
+ │
+ │   ↓
+ │ Compression
+ │
+ │   ↓
+ │  LLM
+ │
+ └─ No
+      ↓
+  Corrective Search
+      ↓
+  Re-rank
+      ↓
+  Compression
+      ↓
+  LLM
+Banking Example
+
+Query:
+
+Show home loan eligibility
+
+Retrieved:
+
+Credit Card Policy
+Vehicle Loan Policy
+
+Evaluator:
+
+Relevance = Low
+
+Corrective Step:
+
+Query Rewrite
+
+↓
+
+Home Loan Eligibility Criteria
+
+↓
+
+Search Again
+
+Retrieved:
+
+Home Loan Eligibility
+Home Loan Documents
+Home Loan Interest
+
+Generate Answer.
+
+LangGraph CRAG Flow
+def retrieve(state):
+    return docs
+
+def evaluate(state):
+    return score
+
+def correct(state):
+    return new_docs
+
+def generate(state):
+    return answer
+
+Flow
+
+Retrieve
+
+↓
+
+Evaluate
+
+↓
+
+Correct
+
+↓
+
+Generate
+Banking Production Pipeline
+PDFs
+
+↓
+
+Chunking
+
+↓
+
+Metadata
+
+↓
+
+Embeddings
+
+↓
+
+ChromaDB
+
+↓
+
+Self Query Retriever
+
+↓
+
+Hybrid Search
+
+↓
+
+Evaluator
+
+↓
+
+Corrective Retrieval
+
+↓
+
+Re-ranker
+
+↓
+
+Compression
+
+↓
+
+LLM
+CRAG vs Traditional RAG
+Feature	Traditional	CRAG
+Retrieval Validation	No	Yes
+Error Recovery	No	Yes
+Reliability	Medium	High
+Hallucination Reduction	Medium	High
+Complexity	Low	Higher
+Advantages
+Better Accuracy
+
+Incorrect retrieval gets corrected.
+
+Lower Hallucination
+
+Bad context is filtered.
+
+More Reliable
+
+Works better in enterprise systems.
+
+Better Recall
+
+Can re-search when retrieval fails.
+
+Challenges
+More Latency
+
+Additional evaluation step.
+
+More Cost
+
+Extra retrieval operations.
+
+Threshold Tuning
+
+Need confidence thresholds.
+
+Interview Questions
+What is Corrective RAG?
+
+A RAG architecture that evaluates retrieved documents and corrects retrieval failures before generation.
+
+Why do we need CRAG?
+
+Because retrievers may return irrelevant or incomplete information.
+
+What is a Retrieval Evaluator?
+
+A component that measures retrieval quality before generation.
+
+What happens if retrieval quality is low?
+
+The system triggers corrective actions such as re-querying, multi-query retrieval, or web search.
+
+How does CRAG reduce hallucinations?
+
+It prevents poor-quality retrieval results from reaching the LLM.
+
+What corrective techniques are commonly used?
+Query Rewriting
+Multi Query Retrieval
+Hybrid Search
+Web Search Fallback
+Re-ranking
+What is the biggest challenge in CRAG?
+
+Choosing the correct confidence threshold.
+
+How is CRAG different from normal RAG?
+
+CRAG validates and fixes retrieval before answer generation.
+
+Can CRAG work with Hybrid Search?
+
+Yes. Hybrid Search is commonly used as a corrective strategy.
+
+Goldman Sachs Style Questions
+Explain Corrective RAG Architecture.
+Query
+
+↓
+
+Retrieve
+
+↓
+
+Evaluate
+
+↓
+
+Correct if Needed
+
+↓
+
+Generate
+How would you improve a Banking RAG system?
+Parent-Child Retrieval
+Metadata Filtering
+Hybrid Search
+Re-ranking
+Compression
+Self Query Retrieval
+Corrective RAG
+How does CRAG improve reliability?
+
+By preventing low-quality retrieval results from being used for generation.
+
+When would you trigger corrective retrieval?
+
+When relevance or confidence scores fall below a predefined threshold.
+
+How would you evaluate retrieval quality?
+
+Using:
+
+Similarity Scores
+Relevance Scores
+Cross Encoder Scores
+Coverage Metrics
+Coding Tasks
+Task 1
+
+Build a Vector Retriever.
+
+Task 2
+
+Create a Retrieval Evaluator.
+
+Task 3
+
+Define confidence thresholds.
+
+Task 4
+
+Implement Query Rewriting fallback.
+
+Task 5
+
+Implement Multi Query fallback.
+
+Task 6
+
+Implement Hybrid Search fallback.
+
+Task 7
+
+Integrate evaluator into LangGraph.
+
+Task 8
+
+Add CRAG to your Banking RAG Project.
+
+DSA (90 Minutes)
+
+Solve:
+
+Binary Tree Zigzag Level Order Traversal
+Top K Frequent Elements
+Validate Binary Search Tree
+Coin Change
+Graph Bipartite
+End-of-Day Deliverable
+Corrective RAG (CRAG)
+Retrieval Evaluation
+Confidence Scoring
+Corrective Search
+Knowledge Refinement
+Web Search Fallback
+Production Reliability
+Hallucination Reduction
+
+Query
+ ↓
+Retrieve
+ ↓
+Evaluate
+ ↓
+Correct
+ ↓
+Generate
+Day 51 (Next)
+
+Agentic RAG
+
+Topics:
+
+What is Agentic RAG
+Tool Calling
+Planning
+Reflection
+Multi-Step Retrieval
+LangGraph Agents
+ReAct Pattern
+Banking AI Assistant Architecture
