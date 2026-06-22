@@ -1,0 +1,595 @@
+Day 52 – Knowledge Graphs (Foundation of Graph RAG)
+
+Knowledge Graphs are the backbone of Graph RAG.
+
+If Day 51 taught you Graph RAG, Day 52 focuses on building and querying Knowledge Graphs.
+
+This is a frequently asked topic in senior AI Engineer interviews because enterprise systems increasingly combine LLMs with graph databases.
+
+Day 52 Goals
+
+✅ Knowledge Graph Fundamentals
+
+✅ RDF Triples
+
+✅ Nodes & Relationships
+
+✅ Ontologies
+
+✅ Entity Resolution
+
+✅ Graph Construction
+
+✅ Graph Databases
+
+✅ Banking Knowledge Graph Design
+
+Why Knowledge Graphs?
+
+Traditional databases store:
+
+Customer
+Account
+Transaction
+
+But relationships are difficult to explore.
+
+Knowledge Graph stores:
+
+Customer A
+   |
+ OWNS
+   |
+Account X
+   |
+TRANSFERRED_TO
+   |
+Account Y
+   |
+BELONGS_TO
+   |
+Customer B
+
+Relationships become first-class citizens.
+
+Session 1 (6 AM – 8 AM)
+What is a Knowledge Graph?
+
+A Knowledge Graph is a structured representation of:
+
+Entities
+Relationships
+Facts
+Core Components
+Entity (Node)
+
+Examples:
+
+Customer
+Account
+Loan
+Branch
+Employee
+Relationship (Edge)
+
+Examples:
+
+OWNS
+WORKS_AT
+APPROVED_BY
+TRANSFERRED_TO
+BELONGS_TO
+Fact
+
+Fact = Entity + Relationship + Entity
+
+Example:
+
+Dinesh OWNS Account123
+RDF Triple
+
+Knowledge graphs are built using triples.
+
+Structure:
+
+Subject
+Predicate
+Object
+
+Example:
+
+(Dinesh, OWNS, Account123)
+
+Another Example:
+
+(Account123, TRANSFERRED_TO, Account456)
+Triple Visualization
+Dinesh
+  |
+ OWNS
+  |
+Account123
+Multiple Triples
+(Dinesh, OWNS, Account123)
+
+(Account123, TRANSFERRED_TO, Account456)
+
+(Account456, BELONGS_TO, Ravi)
+
+Graph:
+
+Dinesh
+   |
+ OWNS
+   |
+Account123
+   |
+TRANSFERRED_TO
+   |
+Account456
+   |
+BELONGS_TO
+   |
+Ravi
+Session 2 (11 AM – 1 PM)
+Ontology
+
+Interview favorite.
+
+Ontology defines:
+
+What entities exist?
+
+What relationships are allowed?
+
+What properties exist?
+Banking Ontology
+Customer
+
+Account
+
+Loan
+
+Branch
+
+Employee
+
+Transaction
+
+Relationships:
+
+Customer → OWNS → Account
+
+Account → HAS → Loan
+
+Employee → APPROVED → Loan
+
+Branch → MANAGES → Account
+Example Schema
+Customer
+ ├─ customer_id
+ ├─ name
+ └─ email
+
+Account
+ ├─ account_id
+ ├─ balance
+ └─ account_type
+Entity Resolution
+
+Major interview topic.
+
+Problem:
+
+Dinesh
+
+Dinesh Kumar
+
+D. Kumar
+
+May represent same person.
+
+Entity Resolution merges duplicates.
+
+Result:
+
+Customer_123
+Why Important?
+
+Without resolution:
+
+Multiple Nodes
+
+With resolution:
+
+Single Accurate Node
+Knowledge Graph Construction
+
+Pipeline:
+
+Documents
+
+↓
+
+Entity Extraction
+
+↓
+
+Relationship Extraction
+
+↓
+
+Triple Creation
+
+↓
+
+Graph Database
+Example
+
+Document:
+
+Dinesh owns Account123.
+
+Extract:
+
+Entity:
+Dinesh
+
+Entity:
+Account123
+
+Relation:
+OWNS
+
+Create:
+
+(Dinesh, OWNS, Account123)
+Session 3 (4 PM – 6 PM)
+Graph Databases
+
+Popular choices:
+
+Neo4j
+
+Most popular.
+
+Amazon Neptune
+
+AWS managed graph database.
+
+TigerGraph
+
+Large-scale graph analytics.
+
+ArangoDB
+
+Graph + Document database.
+
+Why Graph Databases?
+
+SQL:
+
+JOIN
+JOIN
+JOIN
+JOIN
+
+Complex.
+
+Graph:
+
+Traverse Relationships
+
+Simple.
+
+Neo4j Example
+
+Create Node:
+
+CREATE (:Customer {
+    id:1,
+    name:"Dinesh"
+})
+
+Create Account:
+
+CREATE (:Account {
+    account_id:"123"
+})
+
+Create Relationship:
+
+MATCH (c:Customer),(a:Account)
+WHERE c.id=1
+AND a.account_id="123"
+CREATE (c)-[:OWNS]->(a)
+Query Example
+
+Find Accounts:
+
+MATCH (c:Customer)-[:OWNS]->(a:Account)
+RETURN a
+
+Find Transaction Chain:
+
+MATCH p=
+(a)-[:TRANSFERRED_TO*]->(b)
+RETURN p
+Banking Knowledge Graph
+Customer
+
+↓
+
+OWNS
+
+↓
+
+Account
+
+↓
+
+HAS
+
+↓
+
+Loan
+
+↓
+
+APPROVED_BY
+
+↓
+
+Employee
+
+↓
+
+WORKS_AT
+
+↓
+
+Branch
+Graph RAG Integration
+PDF Documents
+
+↓
+
+Entity Extraction
+
+↓
+
+Relationship Extraction
+
+↓
+
+Knowledge Graph
+
+↓
+
+Neo4j
+
+↓
+
+Graph Retrieval
+
++
+
+Vector Search
+
+↓
+
+LLM
+Knowledge Graph vs Vector DB
+Traditional RAG vs Graph RAG
+Feature	Traditional RAG	Graph RAG
+Semantic Search	Excellent	Good
+Relationship Search	Weak	Excellent
+Multi-Hop Queries	Weak	Excellent
+Fraud Detection	Weak	Excellent
+Explainability	Medium	High
+Banking Use Cases
+Fraud Detection
+Customer A
+
+↓
+
+Account X
+
+↓
+
+Account Y
+
+↓
+
+Customer B
+
+Find hidden links.
+
+Customer Relationship Mapping
+
+Find all connected customers.
+
+Loan Approval Analysis
+
+Trace approval chains.
+
+Compliance Investigation
+
+Track money movement across accounts.
+
+Interview Questions
+What is a Knowledge Graph?
+
+A structured graph of entities and relationships representing real-world knowledge.
+
+What is an RDF Triple?
+Subject
+Predicate
+Object
+
+Example:
+
+(Dinesh, OWNS, Account123)
+What is an Ontology?
+
+A schema defining entity types, relationships, and properties.
+
+What is Entity Resolution?
+
+The process of identifying and merging duplicate entities.
+
+Why use Graph Databases?
+
+They efficiently store and query relationships.
+
+Why is Neo4j popular?
+
+Because it is optimized for graph traversal and relationship queries.
+
+What is Multi-Hop Reasoning?
+
+Following multiple relationships to answer a question.
+
+Example:
+
+Customer
+
+↓
+
+Account
+
+↓
+
+Transaction
+
+↓
+
+Company
+How does Knowledge Graph help Graph RAG?
+
+It provides structured relationship-based retrieval.
+
+Goldman Sachs Style Questions
+Explain the lifecycle of a Knowledge Graph.
+Documents
+
+↓
+
+Entity Extraction
+
+↓
+
+Relationship Extraction
+
+↓
+
+Triple Creation
+
+↓
+
+Graph Database
+
+↓
+
+Querying
+How would you build a Banking Knowledge Graph?
+Extract Customers
+Extract Accounts
+Extract Loans
+Extract Transactions
+Build Relationships
+Store in Neo4j
+Integrate with RAG
+What is the biggest challenge in Knowledge Graphs?
+
+Accurate entity and relationship extraction.
+
+Why combine Knowledge Graphs with Vector Search?
+
+Because:
+
+Vector Search → semantic similarity
+Knowledge Graph → relationship reasoning
+
+Together they provide better retrieval quality.
+
+Coding Tasks
+Task 1
+
+Install and configure Neo4j.
+
+Task 2
+
+Create Customer nodes.
+
+Task 3
+
+Create Account nodes.
+
+Task 4
+
+Create Loan nodes.
+
+Task 5
+
+Build OWNS relationships.
+
+Task 6
+
+Build TRANSFERRED_TO relationships.
+
+Task 7
+
+Write Cypher queries.
+
+Task 8
+
+Integrate Neo4j with your Banking RAG project.
+
+DSA (90 Minutes)
+
+Solve:
+
+Network Delay Time
+Cheapest Flights Within K Stops
+Reconstruct Itinerary
+Minimum Height Trees
+Bus Routes
+End-of-Day Deliverable
+Knowledge Graphs
+RDF Triples
+Nodes
+Edges
+Ontology
+Entity Resolution
+Graph Construction
+Neo4j
+Graph Databases
+
+Documents
+ ↓
+Extract Entities
+ ↓
+Extract Relationships
+ ↓
+Triples
+ ↓
+Knowledge Graph
+ ↓
+Graph Retrieval
+Day 53 (Next)
+
+Entity & Relationship Extraction for Graph RAG
+
+Topics:
+
+Named Entity Recognition (NER)
+LLM-based Entity Extraction
+Relationship Extraction
+Triple Generation
+Graph Construction Pipelines
+Neo4j Ingestion
+Banking Knowledge Graph Builder
+LangChain Graph Transformers
+
+This is where you'll start automatically converting documents into Knowledge Graphs for your Graph RAG system.

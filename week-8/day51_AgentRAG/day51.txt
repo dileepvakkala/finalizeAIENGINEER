@@ -1,0 +1,625 @@
+Day 51 – Graph RAG Concepts (Knowledge Graph + RAG)
+
+Today you'll learn one of the hottest enterprise AI topics:
+
+Graph RAG (Graph Retrieval-Augmented Generation)
+
+Traditional RAG retrieves chunks.
+
+Graph RAG retrieves relationships between entities, making it far better for complex reasoning.
+
+Companies using graph-based approaches include enterprise search, banking, healthcare, compliance, fraud detection, and knowledge management systems.
+
+Why Traditional RAG Fails
+
+Suppose your banking documents contain:
+
+Customer A owns Account X
+
+Account X transferred money to Account Y
+
+Account Y belongs to Customer B
+
+Customer B owns Company Z
+
+Traditional RAG stores:
+
+Chunk 1
+Chunk 2
+Chunk 3
+Chunk 4
+
+Query:
+
+How is Customer A connected to Company Z?
+
+Traditional retrieval may miss relationships.
+
+Graph RAG Solution
+
+Represent knowledge as a graph.
+
+Customer A
+    |
+ owns
+    |
+Account X
+    |
+transferred
+    |
+Account Y
+    |
+belongs to
+    |
+Customer B
+    |
+owns
+    |
+Company Z
+
+Now the system can traverse relationships.
+
+Day 51 Goals
+
+✅ What is Graph RAG
+
+✅ Knowledge Graphs
+
+✅ Nodes & Edges
+
+✅ Entity Extraction
+
+✅ Relationship Extraction
+
+✅ Graph Construction
+
+✅ Graph Retrieval
+
+✅ Banking Use Cases
+
+Session 1 (6 AM – 8 AM)
+What is Graph RAG?
+
+Graph RAG combines:
+
+Knowledge Graph
+
++
+
+Vector Search
+
++
+
+LLM
+
+Traditional RAG
+
+Query
+
+↓
+
+Retriever
+
+↓
+
+Chunks
+
+↓
+
+LLM
+
+Graph RAG
+
+Query
+
+↓
+
+Entity Detection
+
+↓
+
+Graph Traversal
+
+↓
+
+Related Entities
+
+↓
+
+LLM
+Knowledge Graph Basics
+
+A graph consists of:
+
+Nodes
+
+Entities
+
+Examples:
+
+Customer
+Account
+Loan
+Transaction
+Branch
+Employee
+Edges
+
+Relationships
+
+Examples:
+
+owns
+transferred_to
+approved_by
+belongs_to
+works_at
+Example Graph
+Customer A
+
+↓
+
+owns
+
+↓
+
+Account 123
+
+↓
+
+transferred_to
+
+↓
+
+Account 456
+
+↓
+
+belongs_to
+
+↓
+
+Customer B
+Node Example
+{
+  "id":"customer_1",
+  "type":"customer",
+  "name":"Dinesh"
+}
+Edge Example
+{
+  "source":"customer_1",
+  "target":"account_1",
+  "relation":"owns"
+}
+Session 2 (11 AM – 1 PM)
+Entity Extraction
+
+First step in Graph RAG.
+
+Document:
+
+Dinesh owns Account 123.
+
+Entities:
+
+Dinesh
+Account 123
+Relationship Extraction
+
+Document:
+
+Dinesh owns Account 123.
+
+Relationship:
+
+owns
+
+Extracted Triple
+
+(Dinesh, owns, Account123)
+
+Another Example
+
+Account123 transferred to Account456
+
+Triple:
+
+(Account123, transferred_to, Account456)
+Building the Graph
+
+Document:
+
+Dinesh owns Account123.
+
+Account123 transferred to Account456.
+
+Account456 belongs to Ravi.
+
+Graph:
+
+Dinesh
+   |
+ owns
+   |
+Account123
+   |
+transferred_to
+   |
+Account456
+   |
+belongs_to
+   |
+Ravi
+Graph Database
+
+Popular options:
+
+Neo4j
+Amazon Neptune
+TigerGraph
+ArangoDB
+Session 3 (4 PM – 6 PM)
+Graph Retrieval
+
+User Query:
+
+Which customers are connected to Account123?
+
+Graph Traversal:
+
+Account123
+
+↓
+
+Customer A
+
+↓
+
+Customer B
+
+↓
+
+Transactions
+
+Retrieve relationship network.
+
+Graph RAG Architecture
+Documents
+
+↓
+
+Entity Extraction
+
+↓
+
+Relationship Extraction
+
+↓
+
+Knowledge Graph
+
+↓
+
+Graph Database
+
+↓
+
+Query
+
+↓
+
+Graph Traversal
+
+↓
+
+Relevant Subgraph
+
+↓
+
+LLM
+Traditional RAG vs Graph RAG
+Feature	Traditional RAG	Graph RAG
+Retrieves Chunks	Yes	Yes
+Understands Relationships	No	Yes
+Multi-Hop Reasoning	Limited	Excellent
+Fraud Detection	Weak	Strong
+Explainability	Medium	High
+Multi-Hop Reasoning
+
+Most important Graph RAG concept.
+
+Question:
+
+Which company is indirectly connected to Customer A?
+
+Reasoning:
+
+Customer A
+
+↓
+
+Account X
+
+↓
+
+Account Y
+
+↓
+
+Customer B
+
+↓
+
+Company Z
+
+Multiple hops.
+
+Banking Fraud Example
+
+Graph:
+
+Customer A
+
+↓
+
+Account 1
+
+↓
+
+Account 2
+
+↓
+
+Customer B
+
+↓
+
+Company C
+
+Fraud detection can identify hidden relationships.
+
+Hybrid Graph RAG
+
+Production architecture:
+
+User Query
+
+↓
+
+Graph Search
+
++
+
+Vector Search
+
+↓
+
+Merge Context
+
+↓
+
+LLM
+Enterprise Banking Architecture
+PDFs
+
+↓
+
+Chunking
+
+↓
+
+Entity Extraction
+
+↓
+
+Relationship Extraction
+
+↓
+
+Knowledge Graph
+
+↓
+
+Neo4j
+
+↓
+
+Graph Retrieval
+
++
+
+Vector Retrieval
+
+↓
+
+Re-ranker
+
+↓
+
+LLM
+Graph Traversal Example
+
+Find all accounts owned by customer.
+
+Pseudo-query:
+
+MATCH (c:Customer)-[:OWNS]->(a:Account)
+RETURN a
+
+Find transaction chain:
+
+MATCH p=(a)-[:TRANSFERRED_TO*]->(b)
+RETURN p
+Common Interview Questions
+What is Graph RAG?
+
+A RAG architecture that augments retrieval using knowledge graphs and entity relationships.
+
+Why do we need Graph RAG?
+
+Traditional RAG struggles with relationship-based queries and multi-hop reasoning.
+
+What is a Knowledge Graph?
+
+A graph of entities (nodes) and relationships (edges).
+
+What are Nodes?
+
+Entities such as:
+
+Customer
+Loan
+Account
+Branch
+What are Edges?
+
+Relationships such as:
+
+owns
+transferred_to
+belongs_to
+What is a Triple?
+
+Knowledge graph representation:
+
+Subject
+
+Predicate
+
+Object
+
+Example:
+
+(Dinesh, owns, Account123)
+What is Multi-Hop Reasoning?
+
+Traversing multiple relationships to answer a query.
+
+Why is Graph RAG useful in banking?
+Fraud Detection
+Customer Relationship Mapping
+Transaction Analysis
+Compliance Investigation
+Which databases are used for Graph RAG?
+Neo4j
+TigerGraph
+Amazon Neptune
+Goldman Sachs Style Questions
+Explain Graph RAG Architecture.
+Documents
+
+↓
+
+Entity Extraction
+
+↓
+
+Relationship Extraction
+
+↓
+
+Knowledge Graph
+
+↓
+
+Graph Retrieval
+
+↓
+
+LLM
+Why is Graph RAG better than Traditional RAG?
+
+Graph RAG can reason over relationships and perform multi-hop retrieval.
+
+How would you use Graph RAG in a Banking System?
+Build Customer Graph
+Build Account Graph
+Build Transaction Graph
+Detect Fraud Chains
+Retrieve Related Entities
+Send Subgraph Context to LLM
+What is the biggest challenge in Graph RAG?
+
+Accurate entity and relationship extraction.
+
+How does Graph RAG reduce hallucinations?
+
+By providing structured, explainable relationships instead of isolated chunks.
+
+Coding Tasks
+Task 1
+
+Install Neo4j.
+
+Task 2
+
+Create Customer nodes.
+
+Task 3
+
+Create Account nodes.
+
+Task 4
+
+Create Transaction relationships.
+
+Task 5
+
+Build a Banking Knowledge Graph.
+
+Task 6
+
+Query Neo4j using Cypher.
+
+Task 7
+
+Implement Graph Retrieval.
+
+Task 8
+
+Integrate Graph Retrieval with your Banking RAG Project.
+
+DSA (90 Minutes)
+
+Solve:
+
+Alien Dictionary
+Word Ladder II
+Serialize and Deserialize Binary Tree
+Pacific Atlantic Water Flow
+Critical Connections in a Network
+End-of-Day Deliverable
+Graph RAG
+Knowledge Graph
+Nodes
+Edges
+Triples
+Entity Extraction
+Relationship Extraction
+Graph Traversal
+Multi-Hop Reasoning
+
+Documents
+ ↓
+Knowledge Graph
+ ↓
+Graph Retrieval
+ ↓
+LLM
+Day 52 (Next)
+
+Agentic RAG
+
+Topics:
+
+ReAct Pattern
+Tool Calling
+Planning
+Reflection
+Memory
+Multi-Agent Systems
+LangGraph Agents
+Banking AI Assistant Architecture
+
+This is one of the most important modern AI Engineer topics for senior-level interviews and production GenAI systems.

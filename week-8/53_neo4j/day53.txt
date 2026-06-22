@@ -1,0 +1,552 @@
+Day 53 – Neo4j Basics (Graph Database Fundamentals)
+
+Today you'll learn the most popular graph database used in Graph RAG projects:
+
+Neo4j
+
+Neo4j is heavily used in:
+
+Banking
+Fraud Detection
+Recommendation Systems
+Supply Chain
+Knowledge Graphs
+Graph RAG
+Day 53 Goals
+
+✅ What is Neo4j
+
+✅ Nodes
+
+✅ Relationships
+
+✅ Properties
+
+✅ Cypher Query Language
+
+✅ CRUD Operations
+
+✅ Banking Knowledge Graph
+
+✅ Neo4j + Graph RAG
+
+Why Neo4j?
+
+Traditional SQL:
+
+Customer
+Account
+Loan
+Transaction
+
+To find relationships:
+
+SELECT *
+FROM customer c
+JOIN account a
+ON c.id = a.customer_id
+JOIN transaction t
+ON a.account_id = t.account_id
+
+Many joins.
+
+Neo4j:
+
+Customer
+   |
+ OWNS
+   |
+Account
+   |
+TRANSFERRED_TO
+   |
+Account
+
+Relationship traversal is much faster.
+
+Session 1 (6 AM – 8 AM)
+Neo4j Core Concepts
+Node
+
+Represents an entity.
+
+Examples:
+
+Customer
+Account
+Loan
+Branch
+Employee
+
+Customer Node:
+
+{
+  "customer_id": 1,
+  "name": "Dileep"
+}
+
+Cypher:
+
+CREATE (:Customer {
+    customer_id: 1,
+    name: "Dileep"
+})
+Relationship
+
+Connects nodes.
+
+Examples:
+
+OWNS
+APPROVED_BY
+TRANSFERRED_TO
+WORKS_AT
+
+Example:
+
+Dileep
+
+↓
+
+OWNS
+
+↓
+
+Account123
+
+Cypher:
+
+MATCH (c:Customer),(a:Account)
+WHERE c.customer_id = 1
+AND a.account_id = "123"
+CREATE (c)-[:OWNS]->(a)
+Properties
+
+Metadata stored in nodes.
+
+Customer:
+
+{
+  "customer_id": 1,
+  "name": "Dileep",
+  "city": "Bangalore"
+}
+
+Relationship Properties:
+
+TRANSFERRED_TO
+
+can have:
+
+{
+  "amount": 10000,
+  "date": "2025-01-01"
+}
+
+Cypher:
+
+CREATE (a)-[:TRANSFERRED_TO {
+    amount:10000,
+    date:"2025-01-01"
+}]->(b)
+Session 2 (11 AM – 1 PM)
+CRUD Operations
+Create Node
+CREATE (:Customer {
+  customer_id:1,
+  name:"Dileep"
+})
+Create Account
+CREATE (:Account {
+  account_id:"ACC123",
+  balance:100000
+})
+Read Node
+MATCH (c:Customer)
+RETURN c
+Update Node
+MATCH (c:Customer)
+WHERE c.customer_id=1
+
+SET c.city="Bangalore"
+
+RETURN c
+Delete Node
+MATCH (c:Customer)
+WHERE c.customer_id=1
+
+DELETE c
+
+Delete with relationships:
+
+MATCH (c:Customer)
+WHERE c.customer_id=1
+
+DETACH DELETE c
+Query Relationships
+
+Find customer accounts:
+
+MATCH (c:Customer)-[:OWNS]->(a:Account)
+
+RETURN c,a
+
+Find account owner:
+
+MATCH (c:Customer)-[:OWNS]->(a:Account)
+
+WHERE a.account_id="ACC123"
+
+RETURN c
+Banking Example
+
+Graph:
+
+Dileep
+
+↓
+
+OWNS
+
+↓
+
+ACC123
+
+↓
+
+TRANSFERRED_TO
+
+↓
+
+ACC456
+
+↓
+
+BELONGS_TO
+
+↓
+
+Ravi
+
+Find transfer chain:
+
+MATCH p=
+(a:Account)-[:TRANSFERRED_TO*]->(b)
+
+RETURN p
+Session 3 (4 PM – 6 PM)
+Neo4j Python Integration
+
+Install:
+
+pip install neo4j
+
+Connect:
+
+from neo4j import GraphDatabase
+
+uri = "bolt://localhost:7687"
+
+driver = GraphDatabase.driver(
+    uri,
+    auth=("neo4j","password")
+)
+
+Create Node:
+
+def create_customer(tx):
+
+    tx.run("""
+    CREATE (:Customer {
+        customer_id:1,
+        name:'Dileep'
+    })
+    """)
+
+with driver.session() as session:
+    session.execute_write(create_customer)
+
+Read Data:
+
+def get_customers(tx):
+
+    result = tx.run("""
+    MATCH (c:Customer)
+    RETURN c.name
+    """)
+
+    return [r["c.name"] for r in result]
+Neo4j Browser
+
+Useful commands:
+
+Show all nodes:
+
+MATCH (n)
+RETURN n
+
+Show all relationships:
+
+MATCH ()-[r]->()
+RETURN r
+
+Count nodes:
+
+MATCH (n)
+RETURN count(n)
+Neo4j for Graph RAG
+
+Pipeline:
+
+PDFs
+
+↓
+
+Entity Extraction
+
+↓
+
+Relationship Extraction
+
+↓
+
+Neo4j
+
+↓
+
+Graph Retrieval
+
+↓
+
+LLM
+Banking Graph Model
+Customer
+
+↓
+
+OWNS
+
+↓
+
+Account
+
+↓
+
+HAS
+
+↓
+
+Loan
+
+↓
+
+APPROVED_BY
+
+↓
+
+Employee
+
+↓
+
+WORKS_AT
+
+↓
+
+Branch
+Neo4j + LangChain
+
+Install:
+
+pip install langchain-community
+
+Connect:
+
+from langchain_community.graphs import Neo4jGraph
+
+graph = Neo4jGraph(
+    url="bolt://localhost:7687",
+    username="neo4j",
+    password="password"
+)
+
+Query:
+
+graph.query("""
+MATCH (c:Customer)
+RETURN c
+""")
+Interview Questions
+What is Neo4j?
+
+A graph database optimized for storing and querying relationships.
+
+What are Nodes?
+
+Entities in the graph.
+
+Examples:
+
+Customer
+Account
+Loan
+What are Relationships?
+
+Connections between nodes.
+
+Examples:
+
+OWNS
+APPROVED_BY
+TRANSFERRED_TO
+What are Properties?
+
+Metadata stored on nodes and relationships.
+
+What is Cypher?
+
+Neo4j's query language.
+
+Difference Between SQL and Neo4j?
+SQL	Neo4j
+Tables	Nodes
+Rows	Nodes
+Foreign Keys	Relationships
+JOINs	Traversals
+Why is Neo4j useful for Graph RAG?
+
+Because it efficiently stores and retrieves entity relationships.
+
+What is a Graph Traversal?
+
+Following relationships between nodes.
+
+Example:
+
+Customer
+ ↓
+Account
+ ↓
+Transaction
+ ↓
+Customer
+What is DETACH DELETE?
+
+Deletes node and all associated relationships.
+
+Goldman Sachs Style Questions
+How would you model a banking system in Neo4j?
+
+Nodes:
+
+Customer
+Account
+Loan
+Branch
+Employee
+
+Relationships:
+
+OWNS
+HAS
+APPROVED_BY
+WORKS_AT
+TRANSFERRED_TO
+Why choose Neo4j over PostgreSQL?
+
+For highly connected data where relationship traversal is critical.
+
+How does Neo4j help in fraud detection?
+
+It can quickly identify hidden transaction chains and customer relationships.
+
+How would Neo4j integrate with Graph RAG?
+Documents
+ ↓
+Entity Extraction
+ ↓
+Relationship Extraction
+ ↓
+Neo4j
+ ↓
+Graph Retrieval
+ ↓
+LLM
+Coding Tasks
+Task 1
+
+Install Neo4j Desktop or Neo4j Community Edition.
+
+Task 2
+
+Create Customer nodes.
+
+Task 3
+
+Create Account nodes.
+
+Task 4
+
+Create OWNS relationships.
+
+Task 5
+
+Create TRANSFERRED_TO relationships.
+
+Task 6
+
+Query customer-account mappings.
+
+Task 7
+
+Integrate Neo4j with Python.
+
+Task 8
+
+Build a mini Banking Knowledge Graph.
+
+DSA (90 Minutes)
+
+Solve:
+
+Redundant Connection
+Evaluate Division
+Find Eventual Safe States
+Path With Minimum Effort
+Swim in Rising Water
+End-of-Day Deliverable
+Neo4j
+Nodes
+Relationships
+Properties
+Cypher
+CRUD Operations
+Graph Traversal
+Python Integration
+
+Customer
+ ↓
+OWNS
+ ↓
+Account
+ ↓
+TRANSFERRED_TO
+ ↓
+Account
+Day 54 (Next)
+
+Cypher Query Language Deep Dive
+
+Topics:
+
+MATCH
+WHERE
+RETURN
+CREATE
+MERGE
+DELETE
+Aggregations
+Variable Length Paths
+Neo4j Query Optimization
+Banking Fraud Investigation Queries
+
+Day 54 is one of the most important practical days because Cypher queries are asked frequently in Graph RAG and Neo4j interviews.

@@ -1,0 +1,501 @@
+Day 54 – Hallucination Detection in RAG & LLM Systems
+
+Hallucination Detection is one of the most important topics for senior AI Engineer interviews and production AI systems.
+
+A hallucination occurs when an LLM generates information that is:
+
+Factually incorrect
+Unsupported by retrieved documents
+Fabricated
+Misleading
+What is Hallucination?
+
+User asks:
+
+What is the interest rate for XYZ Home Loan?
+
+Retrieved Context:
+
+Home Loan Processing Fee = 0.5%
+
+LLM Answer:
+
+Interest rate is 8.75%
+
+Problem:
+
+Interest rate was never present in context.
+
+This is a hallucination.
+
+Why Hallucinations Occur
+1. No Retrieval
+User Query
+
+↓
+
+LLM
+
+↓
+
+Answer
+
+Model guesses.
+
+2. Poor Retrieval
+User Query
+
+↓
+
+Wrong Documents
+
+↓
+
+LLM
+
+Wrong context → Wrong answer.
+
+3. Missing Context
+
+Retrieved:
+
+Loan eligibility information
+
+Asked:
+
+Loan interest rates
+
+Model fills gaps.
+
+4. Outdated Knowledge
+
+Model knowledge cutoff issue.
+
+Hallucination Types
+Type 1: Factual Hallucination
+India has 35 states.
+
+Incorrect fact.
+
+Type 2: Citation Hallucination
+According to RBI Circular 2025...
+
+No such document exists.
+
+Type 3: Numerical Hallucination
+Interest Rate = 7.5%
+
+Actual:
+
+Interest Rate = 8.5%
+Type 4: Reasoning Hallucination
+
+Wrong conclusion despite correct facts.
+
+Hallucination Detection Architecture
+User Query
+
+↓
+
+Retriever
+
+↓
+
+Context
+
+↓
+
+LLM
+
+↓
+
+Generated Answer
+
+↓
+
+Hallucination Detector
+
+↓
+
+Pass / Fail
+Session 1 – Rule-Based Detection
+Context Verification
+
+Context:
+
+Home loan processing fee = 0.5%
+
+Answer:
+
+Interest rate = 8%
+
+Detector:
+
+Answer not supported by context
+
+Flag hallucination.
+
+Keyword Matching
+
+Context:
+
+PAN Card
+Aadhaar Card
+Salary Slip
+
+Answer:
+
+Passport mandatory
+
+Not found in context.
+
+Potential hallucination.
+
+Session 2 – LLM-as-a-Judge
+
+Very common in enterprise AI.
+
+Prompt:
+
+Given:
+
+Question
+Context
+Answer
+
+Determine whether the answer
+is fully supported by context.
+
+Return:
+
+SUPPORTED
+or
+NOT_SUPPORTED
+
+Example:
+
+Question:
+
+Required documents for home loan?
+
+Context:
+
+PAN Card
+Aadhaar Card
+Salary Slip
+
+Answer:
+
+PAN Card, Aadhaar Card, Salary Slip
+
+Result:
+
+SUPPORTED
+Groundedness Checking
+
+Most common production approach.
+
+Check:
+
+Answer Sentence
+
+↓
+
+Evidence Exists?
+
+↓
+
+Yes/No
+
+Example
+
+Answer:
+
+Interest Rate = 8%
+
+Search context.
+
+Found?
+
+No
+
+Hallucination.
+
+Session 3 – Advanced Detection
+Faithfulness Evaluation
+
+Measures:
+
+How much answer is supported
+by retrieved context.
+RAGAS Metrics
+
+Popular framework:
+
+RAGAS
+
+Metrics:
+
+Faithfulness
+Context Precision
+Context Recall
+Answer Relevancy
+
+Example:
+
+from ragas.metrics import faithfulness
+TruLens
+
+Another enterprise framework:
+
+TruLens
+
+Detects:
+
+Hallucinations
+Toxicity
+Relevance
+Groundedness
+DeepEval
+
+Popular interview topic:
+
+DeepEval
+
+Provides:
+
+Faithfulness Score
+
+Answer Relevancy
+
+Context Relevancy
+Banking Example
+
+Query:
+
+What documents are needed for home loan?
+
+Retrieved:
+
+PAN Card
+Aadhaar Card
+Salary Slips
+
+LLM Output:
+
+PAN Card
+Aadhaar Card
+Salary Slips
+Passport
+
+Detector:
+
+Passport unsupported
+
+Hallucination detected.
+
+Prevention Techniques
+1. Better Retrieval
+Hybrid Search
+
++
+
+Re-ranking
+2. Parent Child Retrieval
+
+More complete context.
+
+3. Metadata Filtering
+
+Higher precision.
+
+4. Corrective RAG (CRAG)
+
+Validate retrieval before generation.
+
+5. Graph RAG
+
+Use structured relationships.
+
+6. Citation-Based Answers
+
+Force answer with sources.
+
+Example:
+
+Document A states...
+Production Pipeline
+User Query
+
+↓
+
+Retriever
+
+↓
+
+Re-ranker
+
+↓
+
+LLM
+
+↓
+
+Hallucination Checker
+
+↓
+
+Faithfulness Score
+
+↓
+
+Accept / Reject
+Interview Questions
+What is a hallucination?
+
+A generated statement not supported by facts or provided context.
+
+Why do hallucinations occur?
+Missing retrieval
+Poor retrieval
+Ambiguous queries
+Outdated knowledge
+What is groundedness?
+
+The degree to which an answer is supported by evidence.
+
+What is faithfulness?
+
+The extent to which generated answers are supported by retrieved context.
+
+How can hallucinations be detected?
+Rule-based validation
+Groundedness checks
+LLM-as-a-Judge
+RAGAS
+TruLens
+DeepEval
+What is the difference between relevancy and faithfulness?
+Metric	Meaning
+Relevancy	Answers the question
+Faithfulness	Supported by context
+How does CRAG reduce hallucinations?
+
+By validating retrieval quality before generation.
+
+How does Graph RAG reduce hallucinations?
+
+By retrieving structured relationships instead of isolated chunks.
+
+Goldman Sachs Style Questions
+How would you detect hallucinations in a Banking RAG system?
+Retrieve
+
+↓
+
+Generate
+
+↓
+
+Groundedness Check
+
+↓
+
+Faithfulness Score
+
+↓
+
+Approve / Reject
+Which metrics would you track?
+Faithfulness
+Context Precision
+Context Recall
+Answer Relevancy
+How would you build a hallucination detector?
+Retrieve context
+Generate answer
+Compare answer against context
+Score support
+Flag unsupported claims
+Which tools are commonly used?
+RAGAS
+TruLens
+DeepEval
+Coding Tasks
+Task 1
+
+Build a simple groundedness checker.
+
+Task 2
+
+Implement LLM-as-a-Judge.
+
+Task 3
+
+Calculate faithfulness score.
+
+Task 4
+
+Integrate RAGAS.
+
+Task 5
+
+Integrate TruLens.
+
+Task 6
+
+Detect unsupported claims.
+
+Task 7
+
+Add hallucination detection to your Banking RAG project.
+
+Task 8
+
+Reject answers below a faithfulness threshold.
+
+DSA (90 Minutes)
+
+Solve:
+
+LRU Cache
+Median of Two Sorted Arrays
+Sliding Window Maximum
+Word Search II
+Minimum Window Substring
+End-of-Day Deliverable
+Hallucination Detection
+Groundedness
+Faithfulness
+LLM-as-a-Judge
+RAGAS
+TruLens
+DeepEval
+
+Query
+ ↓
+Retrieve
+ ↓
+Generate
+ ↓
+Validate
+ ↓
+Approve
+Day 55 (Next)
+
+RAG Evaluation & Metrics
+
+Topics:
+
+Precision@K
+Recall@K
+MRR
+NDCG
+Faithfulness
+Context Precision
+Context Recall
+Answer Relevancy
+RAGAS Evaluation Pipeline
+Banking RAG Evaluation Dashboard
+
+This topic is extremely common in senior AI Engineer and GenAI Architect interviews because companies care more about measuring RAG quality than building a basic RAG system.
